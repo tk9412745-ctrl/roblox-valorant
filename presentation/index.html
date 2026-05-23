@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<title>Roblox Valorant — UI Presentation</title>
+<style>
+:root {
+  --bg: #0a0a14;
+  --panel: #15151f;
+  --panel-2: #1f1f2e;
+  --accent: #ff4655;
+  --accent-glow: #ff5e6c;
+  --attacker: #ff5050;
+  --defender: #5078ff;
+  --gold: #ffdd66;
+  --green: #50dc78;
+  --purple: #b450dc;
+  --text: #f0f0f5;
+  --text-dim: #b0b0c0;
+  --text-faint: #707080;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; min-height: 100vh; }
+header { background: linear-gradient(180deg, #15151f, #0a0a14); padding: 20px; border-bottom: 2px solid var(--accent); }
+header h1 { color: var(--accent); font-weight: 900; font-size: 28px; letter-spacing: 1px; }
+header p { color: var(--text-dim); margin-top: 5px; font-size: 14px; }
+
+nav { display: flex; flex-wrap: wrap; gap: 6px; padding: 16px 20px; background: var(--panel); border-bottom: 1px solid #2a2a3a; }
+nav button { background: var(--panel-2); color: var(--text); border: 1px solid #2a2a3a; padding: 8px 14px; cursor: pointer; font-size: 12px; font-weight: 600; border-radius: 6px; transition: all 0.15s; }
+nav button:hover { background: #2a2a3a; }
+nav button.active { background: var(--accent); border-color: var(--accent-glow); color: white; box-shadow: 0 0 15px rgba(255, 70, 85, 0.5); }
+
+main { padding: 20px; display: flex; justify-content: center; }
+.viewport { width: 100%; max-width: 1280px; aspect-ratio: 16/9; background: #000; border: 2px solid #2a2a3a; position: relative; overflow: hidden; border-radius: 4px; box-shadow: 0 10px 50px rgba(0,0,0,0.5); }
+
+.screen { position: absolute; inset: 0; }
+.screen:not(.active) { display: none !important; }
+
+.caption { max-width: 1280px; margin: 16px auto; padding: 12px 16px; background: var(--panel); border-left: 3px solid var(--accent); color: var(--text-dim); font-size: 13px; line-height: 1.5; }
+.caption strong { color: var(--gold); }
+.caption code { background: #000; padding: 2px 6px; border-radius: 3px; color: var(--green); font-size: 12px; }
+
+/* ============================================================ */
+/* WELCOME SCREEN */
+/* ============================================================ */
+.welcome { background: #000; }
+.welcome-content { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; animation: fadeInWelcome 1.5s ease; }
+.welcome-logo { font-size: 80px; font-weight: 900; color: var(--accent); text-shadow: 0 0 30px var(--accent-glow), 0 0 60px var(--accent); letter-spacing: 8px; }
+.welcome-subtitle { font-size: 24px; color: var(--text-dim); font-weight: 600; letter-spacing: 4px; }
+.welcome-greeting { font-size: 20px; color: var(--gold); }
+@keyframes fadeInWelcome { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ============================================================ */
+/* LOBBY */
+/* ============================================================ */
+.lobby { background: linear-gradient(180deg, #0a0a14, #15151f); }
+.lobby-title { position: absolute; top: 60px; left: 0; right: 0; text-align: center; font-size: 36px; color: var(--accent); font-weight: 900; }
+.lobby-subtitle { position: absolute; top: 110px; left: 0; right: 0; text-align: center; color: var(--text-dim); }
+.lobby-panels { position: absolute; top: 200px; left: 50%; transform: translateX(-50%); display: flex; gap: 80px; width: 800px; justify-content: center; }
+.team-panel { width: 350px; background: rgba(25,25,40,0.7); border-radius: 12px; padding: 20px; border: 2px solid; }
+.team-panel.attackers { border-color: var(--attacker); }
+.team-panel.defenders { border-color: var(--defender); }
+.team-panel h3 { font-size: 24px; font-weight: 900; text-align: center; margin-bottom: 16px; }
+.team-panel.attackers h3 { color: var(--attacker); }
+.team-panel.defenders h3 { color: var(--defender); }
+.team-panel ul { list-style: none; }
+.team-panel li { padding: 8px 12px; background: rgba(40,40,55,0.5); margin-bottom: 4px; border-radius: 4px; font-weight: 600; }
+.team-panel li.you { color: var(--gold); border-left: 3px solid var(--gold); }
+.lobby-count { position: absolute; bottom: 80px; left: 0; right: 0; text-align: center; color: var(--gold); font-weight: 700; }
+
+/* ============================================================ */
+/* AGENT SELECT */
+/* ============================================================ */
+.agent-select { background: linear-gradient(180deg, #100610, #15151f); }
+.agent-select-title { position: absolute; top: 40px; left: 0; right: 0; text-align: center; font-size: 40px; color: var(--accent); font-weight: 900; }
+.agent-timer { position: absolute; top: 120px; left: 0; right: 0; text-align: center; font-size: 24px; color: var(--gold); font-weight: 700; }
+.agent-grid { position: absolute; top: 175px; left: 50%; transform: translateX(-50%); display: grid; grid-template-columns: repeat(4, 220px); gap: 16px; }
+.agent-card { width: 220px; height: 280px; background: rgba(25,25,40,0.85); border-radius: 12px; border: 2px solid; position: relative; overflow: hidden; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+.agent-card:hover { transform: translateY(-4px); box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+.agent-card.selected { background: rgba(60,60,90,0.9); }
+.agent-accent { height: 6px; }
+.agent-portrait { height: 130px; display: flex; align-items: center; justify-content: center; font-size: 70px; font-weight: 900; color: white; opacity: 0.95; }
+.agent-name { padding: 8px 16px 4px; font-size: 18px; font-weight: 900; text-align: center; }
+.agent-role { padding: 0 16px 6px; font-size: 11px; text-align: center; font-weight: 700; letter-spacing: 1px; }
+.agent-desc { padding: 0 14px; font-size: 10px; color: var(--text-dim); text-align: center; line-height: 1.3; }
+
+/* Per-agent colors */
+.agent-jett .agent-accent, .agent-jett .agent-portrait { background: #5acce0; }
+.agent-jett .agent-role { color: #5acce0; }
+.agent-sage .agent-accent, .agent-sage .agent-portrait { background: #8ad8f0; }
+.agent-sage .agent-role { color: #8ad8f0; }
+.agent-phoenix .agent-accent, .agent-phoenix .agent-portrait { background: #ff7838; }
+.agent-phoenix .agent-role { color: #ff7838; }
+.agent-cypher .agent-accent, .agent-cypher .agent-portrait { background: #ff64c8; }
+.agent-cypher .agent-role { color: #ff64c8; }
+.agent-reyna .agent-accent, .agent-reyna .agent-portrait { background: #b432dc; }
+.agent-reyna .agent-role { color: #b432dc; }
+.agent-kayo .agent-accent, .agent-kayo .agent-portrait { background: #64c8ff; }
+.agent-kayo .agent-role { color: #64c8ff; }
+.agent-sova .agent-accent, .agent-sova .agent-portrait { background: #3cb4ff; }
+.agent-sova .agent-role { color: #3cb4ff; }
+.agent-brimstone .agent-accent, .agent-brimstone .agent-portrait { background: #ffb432; }
+.agent-brimstone .agent-role { color: #ffb432; }
+.agent-viper .agent-accent, .agent-viper .agent-portrait { background: #50c832; }
+.agent-viper .agent-role { color: #50c832; }
+.agent-astra .agent-accent, .agent-astra .agent-portrait { background: #9650dc; }
+.agent-astra .agent-role { color: #9650dc; }
+.agent-omen .agent-accent, .agent-omen .agent-portrait { background: #463278; }
+.agent-omen .agent-role { color: #8a78c8; }
+.agent-killjoy .agent-accent, .agent-killjoy .agent-portrait { background: #ffdc32; }
+.agent-killjoy .agent-role { color: #ffdc32; }
+
+/* ============================================================ */
+/* MATCH COUNTDOWN */
+/* ============================================================ */
+.countdown { background: radial-gradient(circle, #1a0a14 0%, #000 70%); display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 30px; }
+.countdown-number { font-size: 200px; font-weight: 900; color: var(--gold); text-shadow: 0 0 60px var(--gold); animation: countdownPulse 1s ease infinite; }
+.countdown-label { font-size: 28px; color: var(--text-dim); letter-spacing: 6px; font-weight: 700; }
+@keyframes countdownPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+
+/* ============================================================ */
+/* IN-GAME HUD */
+/* ============================================================ */
+.hud { background: linear-gradient(180deg, #2a3548 0%, #1a2030 60%, #0a0a14 100%); }
+
+/* Top score bar */
+.hud-score-container { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 400px; }
+.hud-score-bar { background: rgba(20,20,30,0.85); border-radius: 8px; padding: 8px 20px; display: flex; justify-content: space-between; align-items: center; height: 60px; }
+.hud-score-team { font-size: 32px; font-weight: 900; }
+.hud-score-team.atk { color: var(--attacker); }
+.hud-score-team.def { color: var(--defender); }
+.hud-score-timer { font-size: 22px; font-weight: 700; color: white; }
+.hud-phase { text-align: center; color: var(--green); font-weight: 700; font-size: 12px; margin-top: 4px; letter-spacing: 2px; }
+.hud-round { text-align: center; color: var(--text-faint); font-size: 11px; margin-top: 2px; }
+
+/* Round counter dots */
+.hud-dots { position: absolute; top: 75px; left: 50%; transform: translateX(-50%); display: flex; gap: 16px; align-items: center; }
+.hud-dots-team { display: flex; gap: 3px; }
+.hud-dot { width: 11px; height: 11px; border-radius: 50%; background: #2a2a3a; }
+.hud-dot.atk-won { background: var(--attacker); }
+.hud-dot.def-won { background: var(--defender); }
+.hud-vs { color: var(--text-faint); font-weight: 700; }
+
+/* Agent indicator (top-left) */
+.hud-agent { position: absolute; top: 16px; left: 16px; background: rgba(20,20,30,0.6); padding: 6px 14px; border-radius: 6px; font-weight: 700; font-size: 13px; }
+.hud-streak { position: absolute; top: 16px; left: 175px; background: rgba(20,20,30,0.6); padding: 6px 12px; border-radius: 6px; font-weight: 700; font-size: 13px; color: var(--gold); }
+
+/* Minimap (top-right) */
+.hud-minimap { position: absolute; top: 16px; right: 16px; width: 200px; height: 200px; background: rgba(20,25,35,0.75); border-radius: 12px; border: 2px solid #4a4a5a; overflow: hidden; }
+.minimap-floor { position: absolute; inset: 6%; background: rgba(220,200,170,0.15); border-radius: 8px; }
+.minimap-cover { position: absolute; background: rgba(140,100,70,0.4); border-radius: 2px; }
+.minimap-site { position: absolute; width: 30px; height: 30px; border-radius: 50%; background: rgba(255,100,80,0.3); border: 1px solid #ff5070; display: flex; align-items: center; justify-content: center; color: #ff8090; font-weight: 900; font-size: 12px; }
+.minimap-player { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 14px; height: 14px; background: var(--green); border-radius: 50%; box-shadow: 0 0 8px var(--green); }
+.minimap-player::after { content: ''; position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-bottom: 10px solid var(--green); }
+.minimap-tm { position: absolute; width: 10px; height: 10px; background: rgba(80,220,120,0.7); border-radius: 50%; }
+.minimap-spike { position: absolute; width: 10px; height: 10px; background: var(--attacker); border-radius: 3px; box-shadow: 0 0 6px var(--attacker); animation: blink 1s infinite; }
+@keyframes blink { 50% { opacity: 0.4; } }
+
+/* Crosshair (center) */
+.hud-crosshair { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 32px; height: 32px; }
+.crosshair-line { position: absolute; background: #00ffb4; }
+.crosshair-line.top { top: 0; left: 50%; transform: translateX(-50%); width: 2px; height: 8px; }
+.crosshair-line.bottom { bottom: 0; left: 50%; transform: translateX(-50%); width: 2px; height: 8px; }
+.crosshair-line.left { left: 0; top: 50%; transform: translateY(-50%); width: 8px; height: 2px; }
+.crosshair-line.right { right: 0; top: 50%; transform: translateY(-50%); width: 8px; height: 2px; }
+.crosshair-dot { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 2px; height: 2px; background: #00ffb4; }
+
+/* Enemy nametag */
+.hud-enemy-nametag { position: absolute; top: 35%; right: 25%; background: rgba(0,0,0,0.4); padding: 4px 10px; border-radius: 4px; font-weight: 700; font-size: 12px; }
+.hud-enemy-name { color: var(--attacker); font-size: 13px; font-weight: 700; }
+.hud-enemy-hp { width: 100px; height: 4px; background: #222; margin-top: 4px; border-radius: 2px; overflow: hidden; }
+.hud-enemy-hp-bar { height: 100%; width: 78%; background: var(--green); }
+
+/* Killfeed (right) */
+.hud-killfeed { position: absolute; top: 230px; right: 16px; width: 340px; display: flex; flex-direction: column; gap: 4px; }
+.killfeed-entry { background: rgba(0,0,0,0.55); padding: 6px 12px; border-radius: 4px; display: flex; gap: 8px; align-items: center; font-weight: 700; font-size: 13px; }
+.killfeed-killer { color: var(--attacker); }
+.killfeed-victim { color: var(--defender); }
+.killfeed-arrow { color: #999; }
+.killfeed-hs { color: var(--gold); }
+
+/* Bottom HUD */
+.hud-bottom-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 110px; background: linear-gradient(180deg, transparent, rgba(0,0,0,0.7)); }
+
+.hud-health-armor { position: absolute; bottom: 30px; left: 20px; width: 280px; }
+.hud-armor-bg { width: 100%; height: 10px; background: rgba(20,20,30,0.7); border-radius: 2px; margin-bottom: 4px; overflow: hidden; }
+.hud-armor-bar { height: 100%; width: 80%; background: #96c8ff; }
+.hud-health-bg { width: 100%; height: 36px; background: rgba(20,20,30,0.7); border-radius: 4px; position: relative; overflow: hidden; }
+.hud-health-bar { height: 100%; width: 100%; background: var(--green); }
+.hud-health-label { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 22px; color: white; text-shadow: 0 0 4px black; }
+
+.hud-ult { position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%); background: rgba(20,20,30,0.7); padding: 4px 16px; border-radius: 4px; font-weight: 700; font-size: 16px; color: var(--gold); border: 1px solid var(--gold); }
+
+.hud-abilities { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; }
+.ability-box { width: 60px; height: 60px; background: rgba(20,20,30,0.7); border-radius: 6px; border: 2px solid; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.ability-box .key { font-size: 22px; font-weight: 900; line-height: 1; }
+.ability-box .info { font-size: 10px; margin-top: 2px; font-weight: 700; }
+.ability-box.ready { border-color: var(--green); }
+.ability-box.ready .key { color: #c8f0d0; }
+.ability-box.ready .info { color: var(--green); }
+.ability-box.empty { border-color: #555; }
+.ability-box.empty .key { color: #777; }
+.ability-box.empty .info { color: #555; }
+.ability-box.ult-ready { border-color: var(--gold); background: rgba(80,60,100,0.7); }
+.ability-box.ult-ready .key { color: var(--gold); }
+.ability-box.ult-ready .info { color: var(--gold); font-size: 8px; }
+
+.hud-ammo { position: absolute; bottom: 30px; right: 20px; font-size: 38px; font-weight: 900; color: white; text-shadow: 0 0 4px black; }
+
+/* ============================================================ */
+/* SPIKE PLANTED HUD */
+/* ============================================================ */
+.spike-planted .hud-edge { position: absolute; background: #ff3030; pointer-events: none; }
+.spike-planted .hud-edge.top { top: 0; left: 0; right: 0; height: 80px; background: linear-gradient(180deg, rgba(255,30,30,0.7), transparent); animation: pulseEdge 1.5s infinite; }
+.spike-planted .hud-edge.bottom { bottom: 0; left: 0; right: 0; height: 80px; background: linear-gradient(0deg, rgba(255,30,30,0.7), transparent); animation: pulseEdge 1.5s infinite; }
+.spike-planted .hud-edge.left { top: 0; left: 0; bottom: 0; width: 80px; background: linear-gradient(90deg, rgba(255,30,30,0.7), transparent); animation: pulseEdge 1.5s infinite; }
+.spike-planted .hud-edge.right { top: 0; right: 0; bottom: 0; width: 80px; background: linear-gradient(270deg, rgba(255,30,30,0.7), transparent); animation: pulseEdge 1.5s infinite; }
+@keyframes pulseEdge { 50% { opacity: 0.4; } }
+
+.spike-timer { position: absolute; top: 110px; left: 50%; transform: translateX(-50%); background: rgba(100,20,20,0.85); padding: 8px 20px; border-radius: 8px; display: flex; gap: 12px; align-items: center; border: 2px solid #ff5030; }
+.spike-timer-icon { font-size: 32px; }
+.spike-timer-text { font-size: 32px; font-weight: 900; color: #ff6060; }
+
+/* ============================================================ */
+/* PLANT/DEFUSE PROGRESS */
+/* ============================================================ */
+.plant-defuse { background: linear-gradient(180deg, #1a2030, #0a0a14); }
+.plant-prompt { position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%); background: rgba(20,20,30,0.7); padding: 12px 30px; border-radius: 6px; color: var(--gold); font-weight: 700; font-size: 22px; }
+.plant-progress { position: absolute; top: 70%; left: 50%; transform: translate(-50%, -50%); width: 200px; height: 200px; }
+.plant-progress-ring { width: 100%; height: 100%; border: 8px solid rgba(40,40,50,0.6); border-radius: 50%; position: relative; }
+.plant-progress-fill { position: absolute; inset: -8px; border: 8px solid transparent; border-top: 8px solid #50c8ff; border-right: 8px solid #50c8ff; border-radius: 50%; transform: rotate(45deg); animation: fillProgress 2s ease infinite; }
+@keyframes fillProgress { 0%, 100% { box-shadow: 0 0 30px rgba(80,200,255,0.6); } 50% { box-shadow: 0 0 50px rgba(80,200,255,0.9); } }
+.plant-progress-text { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.plant-progress-label { font-size: 22px; font-weight: 900; color: white; text-shadow: 0 0 4px black; }
+.plant-progress-percent { font-size: 18px; color: var(--gold); margin-top: 4px; font-weight: 700; }
+
+/* ============================================================ */
+/* SCOREBOARD */
+/* ============================================================ */
+.scoreboard { background: rgba(0,0,0,0.6); padding: 60px 80px; }
+.scoreboard-inner { background: rgba(15,15,25,0.95); border-radius: 12px; padding: 40px; }
+.scoreboard h2 { text-align: center; font-size: 28px; font-weight: 900; color: white; margin-bottom: 30px; }
+.scoreboard-teams { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+.score-panel h3 { font-weight: 900; font-size: 20px; text-align: center; margin-bottom: 20px; }
+.score-panel.atk h3 { color: var(--attacker); }
+.score-panel.def h3 { color: var(--defender); }
+.score-row-header { display: grid; grid-template-columns: 1.5fr 70px 50px 30px 30px 30px 50px 50px; gap: 8px; padding: 8px 12px; font-size: 11px; color: var(--text-faint); font-weight: 700; }
+.score-row { display: grid; grid-template-columns: 1.5fr 70px 50px 30px 30px 30px 50px 50px; gap: 8px; padding: 10px 12px; background: rgba(30,30,45,0.6); border-radius: 4px; margin-bottom: 4px; font-size: 13px; font-weight: 600; }
+.score-row:nth-child(odd) { background: rgba(20,20,35,0.6); }
+.score-row .mvp-medal { color: var(--gold); font-weight: 900; }
+.score-row .player-name { color: white; font-weight: 700; }
+.score-row .acs { color: var(--gold); font-weight: 700; }
+.score-row .k { color: var(--green); font-weight: 700; }
+.score-row .d { color: #d05050; }
+
+/* ============================================================ */
+/* INVENTORY */
+/* ============================================================ */
+.inventory { background: linear-gradient(180deg, #0a0a14, #15151f); padding: 30px; }
+.inventory h2 { text-align: center; font-size: 26px; color: var(--accent); margin-bottom: 20px; font-weight: 900; }
+.inventory-layout { display: grid; grid-template-columns: 220px 1fr 380px; gap: 20px; height: 540px; }
+.weapon-list { background: rgba(20,20,30,0.7); border-radius: 8px; padding: 16px; overflow-y: auto; }
+.weapon-list .item { padding: 10px 12px; background: #28283c; border-radius: 4px; margin-bottom: 4px; font-weight: 700; font-size: 13px; cursor: pointer; }
+.weapon-list .item.active { background: #3c3c60; color: var(--gold); }
+.skin-grid { background: rgba(20,20,30,0.7); border-radius: 8px; padding: 16px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; align-content: start; }
+.skin-card { background: #28283c; padding: 8px; border-radius: 6px; height: 100px; position: relative; cursor: pointer; }
+.skin-card.equipped { background: #3c6850; border: 1px solid var(--green); }
+.skin-card.locked { background: #19192c; opacity: 0.6; }
+.skin-tier { width: 100%; height: 4px; border-radius: 2px; margin-bottom: 6px; }
+.skin-tier.t1 { background: #969696; }
+.skin-tier.t2 { background: #64c8ff; }
+.skin-tier.t3 { background: #b450f0; }
+.skin-tier.t4 { background: #ffb43c; }
+.skin-tier.t5 { background: #ff503c; }
+.skin-name { font-size: 11px; font-weight: 700; line-height: 1.3; }
+.skin-status { position: absolute; bottom: 6px; left: 8px; font-size: 9px; font-weight: 700; }
+.skin-status.equipped { color: var(--green); }
+.skin-status.owned { color: var(--gold); }
+.skin-status.locked { color: #777; }
+.inventory-side { display: flex; flex-direction: column; gap: 16px; }
+.preview { background: rgba(30,30,45,0.7); border-radius: 8px; padding: 16px; flex: 1; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+.preview-gun { width: 120px; height: 50px; background: linear-gradient(45deg, #2a2a3a, #50c8ff); border-radius: 8px; margin-bottom: 12px; box-shadow: 0 0 30px rgba(80,200,255,0.4); animation: rotate3d 5s linear infinite; }
+@keyframes rotate3d { from { transform: rotateY(0deg); } to { transform: rotateY(360deg); } }
+.preview-name { color: white; font-weight: 700; }
+.history { background: rgba(20,20,30,0.7); border-radius: 8px; padding: 16px; }
+.history h4 { color: var(--text-dim); font-size: 12px; margin-bottom: 12px; font-weight: 700; }
+.history-row { padding: 6px 10px; border-radius: 4px; font-size: 11px; margin-bottom: 4px; font-weight: 600; }
+.history-row.win { background: rgba(30,80,40,0.5); }
+.history-row.loss { background: rgba(80,30,30,0.5); }
+
+/* ============================================================ */
+/* BATTLE PASS */
+/* ============================================================ */
+.battlepass { background: linear-gradient(180deg, #1a0a20, #0a0a14); padding: 30px; }
+.battlepass h2 { text-align: center; font-size: 28px; color: var(--gold); font-weight: 900; margin-bottom: 20px; }
+.bp-progress-bg { width: 800px; height: 24px; background: rgba(30,30,45,0.7); margin: 0 auto 20px; border-radius: 12px; overflow: hidden; position: relative; }
+.bp-progress-fill { height: 100%; width: 24%; background: var(--gold); border-radius: 12px; }
+.bp-progress-label { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; color: white; }
+.bp-premium-cta { width: 400px; margin: 0 auto 20px; padding: 12px; background: var(--purple); color: white; text-align: center; font-weight: 900; font-size: 18px; border-radius: 8px; cursor: pointer; }
+.bp-tiers { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; max-width: 1200px; margin: 0 auto; }
+.bp-tier { background: rgba(25,25,40,0.8); border-radius: 8px; padding: 10px; height: 200px; position: relative; }
+.bp-tier.unlocked { background: rgba(40,60,40,0.7); }
+.bp-tier-num { color: var(--gold); font-weight: 700; font-size: 12px; margin-bottom: 6px; }
+.bp-tier-free { background: rgba(40,40,55,0.7); padding: 8px; border-radius: 4px; margin-bottom: 4px; height: 70px; font-size: 10px; }
+.bp-tier-premium { background: rgba(80,50,100,0.5); padding: 8px; border-radius: 4px; height: 70px; font-size: 10px; color: var(--gold); }
+.bp-tier-premium.owned { background: rgba(120,80,160,0.5); }
+.bp-tier-status { position: absolute; bottom: 4px; left: 8px; font-size: 9px; font-weight: 700; }
+.bp-tier-status.unlocked { color: var(--green); }
+.bp-tier-status.locked { color: #777; }
+
+/* ============================================================ */
+/* CAREER STATS */
+/* ============================================================ */
+.career { background: linear-gradient(180deg, #0a1424, #0a0a14); padding: 30px; }
+.career h2 { text-align: center; font-size: 28px; color: #5fc8ff; font-weight: 900; margin-bottom: 30px; }
+.career-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; max-width: 1000px; margin: 0 auto; }
+.career-stat { background: rgba(25,25,40,0.8); border-radius: 8px; padding: 16px; text-align: center; }
+.career-stat-label { font-size: 11px; color: var(--text-dim); font-weight: 700; margin-bottom: 8px; }
+.career-stat-value { font-size: 42px; font-weight: 900; }
+.career-stat .gold { color: var(--gold); }
+.career-stat .green { color: var(--green); }
+.career-stat .red { color: #ff6060; }
+.career-stat .cyan { color: #5fc8ff; }
+.career-stat .orange { color: #ff9050; }
+.career-stat .pink { color: #ff64c8; }
+.career-stat .white { color: white; }
+
+/* ============================================================ */
+/* LEADERBOARD */
+/* ============================================================ */
+.leaderboard { background: linear-gradient(180deg, #15151f, #0a0a14); padding: 30px; }
+.leaderboard h2 { text-align: center; font-size: 28px; color: var(--gold); font-weight: 900; margin-bottom: 20px; }
+.leaderboard-table { max-width: 700px; margin: 0 auto; background: rgba(20,20,30,0.7); border-radius: 8px; overflow: hidden; }
+.lb-row { display: grid; grid-template-columns: 80px 1fr 200px 100px; padding: 12px 20px; background: rgba(30,30,45,0.5); border-bottom: 1px solid rgba(50,50,70,0.3); align-items: center; }
+.lb-row:nth-child(odd) { background: rgba(20,20,35,0.5); }
+.lb-row .rank { font-weight: 900; font-size: 16px; }
+.lb-row.rank-1 .rank { color: var(--gold); }
+.lb-row.rank-2 .rank { color: #c8c8c8; }
+.lb-row.rank-3 .rank { color: #b46832; }
+.lb-row .player { color: white; font-weight: 700; }
+.lb-row .rank-name { color: #b4dcff; }
+.lb-row .mmr { color: var(--gold); font-weight: 700; text-align: right; }
+.lb-row.you { background: rgba(80,80,120,0.5) !important; border-left: 3px solid var(--gold); }
+
+/* ============================================================ */
+/* SETTINGS */
+/* ============================================================ */
+.settings { background: rgba(0,0,0,0.5); padding: 40px; }
+.settings-panel { background: #15151f; border-radius: 12px; padding: 30px; max-width: 900px; margin: 0 auto; }
+.settings h2 { color: var(--accent); font-size: 24px; font-weight: 900; text-align: center; margin-bottom: 24px; }
+.settings-layout { display: grid; grid-template-columns: 1fr 350px; gap: 20px; }
+.settings-list { display: flex; flex-direction: column; gap: 14px; }
+.setting-row { display: flex; align-items: center; justify-content: space-between; }
+.setting-label { color: var(--text-dim); font-weight: 700; font-size: 13px; }
+.setting-slider-bg { width: 200px; height: 6px; background: #2a2a3c; border-radius: 3px; overflow: hidden; position: relative; }
+.setting-slider-fill { height: 100%; background: #00cc96; border-radius: 3px; }
+.setting-value { color: var(--gold); font-weight: 700; font-size: 13px; min-width: 40px; text-align: right; }
+.color-presets { display: flex; gap: 6px; }
+.color-preset { width: 24px; height: 24px; border-radius: 4px; cursor: pointer; }
+.color-preset.selected { box-shadow: 0 0 0 2px white; }
+.toggle { width: 60px; height: 24px; background: #00cc96; border-radius: 4px; color: white; font-weight: 700; font-size: 11px; text-align: center; line-height: 24px; cursor: pointer; }
+.toggle.off { background: #555; }
+.preview-box { background: #3a3a4a; border-radius: 8px; padding: 20px; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+.preview-box-label { font-size: 12px; color: var(--text-dim); font-weight: 700; margin-bottom: 60px; }
+.preview-box .preview-cross { display: grid; grid-template-columns: 8px 16px 8px; grid-template-rows: 8px 16px 8px; gap: 0; }
+.preview-box .preview-cross > * { background: transparent; }
+.preview-box .preview-cross .top { grid-column: 2; grid-row: 1; background: #00ffb4; width: 2px; height: 8px; margin: 0 auto; }
+.preview-box .preview-cross .left { grid-column: 1; grid-row: 2; background: #00ffb4; width: 8px; height: 2px; margin: auto 0; }
+.preview-box .preview-cross .right { grid-column: 3; grid-row: 2; background: #00ffb4; width: 8px; height: 2px; margin: auto 0; }
+.preview-box .preview-cross .bottom { grid-column: 2; grid-row: 3; background: #00ffb4; width: 2px; height: 8px; margin: 0 auto; }
+.preview-box .preview-cross .dot { grid-column: 2; grid-row: 2; background: #00ffb4 !important; width: 2px; height: 2px; margin: auto; }
+.save-btn { display: block; margin: 24px auto 0; background: #00cc96; color: white; padding: 10px 30px; border: 0; border-radius: 8px; font-weight: 900; font-size: 14px; cursor: pointer; }
+
+/* ============================================================ */
+/* MAP VOTE */
+/* ============================================================ */
+.mapvote { background: linear-gradient(180deg, #0a0a14, #1a0a20); padding: 30px; }
+.mapvote h2 { text-align: center; font-size: 32px; color: var(--accent); font-weight: 900; margin-bottom: 8px; }
+.mapvote-timer { text-align: center; color: var(--gold); font-weight: 700; font-size: 22px; margin-bottom: 30px; }
+.mapvote-grid { display: grid; grid-template-columns: repeat(3, 280px); gap: 24px; justify-content: center; }
+.mapvote-card { background: rgba(25,25,40,0.85); border-radius: 12px; border: 2px solid; padding: 0; overflow: hidden; cursor: pointer; transition: transform 0.15s; }
+.mapvote-card:hover { transform: translateY(-4px); }
+.mapvote-card.voted { background: rgba(60,80,100,0.9); }
+.mapvote-banner { height: 8px; }
+.mapvote-content { padding: 20px; }
+.mapvote-card.ascent { border-color: rgb(220,200,170); }
+.mapvote-card.ascent .mapvote-banner { background: rgb(220,200,170); }
+.mapvote-card.bind { border-color: rgb(230,180,120); }
+.mapvote-card.bind .mapvote-banner { background: rgb(230,180,120); }
+.mapvote-card.split { border-color: rgb(60,60,80); }
+.mapvote-card.split .mapvote-banner { background: rgb(60,60,80); }
+.mapvote-name { color: white; font-weight: 900; font-size: 28px; margin-bottom: 6px; }
+.mapvote-theme { font-size: 12px; color: var(--text-dim); margin-bottom: 30px; }
+.mapvote-count { font-size: 56px; font-weight: 900; color: var(--gold); text-align: center; }
+.mapvote-btn { font-size: 14px; color: var(--text-dim); text-align: center; font-weight: 700; margin-top: 10px; }
+.mapvote-btn.voted { color: var(--green); }
+
+/* ============================================================ */
+/* COMPENDIUM */
+/* ============================================================ */
+.compendium { background: linear-gradient(180deg, #0a0a14, #15151f); padding: 30px; }
+.compendium h2 { text-align: center; font-size: 26px; font-weight: 900; margin-bottom: 16px; }
+.compendium-tabs { display: flex; gap: 12px; justify-content: center; margin-bottom: 20px; }
+.compendium-tab { background: #28283c; padding: 10px 24px; border-radius: 6px; font-weight: 900; font-size: 13px; cursor: pointer; }
+.compendium-tab.active { background: var(--accent); }
+.compendium-grid { background: rgba(20,20,30,0.7); border-radius: 8px; padding: 16px; height: 460px; overflow-y: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; align-content: start; }
+.compendium-agent-card { background: #1f1f2e; border-radius: 8px; padding: 12px; border: 2px solid; }
+.compendium-agent-card .name { color: white; font-weight: 900; font-size: 18px; }
+.compendium-agent-card .role { font-weight: 700; font-size: 11px; margin-bottom: 8px; }
+.compendium-agent-card .meta { font-size: 10px; color: var(--text-dim); margin-bottom: 8px; }
+.compendium-agent-card .ability-chip { background: rgba(40,40,55,0.7); padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; display: inline-block; margin: 2px; }
+.compendium-agent-card .ability-chip.ult { color: var(--gold); }
+.compendium-agent-card .status-tag { float: right; font-size: 10px; font-weight: 700; color: var(--green); }
+.compendium-agent-card .status-tag.locked { color: #777; }
+
+/* ============================================================ */
+/* VICTORY */
+/* ============================================================ */
+.victory { background: rgba(0,0,0,0.65); display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 20px; position: relative; }
+.victory-title { font-size: 140px; font-weight: 900; color: var(--gold); text-shadow: 0 0 60px var(--gold); letter-spacing: 8px; animation: victoryBounce 1s ease; }
+.victory-score { font-size: 26px; color: var(--text-dim); font-weight: 700; }
+.victory-mvp { font-size: 20px; color: var(--gold); font-weight: 700; padding: 10px 24px; background: rgba(60,40,80,0.6); border: 2px solid var(--gold); border-radius: 8px; margin-top: 20px; }
+@keyframes victoryBounce { 0% { opacity: 0; transform: scale(0.5); } 100% { opacity: 1; transform: scale(1); } }
+.fireworks { position: absolute; inset: 0; pointer-events: none; }
+.firework { position: absolute; width: 4px; height: 4px; border-radius: 50%; animation: firework 1.5s ease-out infinite; }
+@keyframes firework { 0% { transform: scale(0); opacity: 1; box-shadow: 0 0 0 0 currentColor; } 100% { transform: scale(40); opacity: 0; box-shadow: 0 0 0 4px transparent; } }
+.firework.fw1 { top: 20%; left: 15%; color: #ff5050; animation-delay: 0s; }
+.firework.fw2 { top: 30%; right: 20%; color: #50ff80; animation-delay: 0.3s; }
+.firework.fw3 { top: 60%; left: 25%; color: #5070ff; animation-delay: 0.6s; }
+.firework.fw4 { top: 70%; right: 30%; color: #ffdd66; animation-delay: 0.9s; }
+.firework.fw5 { top: 40%; left: 50%; color: #ff64c8; animation-delay: 1.2s; }
+
+/* ============================================================ */
+/* DAMAGE INDICATOR */
+/* ============================================================ */
+.dmg-indicator { position: absolute; width: 100px; height: 12px; background: #ff3030; opacity: 0.8; transform-origin: 50% 130px; border-radius: 4px; box-shadow: 0 0 12px rgba(255,200,200,0.5); top: 50%; left: 50%; }
+.dmg-indicator.dmg-1 { transform: translate(-50%, -130px); }
+.dmg-indicator.dmg-2 { transform: translate(-50%, -130px) rotate(45deg); }
+.dmg-indicator.dmg-3 { transform: translate(-50%, -130px) rotate(120deg); opacity: 0.5; }
+
+/* footer */
+footer { padding: 30px 20px; text-align: center; color: var(--text-faint); font-size: 12px; border-top: 1px solid #2a2a3a; margin-top: 40px; }
+footer a { color: var(--accent); text-decoration: none; }
+
+</style>
+</head>
+<body>
+<header>
+  <h1>VALORANT-LIKE — Roblox FPS UI Presentation</h1>
+  <p>102 sprintów · 120 plików Lua · 18,697 linii · 664.9 KB · 12 agentów · 6 map · 19 broni</p>
+</header>
+
+<nav id="nav">
+  <button data-screen="welcome" class="active">Welcome</button>
+  <button data-screen="lobby">Lobby</button>
+  <button data-screen="agent-select">Agent Select</button>
+  <button data-screen="countdown">Countdown</button>
+  <button data-screen="hud">Gameplay HUD</button>
+  <button data-screen="spike-planted">Spike Planted</button>
+  <button data-screen="plant-defuse">Plant/Defuse</button>
+  <button data-screen="scoreboard">Scoreboard</button>
+  <button data-screen="inventory">Inventory</button>
+  <button data-screen="battlepass">Battle Pass</button>
+  <button data-screen="career">Career Stats</button>
+  <button data-screen="leaderboard">Leaderboard</button>
+  <button data-screen="settings">Settings</button>
+  <button data-screen="mapvote">Map Vote</button>
+  <button data-screen="compendium">Compendium</button>
+  <button data-screen="victory">Victory</button>
+</nav>
+
+<main>
+  <div class="viewport">
+
+    <!-- WELCOME -->
+    <div class="screen welcome active">
+      <div class="welcome-content">
+        <div class="welcome-logo">VALORANT-LIKE</div>
+        <div class="welcome-subtitle">TACTICAL FPS</div>
+        <div class="welcome-greeting">Welcome, PlayerName</div>
+      </div>
+    </div>
+
+    <!-- LOBBY -->
+    <div class="screen lobby">
+      <div class="lobby-title">WAITING FOR PLAYERS</div>
+      <div class="lobby-subtitle">Match begins in 15 seconds...</div>
+      <div class="lobby-panels">
+        <div class="team-panel attackers">
+          <h3>ATTACKERS</h3>
+          <ul>
+            <li class="you">▪ PlayerName (YOU)</li>
+            <li>▪ Phoenix-Bot</li>
+            <li>▪ Reyna-Bot</li>
+            <li>▪ Cypher-Bot</li>
+            <li>▪ Sova-Bot</li>
+          </ul>
+        </div>
+        <div class="team-panel defenders">
+          <h3>DEFENDERS</h3>
+          <ul>
+            <li>▪ Jett-Bot</li>
+            <li>▪ Sage-Bot</li>
+            <li>▪ Killjoy-Bot</li>
+            <li>▪ Viper-Bot</li>
+            <li>▪ Omen-Bot</li>
+          </ul>
+        </div>
+      </div>
+      <div class="lobby-count">Attackers: 5 | Defenders: 5 | Total: 10/10</div>
+    </div>
+
+    <!-- AGENT SELECT -->
+    <div class="screen agent-select">
+      <div class="agent-select-title">SELECT YOUR AGENT</div>
+      <div class="agent-timer">22</div>
+      <div class="agent-grid">
+        <div class="agent-card agent-jett selected">
+          <div class="agent-accent"></div>
+          <div class="agent-portrait">J</div>
+          <div class="agent-name">JETT</div>
+          <div class="agent-role">DUELIST</div>
+          <div class="agent-desc">Wind mobility. Dash + smoke + 5 knives ult.</div>
+        </div>
+        <div class="agent-card agent-sage">
+          <div class="agent-accent"></div>
+          <div class="agent-portrait">S</div>
+          <div class="agent-name">SAGE</div>
+          <div class="agent-role">SENTINEL</div>
+          <div class="agent-desc">Healer + wall. Heal + slow + resurrect ult.</div>
+        </div>
+        <div class="agent-card agent-phoenix">
+          <div class="agent-accent"></div>
+          <div class="agent-portrait">P</div>
+          <div class="agent-name">PHOENIX</div>
+          <div class="agent-role">DUELIST</div>
+          <div class="agent-desc">Fire self-sustain. Flash + wall + respawn ult.</div>
+        </div>
+        <div class="agent-card agent-cypher">
+          <div class="agent-accent"></div>
+          <div class="agent-portrait">C</div>
+          <div class="agent-name">CYPHER</div>
+          <div class="agent-role">SENTINEL</div>
+          <div class="agent-desc">Tripwire + cage + reveal ult.</div>
+        </div>
+        <div class="agent-card agent-reyna">
+          <div class="agent-accent"></div>
+          <div class="agent-portrait">R</div>
+          <div class="agent-name">REYNA</div>
+          <div class="agent-role">DUELIST</div>
+          <div class="agent-desc">Solo carry. Soul orbs from kills.</div>
+        </div>
+        <div class="agent-card agent-kayo">
+          <div class="agent-accent"></div>
+          <div class="agent-portrait">K</div>
+          <div class="agent-name">KAY/O</div>
+          <div class="agent-role">INITIATOR</div>
+          <div class="agent-desc">Anti-ability. Suppression blade + ult.</div>
+        </div>
+        <div class="agent-card agent-sova">
+          <div class="agent-accent"></div>
+          <div class="agent-portrait">S</div>
+          <div class="agent-name">SOVA</div>
+          <div class="agent-role">INITIATOR</div>
+          <div class="agent-desc">Bow recon. Owl drone + 3-shot ult.</div>
+        </div>
+        <div class="agent-card agent-brimstone">
+          <div class="agent-accent"></div>
+          <div class="agent-portrait">B</div>
+          <div class="agent-name">BRIMSTONE</div>
+          <div class="agent-role">CONTROLLER</div>
+          <div class="agent-desc">Map smokes + molotov + orbital ult.</div>
+        </div>
+        <div class="agent-card agent-viper">
+          <div class="agent-accent"></div>
+          <div class="agent-portrait">V</div>
+          <div class="agent-name">VIPER</div>
+          <div class="agent-role">CONTROLLER</div>
+          <div class="agent-desc">Toxic walls + screen + Pit ult.</div>
+        </div>
+        <div class="agent-card agent-astra">
+          <div class="agent-accent"></div>
+          <div class="agent-portrait">A</div>
+          <div class="agent-name">ASTRA</div>
+          <div class="agent-role">CONTROLLER</div>
+          <div class="agent-desc">Astral stars + Cosmic Divide wall ult.</div>
+        </div>
+        <div class="agent-card agent-omen">
+          <div class="agent-accent"></div>
+          <div class="agent-portrait">O</div>
+          <div class="agent-name">OMEN</div>
+          <div class="agent-role">CONTROLLER</div>
+          <div class="agent-desc">Phantom: teleport + smokes + map-wide ult.</div>
+        </div>
+        <div class="agent-card agent-killjoy">
+          <div class="agent-accent"></div>
+          <div class="agent-portrait">K</div>
+          <div class="agent-name">KILLJOY</div>
+          <div class="agent-role">SENTINEL</div>
+          <div class="agent-desc">Turret + nanoswarm + Lockdown detain.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COUNTDOWN -->
+    <div class="screen countdown">
+      <div class="countdown-number">5</div>
+      <div class="countdown-label">MATCH STARTING</div>
+    </div>
+
+    <!-- HUD -->
+    <div class="screen hud">
+      <div class="hud-agent">JETT</div>
+      <div class="hud-streak">🔥 3W</div>
+
+      <div class="hud-score-container">
+        <div class="hud-score-bar">
+          <div class="hud-score-team atk">7</div>
+          <div class="hud-score-timer">1:23</div>
+          <div class="hud-score-team def">5</div>
+        </div>
+        <div class="hud-phase">ROUND</div>
+        <div class="hud-round">Round 13</div>
+      </div>
+
+      <div class="hud-dots">
+        <div class="hud-dots-team">
+          <div class="hud-dot atk-won"></div><div class="hud-dot atk-won"></div><div class="hud-dot atk-won"></div><div class="hud-dot atk-won"></div><div class="hud-dot atk-won"></div><div class="hud-dot atk-won"></div><div class="hud-dot atk-won"></div><div class="hud-dot"></div><div class="hud-dot"></div><div class="hud-dot"></div><div class="hud-dot"></div><div class="hud-dot"></div><div class="hud-dot"></div>
+        </div>
+        <div class="hud-vs">|</div>
+        <div class="hud-dots-team">
+          <div class="hud-dot def-won"></div><div class="hud-dot def-won"></div><div class="hud-dot def-won"></div><div class="hud-dot def-won"></div><div class="hud-dot def-won"></div><div class="hud-dot"></div><div class="hud-dot"></div><div class="hud-dot"></div><div class="hud-dot"></div><div class="hud-dot"></div><div class="hud-dot"></div><div class="hud-dot"></div><div class="hud-dot"></div>
+        </div>
+      </div>
+
+      <div class="hud-minimap">
+        <div class="minimap-floor"></div>
+        <div class="minimap-cover" style="left:30%; top:40%; width:24px; height:8px;"></div>
+        <div class="minimap-cover" style="right:30%; top:40%; width:24px; height:8px;"></div>
+        <div class="minimap-cover" style="left:48%; top:60%; width:8px; height:24px;"></div>
+        <div class="minimap-site" style="left:18%; top:30%;">A</div>
+        <div class="minimap-site" style="right:18%; top:30%;">B</div>
+        <div class="minimap-player"></div>
+        <div class="minimap-tm" style="left:35%; top:55%;"></div>
+        <div class="minimap-tm" style="right:35%; top:60%;"></div>
+        <div class="minimap-tm" style="left:55%; top:70%;"></div>
+        <div class="minimap-spike" style="left:25%; top:38%;"></div>
+      </div>
+
+      <div class="hud-crosshair">
+        <div class="crosshair-line top"></div>
+        <div class="crosshair-line bottom"></div>
+        <div class="crosshair-line left"></div>
+        <div class="crosshair-line right"></div>
+        <div class="crosshair-dot"></div>
+      </div>
+
+      <div class="hud-enemy-nametag">
+        <div class="hud-enemy-name">[BOT] Phoenix-Bot</div>
+        <div class="hud-enemy-hp"><div class="hud-enemy-hp-bar"></div></div>
+      </div>
+
+      <div class="hud-killfeed">
+        <div class="killfeed-entry">
+          <span class="killfeed-killer">Reyna-Bot</span>
+          <span class="killfeed-arrow">▸</span>
+          <span class="killfeed-hs">🎯</span>
+          <span class="killfeed-arrow">▸</span>
+          <span class="killfeed-victim">Killjoy-Bot</span>
+        </div>
+        <div class="killfeed-entry">
+          <span class="killfeed-killer">YOU</span>
+          <span class="killfeed-arrow">▸</span>
+          <span style="color:#aaa;">[Vandal]</span>
+          <span class="killfeed-arrow">▸</span>
+          <span class="killfeed-victim">Sage-Bot</span>
+        </div>
+        <div class="killfeed-entry">
+          <span class="killfeed-killer">Cypher-Bot</span>
+          <span class="killfeed-arrow">▸</span>
+          <span style="color:#aaa;">[Sheriff]</span>
+          <span class="killfeed-arrow">▸</span>
+          <span class="killfeed-victim">Viper-Bot</span>
+        </div>
+      </div>
+
+      <div class="hud-bottom-bar"></div>
+
+      <div class="hud-health-armor">
+        <div class="hud-armor-bg"><div class="hud-armor-bar"></div></div>
+        <div class="hud-health-bg">
+          <div class="hud-health-bar"></div>
+          <div class="hud-health-label">100</div>
+        </div>
+      </div>
+
+      <div class="hud-ult">ULT 5 / 7</div>
+
+      <div class="hud-abilities">
+        <div class="ability-box ready"><div class="key">C</div><div class="info">2x</div></div>
+        <div class="ability-box ready"><div class="key">Q</div><div class="info">1x</div></div>
+        <div class="ability-box ready"><div class="key">E</div><div class="info">1x</div></div>
+        <div class="ability-box ult-ready"><div class="key">X</div><div class="info">READY</div></div>
+      </div>
+
+      <div class="hud-ammo">25 / 75</div>
+    </div>
+
+    <!-- SPIKE PLANTED -->
+    <div class="screen hud spike-planted">
+      <div class="hud-edge top"></div>
+      <div class="hud-edge bottom"></div>
+      <div class="hud-edge left"></div>
+      <div class="hud-edge right"></div>
+
+      <div class="hud-agent">JETT</div>
+      <div class="hud-score-container">
+        <div class="hud-score-bar">
+          <div class="hud-score-team atk">7</div>
+          <div class="hud-score-timer">SPIKE</div>
+          <div class="hud-score-team def">5</div>
+        </div>
+        <div class="hud-phase" style="color:#ff5050;">SPIKE PLANTED</div>
+      </div>
+
+      <div class="spike-timer">
+        <div class="spike-timer-icon">💣</div>
+        <div class="spike-timer-text">8.4</div>
+      </div>
+
+      <div class="hud-crosshair">
+        <div class="crosshair-line top"></div>
+        <div class="crosshair-line bottom"></div>
+        <div class="crosshair-line left"></div>
+        <div class="crosshair-line right"></div>
+        <div class="crosshair-dot"></div>
+      </div>
+
+      <div class="hud-bottom-bar"></div>
+      <div class="hud-health-armor">
+        <div class="hud-armor-bg"><div class="hud-armor-bar"></div></div>
+        <div class="hud-health-bg">
+          <div class="hud-health-bar"></div>
+          <div class="hud-health-label">100</div>
+        </div>
+      </div>
+      <div class="hud-ult">ULT 5 / 7</div>
+      <div class="hud-abilities">
+        <div class="ability-box ready"><div class="key">C</div><div class="info">2x</div></div>
+        <div class="ability-box ready"><div class="key">Q</div><div class="info">1x</div></div>
+        <div class="ability-box ready"><div class="key">E</div><div class="info">1x</div></div>
+        <div class="ability-box ult-ready"><div class="key">X</div><div class="info">READY</div></div>
+      </div>
+      <div class="hud-ammo">22 / 75</div>
+    </div>
+
+    <!-- PLANT/DEFUSE -->
+    <div class="screen plant-defuse">
+      <div class="hud-crosshair">
+        <div class="crosshair-line top"></div>
+        <div class="crosshair-line bottom"></div>
+        <div class="crosshair-line left"></div>
+        <div class="crosshair-line right"></div>
+        <div class="crosshair-dot"></div>
+      </div>
+
+      <div class="plant-prompt">[E] DEFUSE</div>
+      <div class="plant-progress">
+        <div class="plant-progress-ring"></div>
+        <div class="plant-progress-fill"></div>
+        <div class="plant-progress-text">
+          <div class="plant-progress-label">DEFUSING</div>
+          <div class="plant-progress-percent">67%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCOREBOARD -->
+    <div class="screen scoreboard">
+      <div class="scoreboard-inner">
+        <h2>SCOREBOARD</h2>
+        <div class="scoreboard-teams">
+          <div class="score-panel atk">
+            <h3>ATTACKERS</h3>
+            <div class="score-row-header">
+              <div>PLAYER</div><div>AGENT</div><div>ACS</div><div>K</div><div>D</div><div>A</div><div>HS%</div><div>ADR</div>
+            </div>
+            <div class="score-row">
+              <div class="player-name"><span class="mvp-medal">★2</span> YOU</div>
+              <div>Jett</div><div class="acs">287</div><div class="k">14</div><div class="d">8</div><div>3</div><div>28%</div><div>142</div>
+            </div>
+            <div class="score-row">
+              <div class="player-name">Reyna-Bot</div>
+              <div>Reyna</div><div class="acs">198</div><div class="k">8</div><div class="d">9</div><div>4</div><div>19%</div><div>98</div>
+            </div>
+            <div class="score-row">
+              <div class="player-name">Cypher-Bot</div>
+              <div>Cypher</div><div class="acs">156</div><div class="k">6</div><div class="d">11</div><div>6</div><div>12%</div><div>88</div>
+            </div>
+            <div class="score-row">
+              <div class="player-name">Sova-Bot</div>
+              <div>Sova</div><div class="acs">142</div><div class="k">5</div><div class="d">12</div><div>3</div><div>14%</div><div>76</div>
+            </div>
+            <div class="score-row">
+              <div class="player-name">Brim-Bot</div>
+              <div>Brim</div><div class="acs">128</div><div class="k">4</div><div class="d">13</div><div>5</div><div>10%</div><div>65</div>
+            </div>
+          </div>
+          <div class="score-panel def">
+            <h3>DEFENDERS</h3>
+            <div class="score-row-header">
+              <div>PLAYER</div><div>AGENT</div><div>ACS</div><div>K</div><div>D</div><div>A</div><div>HS%</div><div>ADR</div>
+            </div>
+            <div class="score-row">
+              <div class="player-name"><span class="mvp-medal">★</span> Phoenix-Bot</div>
+              <div>Phoenix</div><div class="acs">215</div><div class="k">9</div><div class="d">11</div><div>5</div><div>22%</div><div>112</div>
+            </div>
+            <div class="score-row">
+              <div class="player-name">Killjoy-Bot</div>
+              <div>Killjoy</div><div class="acs">187</div><div class="k">7</div><div class="d">10</div><div>2</div><div>18%</div><div>92</div>
+            </div>
+            <div class="score-row">
+              <div class="player-name">Viper-Bot</div>
+              <div>Viper</div><div class="acs">165</div><div class="k">6</div><div class="d">10</div><div>4</div><div>16%</div><div>88</div>
+            </div>
+            <div class="score-row">
+              <div class="player-name">Omen-Bot</div>
+              <div>Omen</div><div class="acs">134</div><div class="k">4</div><div class="d">12</div><div>3</div><div>11%</div><div>70</div>
+            </div>
+            <div class="score-row">
+              <div class="player-name">Astra-Bot</div>
+              <div>Astra</div><div class="acs">112</div><div class="k">3</div><div class="d">13</div><div>4</div><div>9%</div><div>58</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INVENTORY -->
+    <div class="screen inventory">
+      <h2>INVENTORY — PlayerName · 2,450 coins</h2>
+      <div class="inventory-layout">
+        <div class="weapon-list">
+          <div class="item active">  Vandal ✓</div>
+          <div class="item">  Phantom</div>
+          <div class="item">  Ghost</div>
+          <div class="item">  Sheriff</div>
+          <div class="item">  Operator</div>
+          <div class="item">  Spectre</div>
+          <div class="item">  Bulldog</div>
+          <div class="item">  Guardian</div>
+        </div>
+        <div class="skin-grid">
+          <div class="skin-card">
+            <div class="skin-tier t1"></div>
+            <div class="skin-name">Standard Vandal</div>
+            <div class="skin-status owned">OWNED</div>
+          </div>
+          <div class="skin-card equipped">
+            <div class="skin-tier t2"></div>
+            <div class="skin-name">Neon Vandal</div>
+            <div class="skin-status equipped">✓ EQUIPPED</div>
+          </div>
+          <div class="skin-card">
+            <div class="skin-tier t3"></div>
+            <div class="skin-name">Prime Vandal</div>
+            <div class="skin-status owned">OWNED</div>
+          </div>
+          <div class="skin-card locked">
+            <div class="skin-tier t4"></div>
+            <div class="skin-name">Champions Vandal</div>
+            <div class="skin-status locked">LOCKED</div>
+          </div>
+          <div class="skin-card">
+            <div class="skin-tier t3"></div>
+            <div class="skin-name">Oni Vandal</div>
+            <div class="skin-status owned">OWNED</div>
+          </div>
+          <div class="skin-card locked">
+            <div class="skin-tier t5"></div>
+            <div class="skin-name">Elder Flame</div>
+            <div class="skin-status locked">LOCKED</div>
+          </div>
+          <div class="skin-card">
+            <div class="skin-tier t1"></div>
+            <div class="skin-name">Steel Vandal</div>
+            <div class="skin-status owned">OWNED</div>
+          </div>
+          <div class="skin-card">
+            <div class="skin-tier t2"></div>
+            <div class="skin-name">Sovereign</div>
+            <div class="skin-status owned">OWNED</div>
+          </div>
+          <div class="skin-card locked">
+            <div class="skin-tier t3"></div>
+            <div class="skin-name">Ion Vandal</div>
+            <div class="skin-status locked">LOCKED</div>
+          </div>
+        </div>
+        <div class="inventory-side">
+          <div class="preview">
+            <div class="preview-gun"></div>
+            <div class="preview-name">Neon Vandal (T2)</div>
+          </div>
+          <div class="history">
+            <h4>MATCH HISTORY</h4>
+            <div class="history-row win">W · Jett · 14/8/3 · ACS 287</div>
+            <div class="history-row loss">L · Reyna · 9/11/4 · ACS 198</div>
+            <div class="history-row win">W · Sage · 11/7/8 · ACS 245</div>
+            <div class="history-row win">W · Jett · 16/5/2 · ACS 312</div>
+            <div class="history-row loss">L · Phoenix · 6/12/3 · ACS 145</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BATTLEPASS -->
+    <div class="screen battlepass">
+      <h2>⚡ BATTLE PASS — SEASON 1</h2>
+      <div class="bp-progress-bg">
+        <div class="bp-progress-fill"></div>
+        <div class="bp-progress-label">Tier 12 / 50 · 720 XP</div>
+      </div>
+      <div class="bp-premium-cta">UNLOCK PREMIUM PASS — 599 R$</div>
+      <div class="bp-tiers">
+        <div class="bp-tier unlocked">
+          <div class="bp-tier-num">TIER 10</div>
+          <div class="bp-tier-free">FREE<br>Skin T1</div>
+          <div class="bp-tier-premium">PREMIUM<br>Skin T2</div>
+          <div class="bp-tier-status unlocked">✓ UNLOCKED</div>
+        </div>
+        <div class="bp-tier unlocked">
+          <div class="bp-tier-num">TIER 11</div>
+          <div class="bp-tier-free">FREE<br>200 coins</div>
+          <div class="bp-tier-premium">PREMIUM<br>400 coins</div>
+          <div class="bp-tier-status unlocked">✓ UNLOCKED</div>
+        </div>
+        <div class="bp-tier unlocked">
+          <div class="bp-tier-num">TIER 12</div>
+          <div class="bp-tier-free">FREE<br>Spray</div>
+          <div class="bp-tier-premium">PREMIUM<br>Skin T2</div>
+          <div class="bp-tier-status unlocked">✓ UNLOCKED</div>
+        </div>
+        <div class="bp-tier">
+          <div class="bp-tier-num">TIER 13</div>
+          <div class="bp-tier-free">FREE<br>—</div>
+          <div class="bp-tier-premium">PREMIUM<br>Case</div>
+          <div class="bp-tier-status locked">LOCKED</div>
+        </div>
+        <div class="bp-tier">
+          <div class="bp-tier-num">TIER 14</div>
+          <div class="bp-tier-free">FREE<br>Card</div>
+          <div class="bp-tier-premium">PREMIUM<br>Skin T2</div>
+          <div class="bp-tier-status locked">LOCKED</div>
+        </div>
+        <div class="bp-tier">
+          <div class="bp-tier-num">TIER 15</div>
+          <div class="bp-tier-free">FREE<br>—</div>
+          <div class="bp-tier-premium">PREMIUM<br>Skin T2</div>
+          <div class="bp-tier-status locked">LOCKED</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CAREER -->
+    <div class="screen career">
+      <h2>📊 CAREER STATS — PlayerName</h2>
+      <div class="career-grid">
+        <div class="career-stat"><div class="career-stat-label">MMR</div><div class="career-stat-value gold">1247</div></div>
+        <div class="career-stat"><div class="career-stat-label">MATCHES PLAYED</div><div class="career-stat-value white">47</div></div>
+        <div class="career-stat"><div class="career-stat-label">MATCHES WON</div><div class="career-stat-value green">31</div></div>
+        <div class="career-stat"><div class="career-stat-label">WIN RATE</div><div class="career-stat-value cyan">66%</div></div>
+        <div class="career-stat"><div class="career-stat-label">TOTAL KILLS</div><div class="career-stat-value red">582</div></div>
+        <div class="career-stat"><div class="career-stat-label">TOTAL DEATHS</div><div class="career-stat-value" style="color:#aaa;">411</div></div>
+        <div class="career-stat"><div class="career-stat-label">K/D RATIO</div><div class="career-stat-value gold">1.42</div></div>
+        <div class="career-stat"><div class="career-stat-label">HEADSHOT %</div><div class="career-stat-value orange">23%</div></div>
+        <div class="career-stat"><div class="career-stat-label">PLANTS</div><div class="career-stat-value orange">34</div></div>
+        <div class="career-stat"><div class="career-stat-label">DEFUSES</div><div class="career-stat-value cyan">21</div></div>
+        <div class="career-stat"><div class="career-stat-label">WIN STREAK</div><div class="career-stat-value gold">3</div></div>
+        <div class="career-stat"><div class="career-stat-label">BEST STREAK</div><div class="career-stat-value pink">7</div></div>
+      </div>
+    </div>
+
+    <!-- LEADERBOARD -->
+    <div class="screen leaderboard">
+      <h2>🏆 GLOBAL LEADERBOARD</h2>
+      <div class="leaderboard-table">
+        <div class="lb-row rank-1"><div class="rank">🥇 1</div><div class="player">AceShark</div><div class="rank-name">Radiant</div><div class="mmr">2654</div></div>
+        <div class="lb-row rank-2"><div class="rank">🥈 2</div><div class="player">KingProGamer</div><div class="rank-name">Immortal 3</div><div class="mmr">2398</div></div>
+        <div class="lb-row rank-3"><div class="rank">🥉 3</div><div class="player">HeadhunterPro</div><div class="rank-name">Immortal 2</div><div class="mmr">2287</div></div>
+        <div class="lb-row"><div class="rank">4</div><div class="player">Sniperboi42</div><div class="rank-name">Immortal 1</div><div class="mmr">2156</div></div>
+        <div class="lb-row"><div class="rank">5</div><div class="player">QuickScopeMain</div><div class="rank-name">Ascendant 3</div><div class="mmr">2078</div></div>
+        <div class="lb-row"><div class="rank">6</div><div class="player">OneTapWizard</div><div class="rank-name">Ascendant 2</div><div class="mmr">1989</div></div>
+        <div class="lb-row"><div class="rank">7</div><div class="player">JettMain</div><div class="rank-name">Ascendant 1</div><div class="mmr">1876</div></div>
+        <div class="lb-row"><div class="rank">8</div><div class="player">SagePocket</div><div class="rank-name">Diamond 3</div><div class="mmr">1812</div></div>
+        <div class="lb-row you"><div class="rank">43</div><div class="player">PlayerName (YOU)</div><div class="rank-name">Gold 2</div><div class="mmr">1247</div></div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="screen settings">
+      <div class="settings-panel">
+        <h2>SETTINGS</h2>
+        <div class="settings-layout">
+          <div class="settings-list">
+            <div class="setting-row">
+              <div class="setting-label">Crosshair color</div>
+              <div class="color-presets">
+                <div class="color-preset selected" style="background:#00ffb4;"></div>
+                <div class="color-preset" style="background:white;"></div>
+                <div class="color-preset" style="background:#ff3c3c;"></div>
+                <div class="color-preset" style="background:#3cff3c;"></div>
+                <div class="color-preset" style="background:#3c3cff;"></div>
+                <div class="color-preset" style="background:#ffc850;"></div>
+                <div class="color-preset" style="background:#ff3cc8;"></div>
+              </div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-label">Crosshair thickness</div>
+              <div class="setting-slider-bg"><div class="setting-slider-fill" style="width:33%"></div></div>
+              <div class="setting-value">2</div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-label">Crosshair gap</div>
+              <div class="setting-slider-bg"><div class="setting-slider-fill" style="width:40%"></div></div>
+              <div class="setting-value">8</div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-label">Line length</div>
+              <div class="setting-slider-bg"><div class="setting-slider-fill" style="width:40%"></div></div>
+              <div class="setting-value">8</div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-label">Center dot</div>
+              <div class="toggle">ON</div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-label">Mouse sensitivity</div>
+              <div class="setting-slider-bg"><div class="setting-slider-fill" style="width:33%"></div></div>
+              <div class="setting-value">1.0</div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-label">Master volume</div>
+              <div class="setting-slider-bg"><div class="setting-slider-fill" style="width:70%"></div></div>
+              <div class="setting-value">0.7</div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-label">SFX volume</div>
+              <div class="setting-slider-bg"><div class="setting-slider-fill" style="width:70%"></div></div>
+              <div class="setting-value">0.7</div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-label">Field of view</div>
+              <div class="setting-slider-bg"><div class="setting-slider-fill" style="width:50%"></div></div>
+              <div class="setting-value">70</div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-label">Color blind: Normal</div>
+              <div class="toggle off">CYCLE</div>
+            </div>
+          </div>
+          <div class="preview-box">
+            <div class="preview-box-label">PREVIEW</div>
+            <div class="preview-cross">
+              <div class="top"></div>
+              <div class="left"></div>
+              <div class="dot"></div>
+              <div class="right"></div>
+              <div class="bottom"></div>
+            </div>
+          </div>
+        </div>
+        <button class="save-btn">SAVE &amp; CLOSE</button>
+      </div>
+    </div>
+
+    <!-- MAP VOTE -->
+    <div class="screen mapvote">
+      <h2>VOTE FOR NEXT MAP</h2>
+      <div class="mapvote-timer">18</div>
+      <div class="mapvote-grid">
+        <div class="mapvote-card ascent voted">
+          <div class="mapvote-banner"></div>
+          <div class="mapvote-content">
+            <div class="mapvote-name">ASCENT</div>
+            <div class="mapvote-theme">Italian Renaissance / floating Venice</div>
+            <div class="mapvote-count">3</div>
+            <div class="mapvote-btn voted">✓ VOTED</div>
+          </div>
+        </div>
+        <div class="mapvote-card bind">
+          <div class="mapvote-banner"></div>
+          <div class="mapvote-content">
+            <div class="mapvote-name">BIND</div>
+            <div class="mapvote-theme">Rabat, Morocco / desert Mediterranean</div>
+            <div class="mapvote-count">1</div>
+            <div class="mapvote-btn">CLICK TO VOTE</div>
+          </div>
+        </div>
+        <div class="mapvote-card split">
+          <div class="mapvote-banner"></div>
+          <div class="mapvote-content">
+            <div class="mapvote-name">SPLIT</div>
+            <div class="mapvote-theme">Tokyo, Japan / cyberpunk neon</div>
+            <div class="mapvote-count">2</div>
+            <div class="mapvote-btn">CLICK TO VOTE</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMPENDIUM -->
+    <div class="screen compendium">
+      <h2 style="color:#fff;">📖 COMPENDIUM</h2>
+      <div class="compendium-tabs">
+        <div class="compendium-tab active">AGENTS</div>
+        <div class="compendium-tab">MAPS</div>
+        <div class="compendium-tab">WEAPONS</div>
+      </div>
+      <div class="compendium-grid">
+        <div class="compendium-agent-card" style="border-color:#5acce0;">
+          <span class="status-tag">✓ PLAYABLE</span>
+          <div class="name">JETT</div>
+          <div class="role" style="color:#5acce0;">DUELIST</div>
+          <div class="meta">South Korea · Han Sunwoo</div>
+          <span class="ability-chip" style="color:#5acce0;">[C] Cloudburst</span>
+          <span class="ability-chip" style="color:#5acce0;">[Q] Updraft</span>
+          <span class="ability-chip" style="color:#5acce0;">[E] Tailwind</span>
+          <span class="ability-chip ult">[X] Blade Storm</span>
+        </div>
+        <div class="compendium-agent-card" style="border-color:#8ad8f0;">
+          <span class="status-tag">✓ PLAYABLE</span>
+          <div class="name">SAGE</div>
+          <div class="role" style="color:#8ad8f0;">SENTINEL</div>
+          <div class="meta">China · Ling Ying Wei</div>
+          <span class="ability-chip" style="color:#8ad8f0;">[C] Barrier Orb</span>
+          <span class="ability-chip" style="color:#8ad8f0;">[Q] Slow Orb</span>
+          <span class="ability-chip" style="color:#8ad8f0;">[E] Healing Orb</span>
+          <span class="ability-chip ult">[X] Resurrection</span>
+        </div>
+        <div class="compendium-agent-card" style="border-color:#ff7838;">
+          <span class="status-tag">✓ PLAYABLE</span>
+          <div class="name">PHOENIX</div>
+          <div class="role" style="color:#ff7838;">DUELIST</div>
+          <div class="meta">UK · Jamie Adeyemi</div>
+          <span class="ability-chip" style="color:#ff7838;">[C] Blaze</span>
+          <span class="ability-chip" style="color:#ff7838;">[Q] Curveball</span>
+          <span class="ability-chip" style="color:#ff7838;">[E] Hot Hands</span>
+          <span class="ability-chip ult">[X] Run It Back</span>
+        </div>
+        <div class="compendium-agent-card" style="border-color:#ff64c8;">
+          <span class="status-tag">✓ PLAYABLE</span>
+          <div class="name">CYPHER</div>
+          <div class="role" style="color:#ff64c8;">SENTINEL</div>
+          <div class="meta">Morocco · Amir El Amari</div>
+          <span class="ability-chip" style="color:#ff64c8;">[C] Trapwire</span>
+          <span class="ability-chip" style="color:#ff64c8;">[Q] Cyber Cage</span>
+          <span class="ability-chip" style="color:#ff64c8;">[E] Spycam</span>
+          <span class="ability-chip ult">[X] Neural Theft</span>
+        </div>
+        <div class="compendium-agent-card" style="border-color:#b432dc;">
+          <span class="status-tag">✓ PLAYABLE</span>
+          <div class="name">REYNA</div>
+          <div class="role" style="color:#b432dc;">DUELIST</div>
+          <div class="meta">Mexico · Zyanya Mondragón</div>
+          <span class="ability-chip" style="color:#b432dc;">[C] Leer</span>
+          <span class="ability-chip" style="color:#b432dc;">[Q] Devour</span>
+          <span class="ability-chip" style="color:#b432dc;">[E] Dismiss</span>
+          <span class="ability-chip ult">[X] Empress</span>
+        </div>
+        <div class="compendium-agent-card" style="border-color:#64c8ff;">
+          <span class="status-tag">✓ PLAYABLE</span>
+          <div class="name">KAY/O</div>
+          <div class="role" style="color:#64c8ff;">INITIATOR</div>
+          <div class="meta">Future · KAY/O</div>
+          <span class="ability-chip" style="color:#64c8ff;">[C] FRAG/ment</span>
+          <span class="ability-chip" style="color:#64c8ff;">[Q] FLASH/drive</span>
+          <span class="ability-chip" style="color:#64c8ff;">[E] ZERO/point</span>
+          <span class="ability-chip ult">[X] NULL/cmd</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- VICTORY -->
+    <div class="screen victory">
+      <div class="fireworks">
+        <div class="firework fw1"></div>
+        <div class="firework fw2"></div>
+        <div class="firework fw3"></div>
+        <div class="firework fw4"></div>
+        <div class="firework fw5"></div>
+      </div>
+      <div class="victory-title">VICTORY</div>
+      <div class="victory-score">Final Score: 13 — 9</div>
+      <div class="victory-mvp">★ MATCH MVP: YOU (3 MVPs · 28 kills) ★</div>
+    </div>
+
+  </div>
+</main>
+
+<div class="caption" id="caption">
+  <strong>Welcome Screen</strong> — Pełny czarny background z fade-in dla logo, subtitle, greeting.
+  Pokazuje się przez 5s na join, potem fade-out → Lobby.
+</div>
+
+<footer>
+  Roblox FPS Project · 102 sprintów · 120 plików Lua · 18,697 linii · 664.9 KB ·
+  <a href="../docs/VALORANT_REFERENCE.md">Sprint List</a> · <a href="../docs/SETUP.md">Setup Guide</a>
+</footer>
+
+<script>
+const captions = {
+  welcome: "<strong>Welcome Screen (Sprint 21)</strong> — Pełny czarny background z fade-in dla logo, subtitle, greeting. Pokazuje się przez 5s na join, potem fade-out → Lobby.",
+  lobby: "<strong>Lobby (Sprint 21)</strong> — Waiting state z team rosters. <code>15s</code> countdown przed Agent Select. Players auto-balanced do team A/D.",
+  'agent-select': "<strong>Agent Select (Sprint 18, 25, 39, 95)</strong> — 12 agentów w grid 3×4. Każdy z role color + opis. 30s countdown na wybór, auto-pick Jett jeśli nie wybrano.",
+  countdown: "<strong>Match Countdown (Sprint 18)</strong> — 5..4..3..2..1..GO! Gold pulse animation, każda cyfra z TweenInfo.Back easing.",
+  hud: "<strong>Gameplay HUD (Sprint 13, 16, 17, 22, 36, 47, 55, 74, 100)</strong> — Top: score 7-5 + timer + phase. Side dots = round counter (13 dots/team). Minimap z teammates + spike. Crosshair dynamic. Killfeed top-right z headshot 🎯 markerami. Bottom: HP/Armor + Ult + abilities C/Q/E/X + ammo. Lewy górny róg: agent name + 🔥 win streak.",
+  'spike-planted': "<strong>Spike Planted (Sprint 93, 98)</strong> — Czerwone pulsing edges screen (intensity escalates < 10s). Centered spike timer countdown 45s, czerwony pulsing widget. Atakujący widzą GO time, defenders czują presję.",
+  'plant-defuse': "<strong>Plant/Defuse UI (Sprint 19)</strong> — Circular progress ring (animated stroke), [E] prompt, label + percent. 4s plant, 7s defuse (3.5s half-defuse breaker).",
+  scoreboard: "<strong>Scoreboard (Sprint 17, 55)</strong> — TAB hold. Two team panels z K/D/A/ACS/HS%/ADR. ★N prefix = ile MVPs zdobytych. Sorted by ACS desc.",
+  inventory: "<strong>Inventory (Sprint 29)</strong> — I key. Weapon selector left, skin grid center (5 tiers: T1 grey → T5 red), preview right z rotating 3D model + match history.",
+  battlepass: "<strong>Battle Pass (Sprint 8, 46, 58)</strong> — P key. Progress bar tier 12/50. Premium CTA 599 R$. Tier cards z Free + Premium tracks, claim buttons [F✓]/[P✓] dla unlocked tiers.",
+  career: "<strong>Career Stats (Sprint 47)</strong> — K key. 12 stat cards: MMR, matches, K/D, HS%, plants, defuses, win streak, best streak. Color-coded per category.",
+  leaderboard: "<strong>Leaderboard (Sprint 41)</strong> — L key. Top 100 by MMR via OrderedDataStore. Medal kolory top 3 (gold/silver/bronze). YOU row highlighted.",
+  settings: "<strong>Settings (Sprint 20, 75, 76)</strong> — ESC key. Crosshair customizer z live preview, color presets, thickness/gap/length sliders, dot toggle, volume sliders (Master/SFX/Voice), FOV, color blind mode cycle.",
+  mapvote: "<strong>Map Vote (Sprint 32)</strong> — Between matches 20s. 3 mapy z theme description + vote count. Click to vote, tie-break random.",
+  compendium: "<strong>Compendium (Sprint 101)</strong> — F1 key. Browse 12 agents + 6 maps + 19 weapons. Color-coded role borders, ability chips, real names + countries.",
+  victory: "<strong>Match End Celebration (Sprint 64, 85)</strong> — Gold VICTORY/red DEFEAT 140pt. Animated fireworks dla winners (20 colored bursts). Match MVP banner z player name + MVPs count.",
+};
+
+function activateScreen(name) {
+  if (!name || !document.querySelector('.screen.' + name)) return;
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  const btn = document.querySelector('nav button[data-screen="' + name + '"]');
+  if (btn) btn.classList.add('active');
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelector('.screen.' + name).classList.add('active');
+  const c = document.getElementById('caption');
+  if (c) c.innerHTML = captions[name] || '';
+}
+document.querySelectorAll('nav button').forEach(btn => {
+  btn.onclick = () => activateScreen(btn.dataset.screen);
+});
+// Hash-based routing (for screenshot URLs like #lobby)
+if (location.hash) {
+  const hashName = location.hash.slice(1);
+  setTimeout(() => activateScreen(hashName), 50);
+}
+window.addEventListener('hashchange', () => activateScreen(location.hash.slice(1)));
+</script>
+</body>
+</html>

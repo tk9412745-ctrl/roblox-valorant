@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+
+# Build/cache
+*.tmp
+*.log
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+
+# Claude
+.claude/launch.json
+
+# Local server output
+*.pid

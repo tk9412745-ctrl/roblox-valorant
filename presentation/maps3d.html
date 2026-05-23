@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<title>3D MAPY — Roblox Valorant</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: #0a0a14; color: #f0f0f5; font-family: 'Segoe UI', Roboto, sans-serif; overflow: hidden; }
+
+header { position: fixed; top: 0; left: 0; right: 0; z-index: 10; background: linear-gradient(180deg, rgba(15,15,25,0.95), rgba(15,15,25,0.7)); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ff4655; backdrop-filter: blur(10px); }
+header h1 { color: #ff4655; font-weight: 900; font-size: 20px; letter-spacing: 1px; }
+header .links { display: flex; gap: 8px; }
+header .links a { background: #1f1f2e; color: #f0f0f5; padding: 8px 14px; border-radius: 6px; text-decoration: none; font-weight: 700; font-size: 12px; border: 1px solid #2a2a3a; }
+header .links a:hover { background: #2a2a3a; }
+
+#mapSelector { position: fixed; top: 60px; left: 0; right: 0; z-index: 9; display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 20px; background: rgba(20,20,30,0.85); border-bottom: 1px solid #2a2a3a; backdrop-filter: blur(8px); }
+#mapSelector button { background: #1f1f2e; color: #f0f0f5; border: 1px solid #2a2a3a; padding: 8px 16px; cursor: pointer; font-size: 13px; font-weight: 700; border-radius: 6px; letter-spacing: 0.5px; transition: all 0.15s; }
+#mapSelector button:hover { background: #2a2a3a; }
+#mapSelector button.active { background: #ff4655; border-color: #ff5e6c; color: white; box-shadow: 0 0 15px rgba(255,70,85,0.5); }
+
+#canvas-container { position: absolute; inset: 0; top: 110px; }
+
+#info { position: fixed; top: 125px; left: 20px; z-index: 8; background: rgba(15,15,25,0.85); padding: 16px; border-radius: 8px; border: 1px solid #2a2a3a; backdrop-filter: blur(10px); max-width: 320px; }
+#info h2 { color: #ff4655; font-size: 22px; font-weight: 900; margin-bottom: 6px; }
+#info .theme { color: #b0b0c0; font-size: 12px; margin-bottom: 12px; font-style: italic; }
+#info .stats { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 12px; }
+#info .stats span:nth-child(odd) { color: #707080; }
+#info .stats span:nth-child(even) { color: #f0f0f5; font-weight: 600; }
+
+#legend { position: fixed; bottom: 20px; left: 20px; z-index: 8; background: rgba(15,15,25,0.85); padding: 14px; border-radius: 8px; border: 1px solid #2a2a3a; backdrop-filter: blur(10px); font-size: 11px; }
+#legend h3 { color: #ffdd66; font-size: 12px; font-weight: 700; margin-bottom: 8px; letter-spacing: 0.5px; }
+#legend .item { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+#legend .dot { width: 12px; height: 12px; border-radius: 2px; flex-shrink: 0; }
+
+#controls-hint { position: fixed; bottom: 20px; right: 20px; z-index: 8; background: rgba(15,15,25,0.85); padding: 12px 16px; border-radius: 8px; border: 1px solid #2a2a3a; backdrop-filter: blur(10px); font-size: 11px; color: #b0b0c0; }
+#controls-hint kbd { background: #2a2a3a; padding: 2px 6px; border-radius: 3px; color: #f0f0f5; font-family: 'Consolas', monospace; font-size: 10px; }
+
+#loading { position: fixed; inset: 0; background: #0a0a14; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
+#loading .spinner { width: 60px; height: 60px; border: 4px solid #2a2a3a; border-top-color: #ff4655; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+#loading p { color: #b0b0c0; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="spinner"></div>
+  <p>Ładowanie Three.js i geometrii map...</p>
+</div>
+
+<header>
+  <h1>🎮 3D MAPY — Roblox Valorant</h1>
+  <div class="links">
+    <a href="index.html">← UI</a>
+    <a href="maps.html">2D Plany</a>
+    <a href="https://github.com/tk9412745-ctrl/roblox-valorant" target="_blank">GitHub</a>
+  </div>
+</header>
+
+<nav id="mapSelector">
+  <button data-map="Ascent" class="active">ASCENT</button>
+  <button data-map="Bind">BIND</button>
+  <button data-map="Split">SPLIT</button>
+  <button data-map="Haven">HAVEN</button>
+  <button data-map="Fracture">FRACTURE</button>
+  <button data-map="Lotus">LOTUS</button>
+</nav>
+
+<div id="canvas-container"></div>
+
+<div id="info">
+  <h2 id="mapName">Ascent</h2>
+  <div class="theme" id="mapTheme">Italian Renaissance / floating Venice</div>
+  <div class="stats">
+    <span>Rozmiar:</span><span id="mapSize">300×300 studs</span>
+    <span>Trudność:</span><span id="mapDiff">Easy</span>
+    <span>Bombsites:</span><span id="mapSites">2</span>
+    <span>Mid:</span><span id="mapMid">TAK</span>
+    <span>Ult orby:</span><span id="mapOrbs">2</span>
+  </div>
+</div>
+
+<div id="legend">
+  <h3>LEGENDA</h3>
+  <div class="item"><div class="dot" style="background:#a04040"></div>Bombsite (A/B/C)</div>
+  <div class="item"><div class="dot" style="background:#ff5050"></div>Atakujący spawn</div>
+  <div class="item"><div class="dot" style="background:#5078ff"></div>Obrońcy spawn</div>
+  <div class="item"><div class="dot" style="background:#b450dc"></div>Ult orb</div>
+  <div class="item"><div class="dot" style="background:#8a6a4a"></div>Cover block</div>
+  <div class="item"><div class="dot" style="background:#404040;border:1px dashed #888"></div>Platforma (Heaven)</div>
+  <div class="item"><div class="dot" style="background:#00ffff"></div>Teleporter (Bind)</div>
+  <div class="item"><div class="dot" style="background:#ffaa00"></div>Lina/Truss (Split)</div>
+</div>
+
+<div id="controls-hint">
+  <kbd>LMB</kbd> obrót · <kbd>RMB</kbd> pan · <kbd>scroll</kbd> zoom
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// ===== MAP DATA (z MapData.lua, konwertowane do JS) =====
+const MAPS = {
+  Ascent: {
+    DisplayName: "Ascent",
+    Theme: "Italian Renaissance / floating Venice",
+    Dimensions: { X: 300, Z: 300 },
+    Difficulty: "Easy",
+    HasMid: true,
+    BombSites: 2,
+    ColorPalette: { Primary: [220, 200, 170], Secondary: [180, 100, 70], Accent: [100, 140, 80] },
+    SkyColor: [220, 200, 170],
+    SpawnAttackers: [0, 3, -120],
+    SpawnDefenders: [0, 3, 120],
+    Sites: {
+      A: { pos: [-90, 1, 60], radius: 12, hasHeaven: true, heavenHeight: 15 },
+      B: { pos: [90, 1, 60], radius: 12, hasHeaven: false },
+    },
+    UltOrbs: [[-60, 3, 0], [60, 3, 0]],
+    CoverBlocks: [
+      { pos: [-80, 4, -30], size: [2, 8, 12], name: "A Main Wall" },
+      { pos: [-100, 3, 30], size: [8, 6, 8], name: "A Generator" },
+      { pos: [-90, 4, 90], size: [12, 8, 2], name: "A Heaven Wall" },
+      { pos: [80, 4, -30], size: [2, 8, 12], name: "B Main Wall" },
+      { pos: [95, 3, 50], size: [6, 6, 4], name: "Triple Box" },
+      { pos: [80, 4, 90], size: [8, 8, 4], name: "Boathouse" },
+      { pos: [0, 4, 0], size: [4, 8, 4], name: "Mid Pillar" },
+      { pos: [-30, 4, 30], size: [8, 8, 2], name: "Catwalk Wall" },
+      { pos: [30, 4, -30], size: [8, 8, 2], name: "Pizza Wall" },
+      { pos: [-40, 4, 70], size: [2, 8, 20], name: "A CT" },
+      { pos: [40, 4, 70], size: [2, 8, 20], name: "B CT" },
+    ],
+    Platforms: [
+      { pos: [-90, 16, 80], size: [30, 1, 20], name: "A Heaven" },
+    ],
+  },
+  Bind: {
+    DisplayName: "Bind",
+    Theme: "Rabat, Morocco / desert Mediterranean",
+    Dimensions: { X: 250, Z: 250 },
+    Difficulty: "Easy-Medium",
+    HasMid: false,
+    BombSites: 2,
+    ColorPalette: { Primary: [230, 180, 120], Secondary: [200, 110, 70], Accent: [80, 110, 160] },
+    SkyColor: [255, 220, 180],
+    SpawnAttackers: [0, 3, -100],
+    SpawnDefenders: [0, 3, 100],
+    Sites: {
+      A: { pos: [-80, 1, 50], radius: 12, hasHeaven: true, heavenHeight: 15 },
+      B: { pos: [80, 1, 50], radius: 12, hasHeaven: false },
+    },
+    UltOrbs: [[-50, 3, -30], [50, 3, -30]],
+    Teleporters: [
+      { from: [-50, 3, -20], to: [70, 11, 30], name: "TP A→B Hookah" },
+      { from: [60, 3, -50], to: [-75, 3, 25], name: "TP B Long→A Showers" },
+    ],
+    CoverBlocks: [
+      { pos: [-60, 4, -30], size: [2, 8, 10], name: "A Short Wall" },
+      { pos: [-85, 3, 30], size: [6, 6, 6], name: "A Bath Cover" },
+      { pos: [-80, 4, 80], size: [10, 8, 2], name: "A Heaven Wall" },
+      { pos: [60, 4, -50], size: [2, 8, 30], name: "B Long Corridor" },
+      { pos: [85, 3, 30], size: [6, 6, 6], name: "B Pillar" },
+      { pos: [75, 6, 30], size: [4, 4, 4], name: "Under Hookah" },
+    ],
+    Platforms: [
+      { pos: [-80, 16, 70], size: [20, 1, 15], name: "A Heaven" },
+      { pos: [70, 11, 30], size: [10, 1, 15], name: "B Hookah" },
+    ],
+  },
+  Split: {
+    DisplayName: "Split",
+    Theme: "Tokyo, Japan / neon-lit cyberpunk",
+    Dimensions: { X: 250, Z: 280 },
+    Difficulty: "Medium-Hard",
+    HasMid: true,
+    BombSites: 2,
+    ColorPalette: { Primary: [60, 60, 80], Secondary: [255, 100, 200], Accent: [80, 200, 255] },
+    SkyColor: [40, 50, 90],
+    SpawnAttackers: [0, 3, -120],
+    SpawnDefenders: [0, 3, 120],
+    Sites: {
+      A: { pos: [-80, 1, 70], radius: 12, hasHeaven: true, heavenHeight: 15 },
+      B: { pos: [80, 1, 70], radius: 12, hasHeaven: true, heavenHeight: 15 },
+    },
+    UltOrbs: [[-40, 3, 0], [40, 3, 0]],
+    Ropes: [
+      { from: [-20, 3, 0], to: [-20, 15, 0], name: "Mid Vent" },
+      { from: [70, 3, 60], to: [70, 15, 60], name: "B Tower" },
+      { from: [-70, 3, -30], to: [-70, 12, -30], name: "A Sewer" },
+    ],
+    CoverBlocks: [
+      { pos: [-80, 4, -40], size: [2, 8, 6], name: "A Main Corridor" },
+      { pos: [-80, 3, 50], size: [4, 6, 4], name: "A Site Box" },
+      { pos: [80, 4, -40], size: [2, 8, 6], name: "B Garage" },
+      { pos: [80, 3, 60], size: [4, 6, 4], name: "Double Box" },
+      { pos: [-15, 4, 0], size: [2, 8, 10], name: "Mid Vent Wall" },
+      { pos: [15, 4, 0], size: [2, 8, 10], name: "Mid Mail Wall" },
+      { pos: [0, 4, 10], size: [8, 8, 2], name: "Mid Top" },
+    ],
+    Platforms: [
+      { pos: [-80, 16, 60], size: [15, 1, 12], name: "A Tower" },
+      { pos: [-90, 16, 80], size: [8, 1, 8], name: "A Rafters" },
+      { pos: [80, 16, 60], size: [15, 1, 12], name: "B Tower" },
+      { pos: [90, 16, 80], size: [8, 1, 8], name: "B Rafters" },
+      { pos: [0, 8, 20], size: [12, 1, 8], name: "Mid Top" },
+    ],
+  },
+  Haven: {
+    DisplayName: "Haven",
+    Theme: "Bhutan, Buddhist monastery",
+    Dimensions: { X: 320, Z: 320 },
+    Difficulty: "Medium",
+    HasMid: true,
+    BombSites: 3,
+    ColorPalette: { Primary: [220, 200, 170], Secondary: [180, 90, 60], Accent: [255, 220, 100] },
+    SkyColor: [200, 220, 240],
+    SpawnAttackers: [0, 3, -130],
+    SpawnDefenders: [0, 3, 130],
+    Sites: {
+      A: { pos: [-100, 1, 70], radius: 12, hasHeaven: true, heavenHeight: 15 },
+      B: { pos: [0, 1, 70], radius: 12, hasHeaven: false },
+      C: { pos: [100, 1, 70], radius: 12, hasHeaven: false },
+    },
+    UltOrbs: [[-50, 3, 0], [50, 3, 0]],
+    CoverBlocks: [
+      { pos: [-95, 4, 50], size: [6, 8, 4], name: "A Box" },
+      { pos: [-110, 4, 80], size: [2, 8, 12], name: "A Wall" },
+      { pos: [-85, 4, 90], size: [8, 8, 2], name: "A Heaven Wall" },
+      { pos: [0, 4, 50], size: [2, 8, 10], name: "B Front" },
+      { pos: [-12, 4, 80], size: [4, 8, 4], name: "B Default" },
+      { pos: [12, 4, 80], size: [4, 8, 4], name: "B Back" },
+      { pos: [95, 4, 50], size: [6, 8, 4], name: "C Box" },
+      { pos: [110, 4, 80], size: [2, 8, 12], name: "C Wall" },
+      { pos: [85, 4, 90], size: [8, 8, 2], name: "C Cubby" },
+      { pos: [-30, 4, 0], size: [2, 8, 14], name: "Mid Wall L" },
+      { pos: [30, 4, 0], size: [2, 8, 14], name: "Mid Wall R" },
+      { pos: [-60, 4, -50], size: [2, 8, 16], name: "A Lobby" },
+      { pos: [60, 4, -50], size: [2, 8, 16], name: "C Lobby" },
+    ],
+    Platforms: [
+      { pos: [-95, 16, 90], size: [20, 1, 16], name: "A Heaven" },
+    ],
+  },
+  Fracture: {
+    DisplayName: "Fracture",
+    Theme: "Desert research facility, post-explosion",
+    Dimensions: { X: 300, Z: 300 },
+    Difficulty: "Hard",
+    HasMid: false,
+    BombSites: 2,
+    ColorPalette: { Primary: [200, 160, 110], Secondary: [140, 100, 70], Accent: [255, 200, 80] },
+    SkyColor: [220, 160, 100],
+    SpawnAttackers: [0, 3, -130],
+    SpawnAttackersAlt: [0, 3, 130], // H-shape: dual spawn N + S
+    SpawnDefenders: [0, 3, 0],
+    Sites: {
+      A: { pos: [-90, 1, 0], radius: 12, hasHeaven: true, heavenHeight: 15 },
+      B: { pos: [90, 1, 0], radius: 12, hasHeaven: false },
+    },
+    UltOrbs: [[-40, 3, -60], [40, 3, -60], [-40, 3, 60], [40, 3, 60]],
+    CoverBlocks: [
+      { pos: [-80, 4, -30], size: [2, 8, 10], name: "A Tower" },
+      { pos: [-95, 3, 0], size: [6, 6, 4], name: "A Box" },
+      { pos: [-80, 4, 30], size: [2, 8, 10], name: "A Drop" },
+      { pos: [80, 4, -30], size: [2, 8, 10], name: "B Tower" },
+      { pos: [95, 3, 0], size: [6, 6, 4], name: "B Generator" },
+      { pos: [80, 4, 30], size: [2, 8, 10], name: "B Drop" },
+      { pos: [0, 4, 0], size: [8, 8, 8], name: "Center Bunker" },
+      { pos: [-30, 4, 30], size: [4, 6, 4], name: "Mid L" },
+      { pos: [30, 4, -30], size: [4, 6, 4], name: "Mid R" },
+    ],
+    Platforms: [
+      { pos: [-95, 16, 0], size: [20, 1, 20], name: "A Heaven" },
+    ],
+  },
+  Lotus: {
+    DisplayName: "Lotus",
+    Theme: "Indian temple, ancient stone + nature",
+    Dimensions: { X: 320, Z: 320 },
+    Difficulty: "Medium-Hard",
+    HasMid: true,
+    BombSites: 3,
+    ColorPalette: { Primary: [200, 170, 130], Secondary: [140, 100, 70], Accent: [80, 160, 100] },
+    SkyColor: [255, 200, 180],
+    SpawnAttackers: [0, 3, -130],
+    SpawnDefenders: [0, 3, 130],
+    Sites: {
+      A: { pos: [-100, 1, 60], radius: 12, hasHeaven: false },
+      B: { pos: [0, 1, 80], radius: 12, hasHeaven: false },
+      C: { pos: [100, 1, 60], radius: 12, hasHeaven: false },
+    },
+    UltOrbs: [[-50, 3, 0], [50, 3, 0]],
+    RotatingDoors: [
+      { pos: [-50, 5, 30], name: "A-B Door" },
+      { pos: [50, 5, 30], name: "B-C Door" },
+    ],
+    CoverBlocks: [
+      { pos: [-95, 4, 40], size: [6, 8, 4], name: "A Mound" },
+      { pos: [-105, 4, 70], size: [2, 8, 12], name: "A Wall" },
+      { pos: [0, 4, 50], size: [8, 8, 2], name: "B Front" },
+      { pos: [-10, 4, 90], size: [4, 8, 4], name: "B Default" },
+      { pos: [10, 4, 90], size: [4, 8, 4], name: "B Back" },
+      { pos: [95, 4, 40], size: [6, 8, 4], name: "C Mound" },
+      { pos: [105, 4, 70], size: [2, 8, 12], name: "C Wall" },
+      { pos: [-25, 4, 0], size: [2, 8, 12], name: "Mid Wall L" },
+      { pos: [25, 4, 0], size: [2, 8, 12], name: "Mid Wall R" },
+    ],
+    Platforms: [],
+  },
+};
+
+const rgbColor = (rgb) => new THREE.Color(rgb[0]/255, rgb[1]/255, rgb[2]/255);
+
+// ===== SCENE SETUP =====
+const container = document.getElementById('canvas-container');
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setSize(window.innerWidth, window.innerHeight - 110);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+container.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(55, window.innerWidth / (window.innerHeight - 110), 1, 2000);
+camera.position.set(150, 200, 250);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.maxPolarAngle = Math.PI / 2.05; // don't go below ground
+controls.minDistance = 50;
+controls.maxDistance = 800;
+
+// Lights
+const ambient = new THREE.AmbientLight(0xffffff, 0.55);
+scene.add(ambient);
+const sun = new THREE.DirectionalLight(0xffffff, 1.1);
+sun.position.set(100, 250, 100);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.camera.left = -250;
+sun.shadow.camera.right = 250;
+sun.shadow.camera.top = 250;
+sun.shadow.camera.bottom = -250;
+sun.shadow.camera.near = 0.5;
+sun.shadow.camera.far = 600;
+scene.add(sun);
+
+// ===== TEXT LABEL via CanvasTexture =====
+function makeLabel(text, color = '#ffffff', size = 40) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 96;
+  const ctx = canvas.getContext('2d');
+  ctx.font = `900 ${size}px Segoe UI, Arial`;
+  ctx.fillStyle = 'rgba(0,0,0,0.6)';
+  ctx.fillRect(0, 0, 256, 96);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 3;
+  ctx.strokeRect(0, 0, 256, 96);
+  ctx.fillStyle = color;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, 128, 48);
+  const tex = new THREE.CanvasTexture(canvas);
+  const mat = new THREE.SpriteMaterial({ map: tex, depthTest: false });
+  const sprite = new THREE.Sprite(mat);
+  sprite.scale.set(24, 9, 1);
+  return sprite;
+}
+
+// ===== MAP BUILDER =====
+let currentGroup = null;
+let activeOrbs = []; // for animation
+let activeTeleporters = []; // for animation
+
+function buildMap(name) {
+  if (currentGroup) {
+    scene.remove(currentGroup);
+    currentGroup.traverse(obj => {
+      if (obj.geometry) obj.geometry.dispose();
+      if (obj.material) {
+        if (obj.material.map) obj.material.map.dispose();
+        obj.material.dispose();
+      }
+    });
+  }
+  activeOrbs = [];
+  activeTeleporters = [];
+
+  const map = MAPS[name];
+  const group = new THREE.Group();
+  scene.background = rgbColor(map.SkyColor);
+  scene.fog = new THREE.Fog(scene.background, 400, 1200);
+
+  // FLOOR (slightly larger than dimensions)
+  const floorGeo = new THREE.PlaneGeometry(map.Dimensions.X, map.Dimensions.Z);
+  const floorMat = new THREE.MeshStandardMaterial({
+    color: rgbColor(map.ColorPalette.Primary),
+    roughness: 0.85,
+  });
+  const floor = new THREE.Mesh(floorGeo, floorMat);
+  floor.rotation.x = -Math.PI / 2;
+  floor.receiveShadow = true;
+  group.add(floor);
+
+  // GRID overlay
+  const grid = new THREE.GridHelper(Math.max(map.Dimensions.X, map.Dimensions.Z), 30, 0x000000, 0x222222);
+  grid.material.opacity = 0.25;
+  grid.material.transparent = true;
+  grid.position.y = 0.05;
+  group.add(grid);
+
+  // BOUNDARY WALLS (low, just visual)
+  const wallHeight = 4;
+  const wallMat = new THREE.MeshStandardMaterial({
+    color: rgbColor(map.ColorPalette.Secondary),
+    roughness: 0.9,
+  });
+  const wallThickness = 2;
+  const halfX = map.Dimensions.X / 2;
+  const halfZ = map.Dimensions.Z / 2;
+  const walls = [
+    { sz: [map.Dimensions.X, wallHeight, wallThickness], pos: [0, wallHeight/2, -halfZ] },
+    { sz: [map.Dimensions.X, wallHeight, wallThickness], pos: [0, wallHeight/2, halfZ] },
+    { sz: [wallThickness, wallHeight, map.Dimensions.Z], pos: [-halfX, wallHeight/2, 0] },
+    { sz: [wallThickness, wallHeight, map.Dimensions.Z], pos: [halfX, wallHeight/2, 0] },
+  ];
+  walls.forEach(w => {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(...w.sz), wallMat);
+    m.position.set(...w.pos);
+    m.castShadow = true;
+    m.receiveShadow = true;
+    group.add(m);
+  });
+
+  // COVER BLOCKS
+  const coverMat = new THREE.MeshStandardMaterial({ color: 0x8a6a4a, roughness: 0.85 });
+  map.CoverBlocks.forEach(b => {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(...b.size), coverMat);
+    m.position.set(b.pos[0], b.pos[1], b.pos[2]);
+    m.castShadow = true;
+    m.receiveShadow = true;
+    group.add(m);
+  });
+
+  // BOMBSITES (red disc + label)
+  const siteMat = new THREE.MeshStandardMaterial({ color: 0xa04040, transparent: true, opacity: 0.6, emissive: 0x661010, emissiveIntensity: 0.3 });
+  for (const [letter, site] of Object.entries(map.Sites)) {
+    const disc = new THREE.Mesh(new THREE.CylinderGeometry(site.radius, site.radius, 0.5, 32), siteMat);
+    disc.position.set(site.pos[0], 0.3, site.pos[2]);
+    group.add(disc);
+
+    // Ring outline
+    const ring = new THREE.Mesh(
+      new THREE.TorusGeometry(site.radius, 0.4, 8, 32),
+      new THREE.MeshBasicMaterial({ color: 0xff4040 })
+    );
+    ring.position.set(site.pos[0], 0.6, site.pos[2]);
+    ring.rotation.x = Math.PI / 2;
+    group.add(ring);
+
+    // Large letter
+    const label = makeLabel(letter, '#ff6060', 60);
+    label.position.set(site.pos[0], 10, site.pos[2]);
+    label.scale.set(20, 8, 1);
+    group.add(label);
+
+    // Heaven platform overhang (subtle box above)
+    if (site.hasHeaven) {
+      const heavenMat = new THREE.MeshStandardMaterial({ color: rgbColor(map.ColorPalette.Secondary), transparent: true, opacity: 0.5 });
+      // Already covered in Platforms[], skip
+    }
+  }
+
+  // PLATFORMS (Heaven, Tower, Rafters)
+  const platformMat = new THREE.MeshStandardMaterial({
+    color: rgbColor(map.ColorPalette.Secondary),
+    transparent: true, opacity: 0.55,
+    roughness: 0.8,
+  });
+  map.Platforms.forEach(p => {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(...p.size), platformMat);
+    m.position.set(p.pos[0], p.pos[1], p.pos[2]);
+    m.castShadow = true;
+    group.add(m);
+
+    const lbl = makeLabel(p.name, '#ffffff', 28);
+    lbl.position.set(p.pos[0], p.pos[1] + 4, p.pos[2]);
+    lbl.scale.set(14, 5, 1);
+    group.add(lbl);
+  });
+
+  // SPAWNS
+  function buildSpawn(pos, color, label) {
+    const m = new THREE.Mesh(
+      new THREE.BoxGeometry(20, 1, 20),
+      new THREE.MeshStandardMaterial({ color, transparent: true, opacity: 0.7, emissive: color, emissiveIntensity: 0.25 })
+    );
+    m.position.set(pos[0], 0.5, pos[2]);
+    group.add(m);
+    const lbl = makeLabel(label, '#ffffff', 28);
+    lbl.position.set(pos[0], 6, pos[2]);
+    lbl.scale.set(14, 5, 1);
+    group.add(lbl);
+  }
+  buildSpawn(map.SpawnAttackers, 0xff3030, 'ATK');
+  buildSpawn(map.SpawnDefenders, 0x3060ff, 'DEF');
+  if (map.SpawnAttackersAlt) {
+    buildSpawn(map.SpawnAttackersAlt, 0xff3030, 'ATK-2');
+  }
+
+  // ULT ORBS (glowing purple spheres)
+  map.UltOrbs.forEach(orbPos => {
+    const orb = new THREE.Mesh(
+      new THREE.SphereGeometry(2.5, 16, 16),
+      new THREE.MeshStandardMaterial({ color: 0xb450dc, emissive: 0xb450dc, emissiveIntensity: 1.0 })
+    );
+    orb.position.set(orbPos[0], orbPos[1] + 2, orbPos[2]);
+    // Point light
+    const light = new THREE.PointLight(0xb450dc, 1.5, 30);
+    light.position.copy(orb.position);
+    group.add(orb);
+    group.add(light);
+    activeOrbs.push({ orb, baseY: orb.position.y });
+  });
+
+  // TELEPORTERS (Bind)
+  if (map.Teleporters) {
+    map.Teleporters.forEach(tp => {
+      // Portal at "from"
+      const portalGeo = new THREE.TorusGeometry(3, 0.8, 8, 32);
+      const portalMat = new THREE.MeshStandardMaterial({ color: 0x00ffff, emissive: 0x00ffff, emissiveIntensity: 1.2 });
+      const from = new THREE.Mesh(portalGeo, portalMat);
+      from.position.set(tp.from[0], tp.from[1] + 2, tp.from[2]);
+      from.rotation.x = Math.PI / 2;
+      group.add(from);
+
+      const to = new THREE.Mesh(portalGeo, portalMat);
+      to.position.set(tp.to[0], tp.to[1] + 2, tp.to[2]);
+      to.rotation.x = Math.PI / 2;
+      group.add(to);
+
+      // Dashed line
+      const points = [];
+      const segments = 30;
+      for (let i = 0; i <= segments; i++) {
+        const t = i / segments;
+        const x = tp.from[0] + (tp.to[0] - tp.from[0]) * t;
+        const z = tp.from[2] + (tp.to[2] - tp.from[2]) * t;
+        // Slight arc
+        const y = tp.from[1] + (tp.to[1] - tp.from[1]) * t + Math.sin(t * Math.PI) * 8;
+        points.push(new THREE.Vector3(x, y, z));
+      }
+      const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
+      const lineMat = new THREE.LineDashedMaterial({ color: 0x00ffff, dashSize: 4, gapSize: 3, linewidth: 2 });
+      const line = new THREE.Line(lineGeo, lineMat);
+      line.computeLineDistances();
+      group.add(line);
+
+      activeTeleporters.push({ from, to });
+    });
+  }
+
+  // ROPES (Split — vertical truss)
+  if (map.Ropes) {
+    map.Ropes.forEach(r => {
+      const h = r.to[1] - r.from[1];
+      const truss = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.5, 0.5, h, 8),
+        new THREE.MeshStandardMaterial({ color: 0xffaa00, emissive: 0xff8800, emissiveIntensity: 0.5 })
+      );
+      truss.position.set(r.from[0], r.from[1] + h/2, r.from[2]);
+      group.add(truss);
+      // Top platform stub
+      const stub = new THREE.Mesh(
+        new THREE.BoxGeometry(3, 0.3, 3),
+        new THREE.MeshStandardMaterial({ color: 0xffaa00 })
+      );
+      stub.position.set(r.to[0], r.to[1], r.to[2]);
+      group.add(stub);
+    });
+  }
+
+  // ROTATING DOORS (Lotus)
+  if (map.RotatingDoors) {
+    map.RotatingDoors.forEach(d => {
+      const door = new THREE.Mesh(
+        new THREE.BoxGeometry(10, 8, 0.5),
+        new THREE.MeshStandardMaterial({ color: 0x5a4030, transparent: true, opacity: 0.85 })
+      );
+      door.position.set(d.pos[0], d.pos[1], d.pos[2]);
+      door.userData.isRotatingDoor = true;
+      group.add(door);
+      activeOrbs.push({ orb: door, isDoor: true });
+    });
+  }
+
+  scene.add(group);
+  currentGroup = group;
+
+  // Update info panel
+  document.getElementById('mapName').textContent = map.DisplayName;
+  document.getElementById('mapTheme').textContent = map.Theme;
+  document.getElementById('mapSize').textContent = `${map.Dimensions.X}×${map.Dimensions.Z} studs`;
+  document.getElementById('mapDiff').textContent = map.Difficulty;
+  document.getElementById('mapSites').textContent = map.BombSites + (map.BombSites === 3 ? ' (RZADKO!)' : '');
+  document.getElementById('mapMid').textContent = map.HasMid ? 'TAK' : 'NIE';
+  document.getElementById('mapOrbs').textContent = map.UltOrbs.length + (map.UltOrbs.length === 4 ? ' (Fracture!)' : '');
+
+  // Reset camera to view the map fully
+  const maxDim = Math.max(map.Dimensions.X, map.Dimensions.Z);
+  camera.position.set(maxDim * 0.6, maxDim * 0.7, maxDim * 0.9);
+  controls.target.set(0, 0, 0);
+  controls.update();
+}
+
+// ===== ANIMATION LOOP =====
+let t = 0;
+function animate() {
+  requestAnimationFrame(animate);
+  t += 0.02;
+  // Orb bobbing
+  activeOrbs.forEach((o, i) => {
+    if (o.isDoor) {
+      o.orb.rotation.y += 0.005;
+    } else if (o.baseY !== undefined) {
+      o.orb.position.y = o.baseY + Math.sin(t + i) * 0.8;
+      o.orb.rotation.y += 0.03;
+    }
+  });
+  // Teleporter spin
+  activeTeleporters.forEach(tp => {
+    tp.from.rotation.z += 0.05;
+    tp.to.rotation.z -= 0.05;
+  });
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+// ===== MAP SELECTOR =====
+document.querySelectorAll('#mapSelector button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#mapSelector button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    buildMap(btn.dataset.map);
+  });
+});
+
+// ===== RESIZE =====
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / (window.innerHeight - 110);
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight - 110);
+});
+
+// ===== INIT =====
+buildMap('Ascent');
+animate();
+
+// Hide loading
+setTimeout(() => {
+  document.getElementById('loading').style.display = 'none';
+}, 600);
+
+// URL hash routing
+if (location.hash) {
+  const mapName = location.hash.slice(1);
+  if (MAPS[mapName]) {
+    document.querySelector(`#mapSelector button[data-map="${mapName}"]`)?.click();
+  }
+}
+</script>
+
+</body>
+</html>

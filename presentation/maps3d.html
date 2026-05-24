@@ -319,6 +319,124 @@ const MAPS = {
   },
 };
 
+// ===== THEME DATA (mirrors src/shared/MapTheme.lua) =====
+// Props specify decoration positions + types per map. Each prop is rendered by PROP_BUILDERS.
+const THEMES = {
+  Ascent: {
+    floorColor: [180, 170, 150],   // slate cobblestone tint
+    floorRoughness: 0.95,
+    lampColor: 0xffdc96,
+    Props: [
+      { type: "fountain", pos: [0, 0, -10], size: 8 },
+      { type: "archway", pos: [-110, 0, -20], width: 14 },
+      { type: "archway", pos: [110, 0, -20], width: 14 },
+      { type: "statue", pos: [-40, 0, -55] },
+      { type: "statue", pos: [40, 0, -55] },
+      { type: "barrel_stack", pos: [-100, 0, -90] },
+      { type: "barrel_stack", pos: [100, 0, -90] },
+      { type: "cypress", pos: [-140, 0, -120] },
+      { type: "cypress", pos: [140, 0, -120] },
+      { type: "cypress", pos: [-140, 0, 120] },
+      { type: "cypress", pos: [140, 0, 120] },
+    ],
+  },
+  Bind: {
+    floorColor: [230, 200, 150],
+    floorRoughness: 1.0,
+    lampColor: 0xffb450,
+    Props: [
+      { type: "palm", pos: [-30, 0, 90] },
+      { type: "palm", pos: [30, 0, 90] },
+      { type: "palm", pos: [-30, 0, -90] },
+      { type: "palm", pos: [30, 0, -90] },
+      { type: "moroccan_arch", pos: [-50, 0, 0] },
+      { type: "moroccan_arch", pos: [50, 0, 0] },
+      { type: "lantern_hanging", pos: [75, 10, 30] },
+      { type: "lantern_hanging", pos: [-75, 10, 30] },
+      { type: "market_stall", pos: [-60, 0, 70], color: 0xc83c3c },
+      { type: "market_stall", pos: [60, 0, 70], color: 0x3c64b4 },
+      { type: "well", pos: [-90, 0, -60] },
+    ],
+  },
+  Split: {
+    floorColor: [50, 50, 60],
+    floorRoughness: 0.7,
+    lampColor: 0x50c8ff,
+    Props: [
+      { type: "vending", pos: [-40, 0, 30], color: 0xff64c8 },
+      { type: "vending", pos: [40, 0, 30], color: 0x50c8ff },
+      { type: "vending", pos: [-40, 0, -30], color: 0x32dc64 },
+      { type: "neon_sign", pos: [-115, 10, 0], color: 0xff64c8, text: "シ" },
+      { type: "neon_sign", pos: [115, 10, 0], color: 0x50c8ff, text: "ク" },
+      { type: "neon_sign", pos: [0, 12, -130], color: 0xffc850, text: "東京" },
+      { type: "ramen_stand", pos: [0, 0, 40] },
+      { type: "wire", from: [-115, 22, -40], to: [115, 22, -40] },
+      { type: "wire", from: [-115, 22, 40], to: [115, 22, 40] },
+      { type: "bicycle", pos: [-60, 0, 0] },
+      { type: "bicycle", pos: [60, 0, 0] },
+      { type: "ac_unit", pos: [-80, 17, 60] },
+      { type: "ac_unit", pos: [80, 17, 60] },
+    ],
+  },
+  Haven: {
+    floorColor: [200, 190, 170],
+    floorRoughness: 0.9,
+    lampColor: 0xffc864,
+    Props: [
+      { type: "stupa", pos: [100, 0, 130] },
+      { type: "prayer_flags", from: [-130, 18, -60], to: [130, 18, -60] },
+      { type: "prayer_flags", from: [-130, 16, 60], to: [130, 16, 60] },
+      { type: "bell", pos: [-60, 0, 30] },
+      { type: "bell", pos: [60, 0, 30] },
+      { type: "tree", pos: [-140, 0, 140], color: 0xff96c8 },
+      { type: "tree", pos: [140, 0, 140], color: 0xff96c8 },
+      { type: "prayer_wheel", pos: [-30, 0, -10] },
+      { type: "prayer_wheel", pos: [30, 0, -10] },
+      { type: "brazier", pos: [-100, 0, -30] },
+      { type: "brazier", pos: [100, 0, -30] },
+    ],
+  },
+  Fracture: {
+    floorColor: [180, 150, 110],
+    floorRoughness: 1.0,
+    lampColor: 0xff6432,
+    Props: [
+      { type: "wrecked_truck", pos: [-60, 0, -90], rot: 45 },
+      { type: "wrecked_truck", pos: [60, 0, 90], rot: 220 },
+      { type: "wrecked_car", pos: [0, 0, -70], rot: 90 },
+      { type: "container", pos: [-70, 0, 60], color: 0xa05028 },
+      { type: "container", pos: [70, 0, -60], color: 0x3c5064 },
+      { type: "container", pos: [70, 0, 60], color: 0x508c3c },
+      { type: "generator", pos: [0, 0, 30] },
+      { type: "generator", pos: [0, 0, -30] },
+      { type: "antenna", pos: [-130, 0, -130] },
+      { type: "antenna", pos: [130, 0, 130] },
+      { type: "warning_sign", pos: [-30, 0, 0] },
+      { type: "warning_sign", pos: [30, 0, 0] },
+      { type: "rebar_pile", pos: [-100, 0, 100] },
+      { type: "rebar_pile", pos: [100, 0, -100] },
+    ],
+  },
+  Lotus: {
+    floorColor: [220, 210, 190],
+    floorRoughness: 0.5,    // marble = smooth
+    floorMetalness: 0.2,
+    lampColor: 0xffdc96,
+    Props: [
+      { type: "lotus_pond", pos: [0, 0, 0], size: 12 },
+      { type: "buddha", pos: [0, 0, -120] },
+      { type: "pillar", pos: [-90, 0, 90] },
+      { type: "pillar", pos: [90, 0, 90] },
+      { type: "pillar", pos: [-90, 0, -90] },
+      { type: "pillar", pos: [90, 0, -90] },
+      { type: "elephant_statue", pos: [-30, 0, -110] },
+      { type: "elephant_statue", pos: [30, 0, -110] },
+      { type: "banyan", pos: [-130, 0, 130] },
+      { type: "banyan", pos: [130, 0, 130] },
+    ],
+  },
+};
+
 const rgbColor = (rgb) => new THREE.Color(rgb[0]/255, rgb[1]/255, rgb[2]/255);
 
 // ===== SCENE SETUP =====
@@ -379,6 +497,426 @@ function makeLabel(text, color = '#ffffff', size = 40) {
   return sprite;
 }
 
+// ===== PROP BUILDERS (mirrors PropBuilders in MapBuilder.lua) =====
+// Each builder returns a THREE.Group of meshes representing the prop.
+const PROP_BUILDERS = {};
+
+function makeBox(w, h, d, color, opts = {}) {
+  const m = new THREE.Mesh(
+    new THREE.BoxGeometry(w, h, d),
+    new THREE.MeshStandardMaterial({ color, roughness: opts.roughness ?? 0.7, metalness: opts.metalness ?? 0.1, transparent: opts.transparent || false, opacity: opts.opacity ?? 1, emissive: opts.emissive || 0x000000, emissiveIntensity: opts.emissiveIntensity || 0 })
+  );
+  m.castShadow = true;
+  m.receiveShadow = true;
+  return m;
+}
+function makeCylinder(rT, rB, h, color, opts = {}) {
+  const m = new THREE.Mesh(
+    new THREE.CylinderGeometry(rT, rB, h, opts.segments || 16),
+    new THREE.MeshStandardMaterial({ color, roughness: opts.roughness ?? 0.7, metalness: opts.metalness ?? 0.1, transparent: opts.transparent || false, opacity: opts.opacity ?? 1, emissive: opts.emissive || 0x000000, emissiveIntensity: opts.emissiveIntensity || 0 })
+  );
+  m.castShadow = true;
+  m.receiveShadow = true;
+  return m;
+}
+function makeSphere(r, color, opts = {}) {
+  const m = new THREE.Mesh(
+    new THREE.SphereGeometry(r, opts.segments || 16, opts.segments || 12),
+    new THREE.MeshStandardMaterial({ color, roughness: opts.roughness ?? 0.7, metalness: opts.metalness ?? 0.1, transparent: opts.transparent || false, opacity: opts.opacity ?? 1, emissive: opts.emissive || 0x000000, emissiveIntensity: opts.emissiveIntensity || 0 })
+  );
+  m.castShadow = true;
+  m.receiveShadow = true;
+  return m;
+}
+
+PROP_BUILDERS.fountain = (p) => {
+  const g = new THREE.Group();
+  const base = makeBox(p.size, 1, p.size, 0xc8beaa, { roughness: 0.4 });
+  base.position.set(p.pos[0], 0.5, p.pos[2]);
+  g.add(base);
+  const rim = makeBox(p.size + 2, 0.5, p.size + 2, 0xb4aa96, { roughness: 0.4 });
+  rim.position.set(p.pos[0], 1.2, p.pos[2]);
+  g.add(rim);
+  const water = makeBox(p.size - 1, 0.4, p.size - 1, 0x508cc8, { transparent: true, opacity: 0.6, roughness: 0.1, metalness: 0.3 });
+  water.position.set(p.pos[0], 1.4, p.pos[2]);
+  g.add(water);
+  const center = makeBox(1.5, 4, 1.5, 0xc8beaa, { roughness: 0.4 });
+  center.position.set(p.pos[0], 4, p.pos[2]);
+  g.add(center);
+  return g;
+};
+
+PROP_BUILDERS.archway = (p) => {
+  const g = new THREE.Group();
+  const w = p.width || 14;
+  const h = 10;
+  const lp = makeBox(2, h, 2, 0xdcc8aa); lp.position.set(p.pos[0] - w/2, h/2, p.pos[2]); g.add(lp);
+  const rp = makeBox(2, h, 2, 0xdcc8aa); rp.position.set(p.pos[0] + w/2, h/2, p.pos[2]); g.add(rp);
+  const top = makeBox(w + 2, 2, 3, 0xb46446); top.position.set(p.pos[0], h + 1, p.pos[2]); g.add(top);
+  return g;
+};
+
+PROP_BUILDERS.statue = (p) => {
+  const g = new THREE.Group();
+  const ped = makeBox(3, 2, 3, 0xb4aa96); ped.position.set(p.pos[0], 1, p.pos[2]); g.add(ped);
+  const body = makeBox(2, 6, 2, 0xdcd2be); body.position.set(p.pos[0], 5, p.pos[2]); g.add(body);
+  const head = makeSphere(0.7, 0xdcd2be); head.position.set(p.pos[0], 8.7, p.pos[2]); g.add(head);
+  return g;
+};
+
+PROP_BUILDERS.barrel_stack = (p) => {
+  const g = new THREE.Group();
+  [[-1.5, 1], [1.5, 1], [0, 3]].forEach(([ox, oy]) => {
+    const b = makeCylinder(1, 1, 2, 0x8c5028, { segments: 12 });
+    b.rotation.z = Math.PI / 2;
+    b.position.set(p.pos[0] + ox, oy, p.pos[2]);
+    g.add(b);
+  });
+  return g;
+};
+
+PROP_BUILDERS.cypress = (p) => {
+  const g = new THREE.Group();
+  const trunk = makeCylinder(0.5, 0.5, 16, 0x5a4632); trunk.position.set(p.pos[0], 8, p.pos[2]); g.add(trunk);
+  for (let i = 0; i < 5; i++) {
+    const f = makeSphere((4 - i * 0.5) / 2, 0x325032, { segments: 10 });
+    f.position.set(p.pos[0], 6 + i * 3, p.pos[2]);
+    g.add(f);
+  }
+  return g;
+};
+
+PROP_BUILDERS.palm = (p) => {
+  const g = new THREE.Group();
+  const trunk = makeCylinder(0.7, 0.9, 18, 0x6e5032, { segments: 8 }); trunk.position.set(p.pos[0], 9, p.pos[2]); g.add(trunk);
+  for (let i = 0; i < 5; i++) {
+    const angle = (i * 72) * Math.PI / 180;
+    const frond = makeBox(8, 0.3, 2.5, 0x3c8232, { roughness: 0.9 });
+    frond.position.set(p.pos[0] + Math.cos(angle) * 3, 18, p.pos[2] + Math.sin(angle) * 3);
+    frond.rotation.set(0, angle, -0.43);
+    g.add(frond);
+  }
+  return g;
+};
+
+PROP_BUILDERS.moroccan_arch = (p) => {
+  const g = new THREE.Group();
+  const w = 10, h = 12;
+  const lp = makeBox(1.5, h, 1.5, 0xe6b478); lp.position.set(p.pos[0] - w/2, h/2, p.pos[2]); g.add(lp);
+  const rp = makeBox(1.5, h, 1.5, 0xe6b478); rp.position.set(p.pos[0] + w/2, h/2, p.pos[2]); g.add(rp);
+  const top = makeBox(w + 2, 2, 1.5, 0x506ea0, { roughness: 0.2 }); top.position.set(p.pos[0], h + 1, p.pos[2]); g.add(top);
+  const tile = makeBox(w - 2, 1.5, 0.3, 0x506ea0, { roughness: 0.2 }); tile.position.set(p.pos[0], h + 3, p.pos[2]); g.add(tile);
+  return g;
+};
+
+PROP_BUILDERS.lantern_hanging = (p) => {
+  const g = new THREE.Group();
+  const chain = makeBox(0.2, 4, 0.2, 0x3c3228); chain.position.set(p.pos[0], p.pos[1] + 2, p.pos[2]); g.add(chain);
+  const body = makeBox(2, 3, 2, 0xffb450, { emissive: 0xffb450, emissiveIntensity: 0.6, transparent: true, opacity: 0.95 }); body.position.set(p.pos[0], p.pos[1] - 1.5, p.pos[2]); g.add(body);
+  const light = new THREE.PointLight(0xffb450, 1.2, 18); light.position.copy(body.position); g.add(light);
+  return g;
+};
+
+PROP_BUILDERS.market_stall = (p) => {
+  const g = new THREE.Group();
+  const counter = makeBox(6, 3, 3, 0x6e4628); counter.position.set(p.pos[0], 1.5, p.pos[2]); g.add(counter);
+  const pl = makeBox(0.3, 5, 0.3, 0x503c28); pl.position.set(p.pos[0] - 2.7, 5.5, p.pos[2] + 1.3); g.add(pl);
+  const pr = makeBox(0.3, 5, 0.3, 0x503c28); pr.position.set(p.pos[0] + 2.7, 5.5, p.pos[2] + 1.3); g.add(pr);
+  const awning = makeBox(7, 0.2, 4, p.color || 0xc83c3c); awning.position.set(p.pos[0], 8, p.pos[2] + 1.5); g.add(awning);
+  return g;
+};
+
+PROP_BUILDERS.well = (p) => {
+  const g = new THREE.Group();
+  const w = makeCylinder(3, 3, 6, 0xa08c6e, { segments: 12 }); w.position.set(p.pos[0], 2.5, p.pos[2]); g.add(w);
+  const lp = makeBox(0.3, 6, 0.3, 0x503c28); lp.position.set(p.pos[0] - 2, 8, p.pos[2]); g.add(lp);
+  const rp = makeBox(0.3, 6, 0.3, 0x503c28); rp.position.set(p.pos[0] + 2, 8, p.pos[2]); g.add(rp);
+  const top = makeBox(5, 0.4, 4, 0x8c5032); top.position.set(p.pos[0], 11, p.pos[2]); g.add(top);
+  return g;
+};
+
+PROP_BUILDERS.vending = (p) => {
+  const g = new THREE.Group();
+  const body = makeBox(3, 7, 2, 0x282832); body.position.set(p.pos[0], 3.5, p.pos[2]); g.add(body);
+  const screen = makeBox(2.6, 5, 0.2, p.color || 0xff64c8, { emissive: p.color || 0xff64c8, emissiveIntensity: 1.2, transparent: true, opacity: 0.9 });
+  screen.position.set(p.pos[0], 4, p.pos[2] + 1.05); g.add(screen);
+  const light = new THREE.PointLight(p.color || 0xff64c8, 1.5, 14); light.position.copy(screen.position); g.add(light);
+  return g;
+};
+
+PROP_BUILDERS.neon_sign = (p) => {
+  const g = new THREE.Group();
+  const pole = makeBox(0.3, 15, 0.3, 0x1e1e23); pole.position.set(p.pos[0], 7.5, p.pos[2]); g.add(pole);
+  const sign = makeBox(0.5, 8, 3, p.color || 0xff64c8, { emissive: p.color || 0xff64c8, emissiveIntensity: 1.5, transparent: true, opacity: 0.95 });
+  sign.position.set(p.pos[0], 11, p.pos[2]); g.add(sign);
+  // Add text via canvas texture
+  if (p.text) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 128; canvas.height = 256;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = 'rgba(0,0,0,0)';
+    ctx.fillRect(0, 0, 128, 256);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '900 100px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(p.text, 64, 128);
+    const tex = new THREE.CanvasTexture(canvas);
+    const textMat = new THREE.MeshBasicMaterial({ map: tex, transparent: true });
+    const textPlane = new THREE.Mesh(new THREE.PlaneGeometry(3, 6), textMat);
+    textPlane.position.set(p.pos[0] + 0.3, 11, p.pos[2]);
+    textPlane.rotation.y = Math.PI / 2;
+    g.add(textPlane);
+  }
+  const light = new THREE.PointLight(p.color || 0xff64c8, 2.5, 24); light.position.copy(sign.position); g.add(light);
+  return g;
+};
+
+PROP_BUILDERS.ramen_stand = (p) => {
+  const g = new THREE.Group();
+  const counter = makeBox(8, 3, 3, 0x825032); counter.position.set(p.pos[0], 1.5, p.pos[2]); g.add(counter);
+  const pl = makeBox(0.3, 5, 0.3, 0x3c281e); pl.position.set(p.pos[0] - 3.7, 5.5, p.pos[2]); g.add(pl);
+  const pr = makeBox(0.3, 5, 0.3, 0x3c281e); pr.position.set(p.pos[0] + 3.7, 5.5, p.pos[2]); g.add(pr);
+  const roof = makeBox(9, 0.4, 4, 0xb43c3c); roof.position.set(p.pos[0], 8, p.pos[2]); g.add(roof);
+  const lantern = makeSphere(0.9, 0xdc3c3c, { emissive: 0xff6450, emissiveIntensity: 1.0, transparent: true, opacity: 0.9 });
+  lantern.position.set(p.pos[0], 6, p.pos[2]); g.add(lantern);
+  const light = new THREE.PointLight(0xff6450, 1.5, 12); light.position.copy(lantern.position); g.add(light);
+  return g;
+};
+
+PROP_BUILDERS.wire = (p) => {
+  const g = new THREE.Group();
+  const from = new THREE.Vector3(...p.from);
+  const to = new THREE.Vector3(...p.to);
+  const mid = from.clone().add(to).multiplyScalar(0.5);
+  // Slight sag
+  mid.y -= 1.5;
+  const curve = new THREE.QuadraticBezierCurve3(from, mid, to);
+  const points = curve.getPoints(20);
+  const geo = new THREE.BufferGeometry().setFromPoints(points);
+  const line = new THREE.Line(geo, new THREE.LineBasicMaterial({ color: 0x14141a, linewidth: 2 }));
+  g.add(line);
+  return g;
+};
+
+PROP_BUILDERS.bicycle = (p) => {
+  const g = new THREE.Group();
+  const wl = makeCylinder(1.25, 1.25, 0.4, 0x1e1e1e, { segments: 12 }); wl.rotation.z = Math.PI / 2; wl.position.set(p.pos[0] - 1.5, 1.2, p.pos[2]); g.add(wl);
+  const wr = makeCylinder(1.25, 1.25, 0.4, 0x1e1e1e, { segments: 12 }); wr.rotation.z = Math.PI / 2; wr.position.set(p.pos[0] + 1.5, 1.2, p.pos[2]); g.add(wr);
+  const frame = makeBox(3.5, 0.3, 0.4, 0xb43c3c); frame.position.set(p.pos[0], 2, p.pos[2]); g.add(frame);
+  return g;
+};
+
+PROP_BUILDERS.ac_unit = (p) => {
+  return Object.assign(makeBox(3, 2.5, 2, 0xa0a0aa), { position: new THREE.Vector3(p.pos[0], p.pos[1] + 1.25, p.pos[2]) });
+};
+
+PROP_BUILDERS.stupa = (p) => {
+  const g = new THREE.Group();
+  const base = makeBox(8, 3, 8, 0xfaf5f0); base.position.set(p.pos[0], 1.5, p.pos[2]); g.add(base);
+  const tier = makeBox(6, 2, 6, 0xfaf5f0); tier.position.set(p.pos[0], 4, p.pos[2]); g.add(tier);
+  const dome = makeSphere(3, 0xfaf5f0); dome.position.set(p.pos[0], 7, p.pos[2]); g.add(dome);
+  const spire = makeBox(0.6, 6, 0.6, 0xffc850, { emissive: 0xffc850, emissiveIntensity: 0.5 }); spire.position.set(p.pos[0], 12, p.pos[2]); g.add(spire);
+  return g;
+};
+
+PROP_BUILDERS.prayer_flags = (p) => {
+  const g = new THREE.Group();
+  const colors = [0x3c64c8, 0xffffff, 0xdc3c3c, 0x3cb450, 0xffc850];
+  const from = new THREE.Vector3(...p.from);
+  const to = new THREE.Vector3(...p.to);
+  // Wire
+  g.add(PROP_BUILDERS.wire(p));
+  // Flags
+  const segments = 12;
+  for (let i = 0; i <= segments; i++) {
+    const t = i / segments;
+    const pos = from.clone().lerp(to, t);
+    const flag = makeBox(0.1, 2, 2.5, colors[i % 5], { roughness: 0.9 });
+    flag.position.set(pos.x, pos.y - 1.5, pos.z);
+    g.add(flag);
+  }
+  return g;
+};
+
+PROP_BUILDERS.bell = (p) => {
+  const g = new THREE.Group();
+  const pl = makeBox(0.4, 6, 0.4, 0x3c281e); pl.position.set(p.pos[0] - 1.5, 3, p.pos[2]); g.add(pl);
+  const pr = makeBox(0.4, 6, 0.4, 0x3c281e); pr.position.set(p.pos[0] + 1.5, 3, p.pos[2]); g.add(pr);
+  const beam = makeBox(4, 0.5, 0.5, 0x3c281e); beam.position.set(p.pos[0], 6.5, p.pos[2]); g.add(beam);
+  const bell = makeCylinder(1, 1, 2, 0xb47832, { segments: 12, metalness: 0.6 }); bell.rotation.z = Math.PI / 2; bell.position.set(p.pos[0], 5, p.pos[2]); g.add(bell);
+  return g;
+};
+
+PROP_BUILDERS.tree = (p) => {
+  const g = new THREE.Group();
+  const trunk = makeCylinder(0.75, 0.9, 8, 0x503c28, { segments: 10 }); trunk.position.set(p.pos[0], 4, p.pos[2]); g.add(trunk);
+  for (let i = 0; i < 6; i++) {
+    const rad = (i * 60) * Math.PI / 180;
+    const f = makeSphere(2.5, p.color || 0xff96c8, { segments: 10 });
+    f.position.set(p.pos[0] + Math.cos(rad) * 2, 9 + Math.sin(rad) * 1.5, p.pos[2] + Math.sin(rad) * 2);
+    g.add(f);
+  }
+  return g;
+};
+
+PROP_BUILDERS.prayer_wheel = (p) => {
+  const w = makeCylinder(1, 1, 3, 0xdca050, { segments: 14, metalness: 0.5 });
+  w.rotation.z = Math.PI / 2;
+  w.position.set(p.pos[0], 2.5, p.pos[2]);
+  w.userData.spinAxis = 'x';
+  activeOrbs.push({ orb: w, isPrayerWheel: true });
+  return w;
+};
+
+PROP_BUILDERS.brazier = (p) => {
+  const g = new THREE.Group();
+  const bowl = makeCylinder(1.5, 1.0, 1, 0x8c5028, { segments: 14, metalness: 0.6 }); bowl.position.set(p.pos[0], 2.5, p.pos[2]); g.add(bowl);
+  const flame = makeSphere(0.8, 0xff8c3c, { emissive: 0xff5014, emissiveIntensity: 2, transparent: true, opacity: 0.85 });
+  flame.position.set(p.pos[0], 3.5, p.pos[2]);
+  flame.userData.isFlame = true;
+  activeOrbs.push({ orb: flame, isFlame: true, baseY: 3.5 });
+  g.add(flame);
+  const light = new THREE.PointLight(0xff8c3c, 2.5, 14); light.position.copy(flame.position); g.add(light);
+  return g;
+};
+
+PROP_BUILDERS.wrecked_truck = (p) => {
+  const g = new THREE.Group();
+  const rot = (p.rot || 0) * Math.PI / 180;
+  const body = makeBox(8, 4, 4, 0x785a32); body.position.set(p.pos[0], 2, p.pos[2]); body.rotation.set(0, rot, 0.26); g.add(body);
+  const cab = makeBox(3, 3.5, 4, 0x644628); cab.position.set(p.pos[0] + Math.cos(rot) * 2.5, 4, p.pos[2] + Math.sin(rot) * 2.5); cab.rotation.set(0, rot, 0.17); g.add(cab);
+  for (const [ox, oz] of [[-3, 2], [3, 2], [-3, -2], [3, -2]]) {
+    const wx = p.pos[0] + ox * Math.cos(rot) - oz * Math.sin(rot);
+    const wz = p.pos[2] + ox * Math.sin(rot) + oz * Math.cos(rot);
+    const w = makeCylinder(1, 1, 0.8, 0x1e1e1e, { segments: 12 });
+    w.rotation.set(0, rot, Math.PI / 2);
+    w.position.set(wx, 1, wz);
+    g.add(w);
+  }
+  return g;
+};
+
+PROP_BUILDERS.wrecked_car = (p) => {
+  const g = new THREE.Group();
+  const rot = (p.rot || 0) * Math.PI / 180;
+  const body = makeBox(5, 2, 3, 0xa03228); body.position.set(p.pos[0], 1.2, p.pos[2]); body.rotation.set(0, rot, -0.14); g.add(body);
+  const cab = makeBox(3.5, 1.5, 2.8, 0x8c281e); cab.position.set(p.pos[0], 2.8, p.pos[2]); cab.rotation.set(0, rot, -0.14); g.add(cab);
+  return g;
+};
+
+PROP_BUILDERS.container = (p) => {
+  const c = makeBox(12, 6, 5, p.color || 0xa05028, { roughness: 0.9 });
+  c.position.set(p.pos[0], 3, p.pos[2]);
+  return c;
+};
+
+PROP_BUILDERS.generator = (p) => {
+  const g = new THREE.Group();
+  const body = makeBox(4, 3, 3, 0xdcb428, { metalness: 0.4 }); body.position.set(p.pos[0], 1.5, p.pos[2]); g.add(body);
+  const pipe = makeBox(0.6, 4, 0.6, 0x3c3c46, { metalness: 0.6 }); pipe.position.set(p.pos[0] + 1.5, 5, p.pos[2]); g.add(pipe);
+  return g;
+};
+
+PROP_BUILDERS.antenna = (p) => {
+  const g = new THREE.Group();
+  const base = makeBox(4, 1, 4, 0x50505a); base.position.set(p.pos[0], 0.5, p.pos[2]); g.add(base);
+  // Truss-like (4 vertical edges + cross beams)
+  for (const [ox, oz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+    const v = makeBox(0.3, 25, 0.3, 0x646464); v.position.set(p.pos[0] + ox, 13, p.pos[2] + oz); g.add(v);
+  }
+  for (let y = 3; y < 25; y += 4) {
+    const cb1 = makeBox(2.5, 0.2, 0.2, 0x646464); cb1.position.set(p.pos[0], y, p.pos[2] - 1); g.add(cb1);
+    const cb2 = makeBox(2.5, 0.2, 0.2, 0x646464); cb2.position.set(p.pos[0], y, p.pos[2] + 1); g.add(cb2);
+    const cb3 = makeBox(0.2, 0.2, 2.5, 0x646464); cb3.position.set(p.pos[0] - 1, y, p.pos[2]); g.add(cb3);
+  }
+  const top = makeSphere(0.7, 0xff3c3c, { emissive: 0xff3c3c, emissiveIntensity: 1.5 });
+  top.position.set(p.pos[0], 27, p.pos[2]);
+  top.userData.isAntennaTop = true;
+  activeOrbs.push({ orb: top, isAntennaTop: true });
+  g.add(top);
+  const light = new THREE.PointLight(0xff3c3c, 1.5, 22); light.position.copy(top.position); g.add(light);
+  return g;
+};
+
+PROP_BUILDERS.warning_sign = (p) => {
+  const g = new THREE.Group();
+  const post = makeBox(0.3, 5, 0.3, 0x3c3c46); post.position.set(p.pos[0], 2.5, p.pos[2]); g.add(post);
+  const sign = makeBox(2.5, 2.5, 0.2, 0xffc828, { metalness: 0.3 }); sign.position.set(p.pos[0], 4.5, p.pos[2]); g.add(sign);
+  const tri = makeBox(1.8, 1.8, 0.3, 0x141414); tri.position.set(p.pos[0], 4.5, p.pos[2] + 0.1); tri.rotation.z = Math.PI / 4; g.add(tri);
+  return g;
+};
+
+PROP_BUILDERS.rebar_pile = (p) => {
+  const g = new THREE.Group();
+  for (let i = 0; i < 6; i++) {
+    const rad = (i * 60) * Math.PI / 180;
+    const bar = makeBox(0.2, 0.2, 6, 0x64321e);
+    bar.position.set(p.pos[0] + Math.cos(rad), 0.5 + i * 0.1, p.pos[2] + Math.sin(rad));
+    bar.rotation.set(0.08, rad, 0.26);
+    g.add(bar);
+  }
+  return g;
+};
+
+PROP_BUILDERS.lotus_pond = (p) => {
+  const g = new THREE.Group();
+  const rim = makeBox(p.size + 2, 0.5, p.size + 2, 0xb4aa96, { roughness: 0.3 });
+  rim.position.set(p.pos[0], 0.5, p.pos[2]); g.add(rim);
+  const water = makeBox(p.size, 0.4, p.size, 0x508c78, { transparent: true, opacity: 0.6, roughness: 0.1, metalness: 0.4 });
+  water.position.set(p.pos[0], 0.7, p.pos[2]); g.add(water);
+  for (let i = 0; i < 4; i++) {
+    const rad = (i * 90 + 45) * Math.PI / 180;
+    const r = p.size / 3;
+    const flower = makeSphere(0.5, 0xffb4dc, { emissive: 0xffb4dc, emissiveIntensity: 0.6 });
+    flower.position.set(p.pos[0] + Math.cos(rad) * r, 1, p.pos[2] + Math.sin(rad) * r);
+    flower.scale.set(1.2, 0.5, 1.2);
+    g.add(flower);
+  }
+  return g;
+};
+
+PROP_BUILDERS.buddha = (p) => {
+  const g = new THREE.Group();
+  const ped = makeBox(6, 2, 6, 0xdcc8aa, { roughness: 0.5 }); ped.position.set(p.pos[0], 1, p.pos[2]); g.add(ped);
+  const body = makeBox(4, 5, 3, 0xdcb43c, { metalness: 0.6, roughness: 0.3 }); body.position.set(p.pos[0], 4.5, p.pos[2]); g.add(body);
+  const head = makeSphere(1.25, 0xdcb43c, { metalness: 0.6, roughness: 0.3 }); head.position.set(p.pos[0], 8.5, p.pos[2]); g.add(head);
+  return g;
+};
+
+PROP_BUILDERS.pillar = (p) => {
+  const g = new THREE.Group();
+  const base = makeBox(3, 1, 3, 0xc8b496); base.position.set(p.pos[0], 0.5, p.pos[2]); g.add(base);
+  const shaft = makeCylinder(1, 1, 12, 0xdcc8aa, { segments: 12, roughness: 0.3 }); shaft.position.set(p.pos[0], 7, p.pos[2]); g.add(shaft);
+  const cap = makeBox(3, 1, 3, 0xc8b496); cap.position.set(p.pos[0], 13.5, p.pos[2]); g.add(cap);
+  return g;
+};
+
+PROP_BUILDERS.elephant_statue = (p) => {
+  const g = new THREE.Group();
+  const body = makeBox(4, 3, 2.5, 0xb4aa96); body.position.set(p.pos[0], 3, p.pos[2]); g.add(body);
+  const head = makeBox(2.5, 2, 2, 0xb4aa96); head.position.set(p.pos[0], 4.5, p.pos[2] + 1.5); g.add(head);
+  for (const [ox, oz] of [[-1.3, -0.9], [1.3, -0.9], [-1.3, 0.9], [1.3, 0.9]]) {
+    const leg = makeBox(0.7, 3, 0.7, 0xb4aa96); leg.position.set(p.pos[0] + ox, 1.5, p.pos[2] + oz); g.add(leg);
+  }
+  const trunk = makeBox(0.5, 2.5, 0.5, 0xb4aa96); trunk.position.set(p.pos[0], 3, p.pos[2] + 2.5); g.add(trunk);
+  return g;
+};
+
+PROP_BUILDERS.banyan = (p) => {
+  const g = new THREE.Group();
+  for (const ox of [-1.5, 0, 1.5]) {
+    const trunk = makeCylinder(0.6, 0.6, 12, 0x6e5032, { segments: 10 }); trunk.position.set(p.pos[0] + ox, 6, p.pos[2]); g.add(trunk);
+  }
+  for (let i = 0; i < 8; i++) {
+    const rad = (i * 45) * Math.PI / 180;
+    const f = makeSphere(3, 0x3c8232, { segments: 10 });
+    f.position.set(p.pos[0] + Math.cos(rad) * 4, 13, p.pos[2] + Math.sin(rad) * 4);
+    g.add(f);
+  }
+  return g;
+};
+
 // ===== MAP BUILDER =====
 let currentGroup = null;
 let activeOrbs = []; // for animation
@@ -405,9 +943,12 @@ function buildMap(name) {
 
   // FLOOR (slightly larger than dimensions)
   const floorGeo = new THREE.PlaneGeometry(map.Dimensions.X, map.Dimensions.Z);
+  // Floor color from theme override (matches Roblox material rendering)
+  const themeColor = THEMES[name] && THEMES[name].floorColor ? rgbColor(THEMES[name].floorColor) : rgbColor(map.ColorPalette.Primary);
   const floorMat = new THREE.MeshStandardMaterial({
-    color: rgbColor(map.ColorPalette.Primary),
-    roughness: 0.85,
+    color: themeColor,
+    roughness: (THEMES[name] && THEMES[name].floorRoughness) ?? 0.85,
+    metalness: (THEMES[name] && THEMES[name].floorMetalness) ?? 0.05,
   });
   const floor = new THREE.Mesh(floorGeo, floorMat);
   floor.rotation.x = -Math.PI / 2;
@@ -606,6 +1147,22 @@ function buildMap(name) {
     });
   }
 
+  // ===== THEME PROPS =====
+  const theme = THEMES[name];
+  if (theme && theme.Props) {
+    theme.Props.forEach(prop => {
+      const builder = PROP_BUILDERS[prop.type];
+      if (builder) {
+        try {
+          const obj = builder(prop, group);
+          if (obj) group.add(obj);
+        } catch (e) {
+          console.warn(`Prop ${prop.type} failed:`, e);
+        }
+      }
+    });
+  }
+
   scene.add(group);
   currentGroup = group;
 
@@ -634,6 +1191,16 @@ function animate() {
   activeOrbs.forEach((o, i) => {
     if (o.isDoor) {
       o.orb.rotation.y += 0.005;
+    } else if (o.isPrayerWheel) {
+      o.orb.rotation.x += 0.04;
+    } else if (o.isFlame) {
+      o.orb.scale.y = 1 + Math.sin(t * 5 + i) * 0.2;
+      o.orb.position.y = o.baseY + Math.sin(t * 4 + i) * 0.1;
+    } else if (o.isAntennaTop) {
+      // Blink red
+      const phase = Math.floor(t * 1.5) % 2;
+      o.orb.material.opacity = phase === 0 ? 1 : 0.2;
+      o.orb.material.transparent = true;
     } else if (o.baseY !== undefined) {
       o.orb.position.y = o.baseY + Math.sin(t + i) * 0.8;
       o.orb.rotation.y += 0.03;

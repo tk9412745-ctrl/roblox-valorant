@@ -738,7 +738,6 @@ function PropBuilders.banyan(p)
 	for _, ox in ipairs({-1.5, 0, 1.5}) do
 		makePart({ Name="BanyanTrunk", Size=Vector3.new(1.2, 12, 1.2), Position=p.pos+Vector3.new(ox, 6, 0), Color=Color3.fromRGB(110, 80, 50), Material=Enum.Material.Wood })
 	end
-	-- Wide canopy
 	for i = 0, 7 do
 		local rad = math.rad(i * 45)
 		local foliage = Instance.new("Part")
@@ -751,6 +750,557 @@ function PropBuilders.banyan(p)
 		foliage.Material = Enum.Material.LeafyGrass
 		foliage.Parent = mapFolder
 	end
+end
+
+-- ============================================================
+-- NEW DENSIFICATION PROPS (matches presentation/maps3d.html)
+-- ============================================================
+
+function PropBuilders.crate_pile(p)
+	local offsets = { {-1.5, 1, 0}, {1.5, 1, 0}, {-0.5, 1, 1.5}, {0.5, 3, 0}, {0, 3, 1.5} }
+	for _, o in ipairs(offsets) do
+		makePart({ Name="Crate", Size=Vector3.new(2.5, 2, 2.5), Position=p.pos+Vector3.new(o[1], o[2], o[3]), Color=Color3.fromRGB(160, 110, 80), Material=Enum.Material.WoodPlanks })
+	end
+end
+
+function PropBuilders.log_pile(p)
+	for i = 0, 3 do
+		local log = Instance.new("Part")
+		log.Name = "Log"
+		log.Shape = Enum.PartType.Cylinder
+		log.Size = Vector3.new(6, 1.6, 1.6)
+		log.CFrame = CFrame.new(p.pos + Vector3.new(0, 0.8 + (i % 2) * 1.6, math.floor(i / 2) * 1.6))
+		log.Anchored = true
+		log.Color = Color3.fromRGB(110, 72, 40)
+		log.Material = Enum.Material.Wood
+		log.Parent = mapFolder
+	end
+end
+
+function PropBuilders.hanging_laundry(p)
+	PropBuilders.wire(p)
+	local laundry = { Color3.fromRGB(255, 100, 200), Color3.fromRGB(255, 255, 255), Color3.fromRGB(255, 200, 80), Color3.fromRGB(80, 200, 255), Color3.fromRGB(180, 100, 255) }
+	local fromV, toV = p.from, p.to
+	for i = 1, 5 do
+		local t = i / 6
+		local pos = fromV:Lerp(toV, t)
+		makePart({ Name="Laundry", Size=Vector3.new(0.1, 4, 3), Position=pos - Vector3.new(0, 2, 0), Color=laundry[i], Material=Enum.Material.Fabric })
+	end
+end
+
+function PropBuilders.planter(p)
+	makePart({ Name="PlanterBox", Size=Vector3.new(3, 1.5, 3), Position=p.pos+Vector3.new(0, 0.75, 0), Color=Color3.fromRGB(130, 100, 70), Material=Enum.Material.Wood })
+	local foliage = Instance.new("Part")
+	foliage.Name = "PlanterFoliage"
+	foliage.Shape = Enum.PartType.Ball
+	foliage.Size = Vector3.new(2.4, 1.6, 2.4)
+	foliage.Position = p.pos + Vector3.new(0, 1.8, 0)
+	foliage.Anchored = true
+	foliage.Color = Color3.fromRGB(80, 140, 60)
+	foliage.Material = Enum.Material.LeafyGrass
+	foliage.Parent = mapFolder
+	for i = 0, 4 do
+		local angle = math.rad(i * 72)
+		makePart({ Name="Flower", Shape=Enum.PartType.Ball, Size=Vector3.new(1, 1, 1), Position=p.pos+Vector3.new(math.cos(angle) * 0.9, 2, math.sin(angle) * 0.9), Color=p.color or Color3.fromRGB(255, 100, 100), Material=Enum.Material.Neon })
+	end
+end
+
+function PropBuilders.wall_banner(p)
+	local colors = p.colors or { Color3.fromRGB(0,140,69), Color3.fromRGB(255,255,255), Color3.fromRGB(206,17,38) }
+	for i = 1, 3 do
+		makePart({ Name="BannerStripe", Size=Vector3.new(2, 8, 0.3), Position=p.pos+Vector3.new(-2 + (i - 1) * 2, 0, 0), Color=colors[i], Material=Enum.Material.Fabric })
+	end
+end
+
+function PropBuilders.shop_sign(p)
+	local sign = makePart({ Name="ShopSign", Size=Vector3.new(8, 2.5, 0.4), Position=p.pos, Color=p.color or Color3.fromRGB(220, 60, 60), Material=Enum.Material.Neon, Transparency=0.05 })
+	local sg = Instance.new("SurfaceGui")
+	sg.Face = Enum.NormalId.Back
+	sg.CanvasSize = Vector2.new(400, 100)
+	sg.Parent = sign
+	local lbl = Instance.new("TextLabel")
+	lbl.Size = UDim2.fromScale(1, 1)
+	lbl.BackgroundTransparency = 1
+	lbl.Text = p.text or "SHOP"
+	lbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+	lbl.Font = Enum.Font.GothamBlack
+	lbl.TextScaled = true
+	lbl.Parent = sg
+	local light = Instance.new("PointLight")
+	light.Color = p.color or Color3.fromRGB(220, 60, 60)
+	light.Range = 14
+	light.Brightness = 1.2
+	light.Parent = sign
+end
+
+function PropBuilders.street_lamp(p)
+	makePart({ Name="StreetLampPost", Size=Vector3.new(0.4, 12, 0.4), Position=p.pos+Vector3.new(0, 6, 0), Color=Color3.fromRGB(40, 40, 50), Material=Enum.Material.Metal })
+	makePart({ Name="StreetLampArm", Size=Vector3.new(2, 0.3, 0.3), Position=p.pos+Vector3.new(1, 11.5, 0), Color=Color3.fromRGB(40, 40, 50), Material=Enum.Material.Metal })
+	local lamp = makePart({ Name="StreetLampBulb", Shape=Enum.PartType.Ball, Size=Vector3.new(1.4, 1.4, 1.4), Position=p.pos+Vector3.new(2, 11, 0), Color=Color3.fromRGB(255, 220, 150), Material=Enum.Material.Neon })
+	local pl = Instance.new("PointLight")
+	pl.Color = Color3.fromRGB(255, 220, 150)
+	pl.Range = 16
+	pl.Brightness = 1.5
+	pl.Parent = lamp
+end
+
+function PropBuilders.bench(p)
+	makePart({ Name="BenchSeat", Size=Vector3.new(5, 0.4, 1.5), Position=p.pos+Vector3.new(0, 1.5, 0), Color=Color3.fromRGB(100, 60, 30), Material=Enum.Material.Wood })
+	makePart({ Name="BenchBack", Size=Vector3.new(5, 2, 0.4), Position=p.pos+Vector3.new(0, 2.5, -0.5), Color=Color3.fromRGB(100, 60, 30), Material=Enum.Material.Wood })
+	makePart({ Name="BenchLegL", Size=Vector3.new(0.4, 1.5, 1.5), Position=p.pos+Vector3.new(-2, 0.75, 0), Color=Color3.fromRGB(40, 30, 20), Material=Enum.Material.Wood })
+	makePart({ Name="BenchLegR", Size=Vector3.new(0.4, 1.5, 1.5), Position=p.pos+Vector3.new(2, 0.75, 0), Color=Color3.fromRGB(40, 30, 20), Material=Enum.Material.Wood })
+end
+
+function PropBuilders.hedge(p)
+	local sz = p.size
+	makePart({ Name="Hedge", Size=sz, Position=p.pos+Vector3.new(0, sz.Y / 2, 0), Color=Color3.fromRGB(80, 140, 60), Material=Enum.Material.LeafyGrass })
+	makePart({ Name="HedgeTop", Size=Vector3.new(sz.X, 0.5, sz.Z), Position=p.pos+Vector3.new(0, sz.Y + 0.25, 0), Color=Color3.fromRGB(110, 160, 80), Material=Enum.Material.LeafyGrass })
+end
+
+function PropBuilders.hanging_carpet(p)
+	PropBuilders.wire(p)
+	local mid = (p.from + p.to) / 2
+	local length = math.abs(p.to.X - p.from.X) - 4
+	makePart({ Name="HangingCarpet", Size=Vector3.new(length, 6, 0.2), Position=mid - Vector3.new(0, 4, 0), Color=p.color or Color3.fromRGB(180, 60, 60), Material=Enum.Material.Fabric })
+	for i = 1, 3 do
+		makePart({ Name="CarpetStripe", Size=Vector3.new(length - 0.5, 0.3, 0.25), Position=mid - Vector3.new(0, 2 + i * 1.3, 0), Color=Color3.fromRGB(40, 20, 20), Material=Enum.Material.Fabric })
+	end
+end
+
+function PropBuilders.hookah_cushion(p)
+	local colors = { Color3.fromRGB(180, 60, 60), Color3.fromRGB(200, 160, 50), Color3.fromRGB(80, 140, 60), Color3.fromRGB(60, 100, 180) }
+	for i = 1, 4 do
+		local angle = math.rad((i - 1) * 90)
+		makePart({ Name="Cushion", Size=Vector3.new(2, 0.6, 2), Position=p.pos+Vector3.new(math.cos(angle) * 1.5, 0.5, math.sin(angle) * 1.5), Color=colors[i], Material=Enum.Material.Fabric })
+	end
+	local base = Instance.new("Part")
+	base.Name = "HookahBase"
+	base.Shape = Enum.PartType.Cylinder
+	base.Size = Vector3.new(1, 1.2, 1.6)
+	base.CFrame = CFrame.new(p.pos + Vector3.new(0, 0.5, 0)) * CFrame.Angles(0, 0, math.rad(90))
+	base.Anchored = true
+	base.Color = Color3.fromRGB(100, 100, 100)
+	base.Material = Enum.Material.Metal
+	base.Parent = mapFolder
+	makePart({ Name="HookahStem", Size=Vector3.new(0.3, 2.5, 0.3), Position=p.pos+Vector3.new(0, 2, 0), Color=Color3.fromRGB(192, 160, 80), Material=Enum.Material.Metal })
+end
+
+function PropBuilders.sand_pile(p)
+	local s = Instance.new("Part")
+	s.Name = "SandPile"
+	s.Shape = Enum.PartType.Ball
+	s.Size = Vector3.new(6, 3, 6)
+	s.Position = p.pos + Vector3.new(0, 1.5, 0)
+	s.Anchored = true
+	s.Color = Color3.fromRGB(230, 200, 150)
+	s.Material = Enum.Material.Sand
+	s.Parent = mapFolder
+end
+
+function PropBuilders.camel_statue(p)
+	makePart({ Name="CamelBody", Size=Vector3.new(4, 3, 1.8), Position=p.pos+Vector3.new(0, 3.5, 0), Color=Color3.fromRGB(180, 148, 110), Material=Enum.Material.Slate })
+	local hump = Instance.new("Part")
+	hump.Name = "CamelHump"
+	hump.Shape = Enum.PartType.Ball
+	hump.Size = Vector3.new(3, 3, 3)
+	hump.Position = p.pos + Vector3.new(0, 5.3, 0)
+	hump.Anchored = true
+	hump.Color = Color3.fromRGB(180, 148, 110)
+	hump.Material = Enum.Material.Slate
+	hump.Parent = mapFolder
+	makePart({ Name="CamelNeck", Size=Vector3.new(0.8, 3.5, 0.8), CFrame=CFrame.new(p.pos+Vector3.new(1.5, 5, 0)) * CFrame.Angles(0, 0, math.rad(-17)), Color=Color3.fromRGB(180, 148, 110), Material=Enum.Material.Slate })
+	makePart({ Name="CamelHead", Size=Vector3.new(1.5, 1, 0.8), Position=p.pos+Vector3.new(2.5, 6.5, 0), Color=Color3.fromRGB(180, 148, 110), Material=Enum.Material.Slate })
+	for _, leg in ipairs({{-1.3, -0.7}, {1.3, -0.7}, {-1.3, 0.7}, {1.3, 0.7}}) do
+		makePart({ Name="CamelLeg", Size=Vector3.new(0.5, 2, 0.5), Position=p.pos+Vector3.new(leg[1], 1, leg[2]), Color=Color3.fromRGB(160, 130, 95), Material=Enum.Material.Slate })
+	end
+end
+
+function PropBuilders.date_palm(p)
+	makePart({ Name="DatePalmTrunk", Size=Vector3.new(1.2, 10, 1.2), Position=p.pos+Vector3.new(0, 5, 0), Color=Color3.fromRGB(100, 70, 40), Material=Enum.Material.Wood })
+	for i = 0, 5 do
+		local angle = math.rad(i * 60)
+		local frond = Instance.new("Part")
+		frond.Name = "DatePalmFrond"
+		frond.Size = Vector3.new(5, 0.2, 1.5)
+		frond.CFrame = CFrame.new(p.pos + Vector3.new(math.cos(angle) * 2, 10, math.sin(angle) * 2)) * CFrame.Angles(0, angle, math.rad(-17))
+		frond.Anchored = true
+		frond.Color = Color3.fromRGB(80, 130, 50)
+		frond.Material = Enum.Material.LeafyGrass
+		frond.Parent = mapFolder
+	end
+end
+
+function PropBuilders.pottery_jar(p)
+	local body = Instance.new("Part")
+	body.Name = "PotteryJar"
+	body.Shape = Enum.PartType.Ball
+	body.Size = Vector3.new(2.4, 3.6, 2.4)
+	body.Position = p.pos + Vector3.new(0, 1.5, 0)
+	body.Anchored = true
+	body.Color = Color3.fromRGB(165, 90, 50)
+	body.Material = Enum.Material.Slate
+	body.Parent = mapFolder
+	makePart({ Name="PotteryNeck", Size=Vector3.new(0.8, 1, 0.8), Position=p.pos+Vector3.new(0, 3, 0), Color=Color3.fromRGB(165, 90, 50), Material=Enum.Material.Slate })
+end
+
+function PropBuilders.spice_basket(p)
+	local basket = Instance.new("Part")
+	basket.Name = "SpiceBasket"
+	basket.Shape = Enum.PartType.Cylinder
+	basket.Size = Vector3.new(1.5, 2, 2)
+	basket.CFrame = CFrame.new(p.pos + Vector3.new(0, 0.75, 0)) * CFrame.Angles(0, 0, math.rad(90))
+	basket.Anchored = true
+	basket.Color = Color3.fromRGB(110, 70, 40)
+	basket.Material = Enum.Material.Wood
+	basket.Parent = mapFolder
+	local mound = Instance.new("Part")
+	mound.Name = "SpiceMound"
+	mound.Shape = Enum.PartType.Ball
+	mound.Size = Vector3.new(1.8, 0.8, 1.8)
+	mound.Position = p.pos + Vector3.new(0, 1.8, 0)
+	mound.Anchored = true
+	mound.Color = p.color or Color3.fromRGB(220, 100, 30)
+	mound.Material = Enum.Material.Sand
+	mound.Parent = mapFolder
+end
+
+function PropBuilders.trash_bin(p)
+	local bin = Instance.new("Part")
+	bin.Name = "TrashBin"
+	bin.Shape = Enum.PartType.Cylinder
+	bin.Size = Vector3.new(2.5, 1.8, 1.8)
+	bin.CFrame = CFrame.new(p.pos + Vector3.new(0, 1.25, 0)) * CFrame.Angles(0, 0, math.rad(90))
+	bin.Anchored = true
+	bin.Color = Color3.fromRGB(40, 40, 40)
+	bin.Material = Enum.Material.Metal
+	bin.Parent = mapFolder
+end
+
+function PropBuilders.phone_booth(p)
+	makePart({ Name="PhoneBoothBody", Size=Vector3.new(2, 7, 2), Position=p.pos+Vector3.new(0, 3.5, 0), Color=Color3.fromRGB(50, 160, 80), Material=Enum.Material.Metal })
+	makePart({ Name="PhoneBoothGlass", Size=Vector3.new(1.8, 5, 0.1), Position=p.pos+Vector3.new(0, 4, 1.05), Color=Color3.fromRGB(200, 225, 225), Material=Enum.Material.Glass, Transparency=0.6 })
+	local sign = makePart({ Name="PhoneBoothSign", Size=Vector3.new(2.2, 0.8, 2.2), Position=p.pos+Vector3.new(0, 7.5, 0), Color=Color3.fromRGB(255, 80, 80), Material=Enum.Material.Neon })
+	local light = Instance.new("PointLight")
+	light.Color = Color3.fromRGB(255, 80, 80)
+	light.Range = 10
+	light.Brightness = 1.5
+	light.Parent = sign
+end
+
+function PropBuilders.traffic_cone(p)
+	local cone = Instance.new("Part")
+	cone.Name = "TrafficCone"
+	cone.Shape = Enum.PartType.Cylinder
+	cone.Size = Vector3.new(1.5, 1.6, 1.6)
+	cone.CFrame = CFrame.new(p.pos + Vector3.new(0, 0.75, 0)) * CFrame.Angles(0, 0, math.rad(90))
+	cone.Anchored = true
+	cone.Color = Color3.fromRGB(255, 100, 40)
+	cone.Material = Enum.Material.Neon
+	cone.Transparency = 0.05
+	cone.Parent = mapFolder
+end
+
+function PropBuilders.billboard(p)
+	makePart({ Name="BillboardPoleL", Size=Vector3.new(0.5, 30, 0.5), Position=p.pos+Vector3.new(-8, -p.pos.Y + 15, 0), Color=Color3.fromRGB(50, 50, 60), Material=Enum.Material.Metal })
+	makePart({ Name="BillboardPoleR", Size=Vector3.new(0.5, 30, 0.5), Position=p.pos+Vector3.new(8, -p.pos.Y + 15, 0), Color=Color3.fromRGB(50, 50, 60), Material=Enum.Material.Metal })
+	local board = makePart({ Name="BillboardBoard", Size=Vector3.new(20, 8, 0.5), Position=p.pos, Color=p.color or Color3.fromRGB(255, 100, 200), Material=Enum.Material.Neon, Transparency=0.05 })
+	local sg = Instance.new("SurfaceGui")
+	sg.Face = Enum.NormalId.Front
+	sg.CanvasSize = Vector2.new(800, 320)
+	sg.Parent = board
+	local lbl = Instance.new("TextLabel")
+	lbl.Size = UDim2.fromScale(1, 1)
+	lbl.BackgroundTransparency = 1
+	lbl.Text = p.text or "AD"
+	lbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+	lbl.Font = Enum.Font.GothamBlack
+	lbl.TextScaled = true
+	lbl.Parent = sg
+	local light = Instance.new("PointLight")
+	light.Color = p.color or Color3.fromRGB(255, 100, 200)
+	light.Range = 30
+	light.Brightness = 2.5
+	light.Parent = board
+end
+
+function PropBuilders.motorbike(p)
+	local wl = Instance.new("Part")
+	wl.Shape = Enum.PartType.Cylinder
+	wl.Size = Vector3.new(0.4, 2, 2)
+	wl.CFrame = CFrame.new(p.pos + Vector3.new(-1.2, 1, 0))
+	wl.Anchored = true
+	wl.Color = Color3.fromRGB(30, 30, 30)
+	wl.Material = Enum.Material.Plastic
+	wl.Name = "BikeWheel"
+	wl.Parent = mapFolder
+	local wr = wl:Clone()
+	wr.CFrame = CFrame.new(p.pos + Vector3.new(1.2, 1, 0))
+	wr.Parent = mapFolder
+	makePart({ Name="BikeBody", Size=Vector3.new(3, 0.8, 0.7), Position=p.pos+Vector3.new(0, 1.6, 0), Color=Color3.fromRGB(40, 40, 40), Material=Enum.Material.Metal })
+	makePart({ Name="BikeSeat", Size=Vector3.new(1.5, 0.3, 0.8), Position=p.pos+Vector3.new(0.5, 2.1, 0), Color=Color3.fromRGB(20, 20, 20), Material=Enum.Material.SmoothPlastic })
+end
+
+function PropBuilders.sake_barrel(p)
+	local barrel = Instance.new("Part")
+	barrel.Name = "SakeBarrel"
+	barrel.Shape = Enum.PartType.Cylinder
+	barrel.Size = Vector3.new(1.8, 1.8, 1.8)
+	barrel.CFrame = CFrame.new(p.pos + Vector3.new(0, 0.9, 0)) * CFrame.Angles(0, 0, math.rad(90))
+	barrel.Anchored = true
+	barrel.Color = Color3.fromRGB(230, 220, 200)
+	barrel.Material = Enum.Material.Wood
+	barrel.Parent = mapFolder
+	makePart({ Name="SakeLabel", Size=Vector3.new(0.05, 0.8, 1.6), Position=p.pos+Vector3.new(0, 1.2, 0.9), Color=Color3.fromRGB(200, 50, 50), Material=Enum.Material.SmoothPlastic })
+end
+
+function PropBuilders.industrial_pipe(p)
+	local length = (p.to - p.from).Magnitude
+	local mid = (p.from + p.to) / 2
+	local pipe = Instance.new("Part")
+	pipe.Name = "IndustrialPipe"
+	pipe.Shape = Enum.PartType.Cylinder
+	pipe.Size = Vector3.new(length, 0.8, 0.8)
+	pipe.CFrame = CFrame.new(mid, p.to) * CFrame.Angles(0, math.rad(90), 0)
+	pipe.Anchored = true
+	pipe.Color = Color3.fromRGB(100, 100, 100)
+	pipe.Material = Enum.Material.Metal
+	pipe.Parent = mapFolder
+end
+
+function PropBuilders.stone_steps(p)
+	for i = 0, 3 do
+		makePart({ Name="StoneStep", Size=Vector3.new(6 - i * 0.5, 0.4, 1.5), Position=p.pos+Vector3.new(0, 0.2 + i * 0.4, -i * 1.5), Color=Color3.fromRGB(180, 170, 150), Material=Enum.Material.Slate })
+	end
+end
+
+function PropBuilders.zen_rock(p)
+	local rock = Instance.new("Part")
+	rock.Name = "ZenRock"
+	rock.Shape = Enum.PartType.Ball
+	rock.Size = Vector3.new(3, 2.1, 3.6)
+	rock.Position = p.pos + Vector3.new(0, 1, 0)
+	rock.Anchored = true
+	rock.Color = Color3.fromRGB(100, 100, 90)
+	rock.Material = Enum.Material.Slate
+	rock.Parent = mapFolder
+end
+
+function PropBuilders.incense_holder(p)
+	makePart({ Name="IncenseBase", Size=Vector3.new(1, 0.8, 1), Position=p.pos+Vector3.new(0, 0.4, 0), Color=Color3.fromRGB(180, 110, 30), Material=Enum.Material.Metal })
+	for i = 0, 4 do
+		makePart({ Name="IncenseStick", Size=Vector3.new(0.1, 2, 0.1), Position=p.pos+Vector3.new((i - 2) * 0.2, 1.8, 0), Color=Color3.fromRGB(140, 80, 40), Material=Enum.Material.Wood })
+		local tip = makePart({ Name="IncenseTip", Shape=Enum.PartType.Ball, Size=Vector3.new(0.2, 0.2, 0.2), Position=p.pos+Vector3.new((i - 2) * 0.2, 2.8, 0), Color=Color3.fromRGB(255, 100, 50), Material=Enum.Material.Neon })
+		-- Add subtle smoke effect
+		local smoke = Instance.new("Smoke")
+		smoke.Color = Color3.fromRGB(220, 220, 220)
+		smoke.Size = 0.3
+		smoke.RiseVelocity = 1.5
+		smoke.Opacity = 0.2
+		smoke.Parent = tip
+	end
+end
+
+function PropBuilders.sandbag_wall(p)
+	local length = p.length or 12
+	local bagsPerRow = math.floor(length / 1.5)
+	for r = 0, 2 do
+		for b = 0, bagsPerRow - 1 do
+			makePart({ Name="Sandbag", Size=Vector3.new(1.4, 0.7, 1.5), Position=p.pos+Vector3.new(-length/2 + b * 1.5 + (r % 2) * 0.75, 0.35 + r * 0.7, 0), Color=Color3.fromRGB(160, 140, 100), Material=Enum.Material.Fabric })
+		end
+	end
+end
+
+function PropBuilders.fuel_barrel(p)
+	local barrel = Instance.new("Part")
+	barrel.Name = "FuelBarrel"
+	barrel.Shape = Enum.PartType.Cylinder
+	barrel.Size = Vector3.new(2.5, 1.6, 1.6)
+	barrel.CFrame = CFrame.new(p.pos + Vector3.new(0, 1.25, 0)) * CFrame.Angles(0, 0, math.rad(90))
+	barrel.Anchored = true
+	barrel.Color = Color3.fromRGB(200, 60, 30)
+	barrel.Material = Enum.Material.CorrodedMetal
+	barrel.Parent = mapFolder
+end
+
+function PropBuilders.floodlight(p)
+	makePart({ Name="FloodPole", Size=Vector3.new(0.4, 20, 0.4), Position=p.pos+Vector3.new(0, 10, 0), Color=Color3.fromRGB(50, 50, 60), Material=Enum.Material.Metal })
+	makePart({ Name="FloodHead", Size=Vector3.new(2, 1.5, 1.5), Position=p.pos+Vector3.new(0, 19, 0), Color=Color3.fromRGB(20, 20, 20), Material=Enum.Material.Metal })
+	local bulb = makePart({ Name="FloodBulb", Size=Vector3.new(1.6, 1.1, 0.3), Position=p.pos+Vector3.new(0, 19, 0.85), Color=Color3.fromRGB(255, 255, 230), Material=Enum.Material.Neon })
+	local sl = Instance.new("SpotLight")
+	sl.Color = Color3.fromRGB(255, 255, 230)
+	sl.Range = 50
+	sl.Brightness = 4
+	sl.Angle = 60
+	sl.Face = Enum.NormalId.Front
+	sl.Parent = bulb
+end
+
+function PropBuilders.satellite_dish(p)
+	makePart({ Name="DishPole", Size=Vector3.new(0.5, 8, 0.5), Position=p.pos+Vector3.new(0, 4, 0), Color=Color3.fromRGB(74, 74, 80), Material=Enum.Material.Metal })
+	local dish = Instance.new("Part")
+	dish.Name = "SatelliteDish"
+	dish.Shape = Enum.PartType.Ball
+	dish.Size = Vector3.new(6, 1.8, 6)
+	dish.CFrame = CFrame.new(p.pos + Vector3.new(0, 9, 0)) * CFrame.Angles(math.rad(-45), 0, 0)
+	dish.Anchored = true
+	dish.Color = Color3.fromRGB(200, 200, 200)
+	dish.Material = Enum.Material.Metal
+	dish.Parent = mapFolder
+	makePart({ Name="DishReceiver", Size=Vector3.new(0.4, 0.4, 1.5), Position=p.pos+Vector3.new(0, 10.5, -1), Color=Color3.fromRGB(40, 40, 40), Material=Enum.Material.Metal })
+end
+
+function PropBuilders.wire_fence(p)
+	local from, to = p.from, p.to
+	local length = (to - from).Magnitude
+	local posts = math.ceil(length / 5)
+	for i = 0, posts do
+		local t = i / posts
+		local pos = from:Lerp(to, t)
+		makePart({ Name="FencePost", Size=Vector3.new(0.3, 8, 0.3), Position=Vector3.new(pos.X, 4, pos.Z), Color=Color3.fromRGB(50, 50, 60), Material=Enum.Material.Metal })
+	end
+	-- Truss wire top
+	local truss = Instance.new("TrussPart")
+	truss.Name = "FenceTruss"
+	truss.Size = Vector3.new(2, length, 2)
+	truss.CFrame = CFrame.new((from + to) / 2 + Vector3.new(0, 4, 0), to + Vector3.new(0, 4, 0))
+	truss.Anchored = true
+	truss.Color = Color3.fromRGB(110, 110, 110)
+	truss.Material = Enum.Material.Metal
+	truss.Parent = mapFolder
+end
+
+function PropBuilders.solar_panel(p)
+	makePart({ Name="SolarPost", Size=Vector3.new(0.3, 3, 0.3), Position=p.pos+Vector3.new(0, 1.5, 0), Color=Color3.fromRGB(50, 50, 60), Material=Enum.Material.Metal })
+	makePart({ Name="SolarPanel", Size=Vector3.new(5, 0.2, 3.5), CFrame=CFrame.new(p.pos + Vector3.new(0, 3.5, 0)) * CFrame.Angles(math.rad(-23), 0, 0), Color=Color3.fromRGB(30, 40, 100), Material=Enum.Material.SmoothPlastic })
+end
+
+function PropBuilders.cobra_statue(p)
+	for i = 0, 2 do
+		local coil = Instance.new("Part")
+		coil.Name = "CobraCoil"
+		coil.Shape = Enum.PartType.Cylinder
+		coil.Size = Vector3.new(0.6, (2.4 - i * 0.4), (2.4 - i * 0.4))
+		coil.CFrame = CFrame.new(p.pos + Vector3.new(0, 0.3 + i * 0.6, 0)) * CFrame.Angles(0, 0, math.rad(90))
+		coil.Anchored = true
+		coil.Color = Color3.fromRGB(200, 180, 150)
+		coil.Material = Enum.Material.Slate
+		coil.Parent = mapFolder
+	end
+	makePart({ Name="CobraHood", Size=Vector3.new(1.5, 2, 0.5), Position=p.pos+Vector3.new(0, 3, 0), Color=Color3.fromRGB(200, 180, 150), Material=Enum.Material.Slate })
+	makePart({ Name="CobraEyeL", Shape=Enum.PartType.Ball, Size=Vector3.new(0.3, 0.3, 0.3), Position=p.pos+Vector3.new(-0.3, 3.4, 0.3), Color=Color3.fromRGB(255, 50, 50), Material=Enum.Material.Neon })
+	makePart({ Name="CobraEyeR", Shape=Enum.PartType.Ball, Size=Vector3.new(0.3, 0.3, 0.3), Position=p.pos+Vector3.new(0.3, 3.4, 0.3), Color=Color3.fromRGB(255, 50, 50), Material=Enum.Material.Neon })
+end
+
+function PropBuilders.stone_bench(p)
+	makePart({ Name="StoneBenchSeat", Size=Vector3.new(4, 0.6, 1.4), Position=p.pos+Vector3.new(0, 1.5, 0), Color=Color3.fromRGB(200, 180, 150), Material=Enum.Material.Marble })
+	makePart({ Name="StoneBenchLegL", Size=Vector3.new(0.6, 1.5, 1.4), Position=p.pos+Vector3.new(-1.7, 0.75, 0), Color=Color3.fromRGB(180, 160, 130), Material=Enum.Material.Marble })
+	makePart({ Name="StoneBenchLegR", Size=Vector3.new(0.6, 1.5, 1.4), Position=p.pos+Vector3.new(1.7, 0.75, 0), Color=Color3.fromRGB(180, 160, 130), Material=Enum.Material.Marble })
+end
+
+function PropBuilders.mandala(p)
+	for i = 0, 2 do
+		local disc = Instance.new("Part")
+		disc.Name = "Mandala"
+		disc.Shape = Enum.PartType.Cylinder
+		disc.Size = Vector3.new(0.15, (6 - i * 1.4), (6 - i * 1.4))
+		disc.CFrame = CFrame.new(p.pos + Vector3.new(0, 0.05 + i * 0.05, 0)) * CFrame.Angles(0, 0, math.rad(90))
+		disc.Anchored = true
+		disc.Color = ({ Color3.fromRGB(180, 140, 90), Color3.fromRGB(200, 160, 100), Color3.fromRGB(220, 180, 120) })[i + 1]
+		disc.Material = Enum.Material.Marble
+		disc.Parent = mapFolder
+	end
+end
+
+function PropBuilders.lotus_flower(p)
+	for i = 0, 7 do
+		local angle = math.rad(i * 45)
+		makePart({ Name="LotusPetal", Size=Vector3.new(0.4, 0.2, 1.2), CFrame=CFrame.new(p.pos + Vector3.new(math.cos(angle) * 0.5, 0.5, math.sin(angle) * 0.5)) * CFrame.Angles(0, angle, math.rad(23)), Color=Color3.fromRGB(255, 180, 220), Material=Enum.Material.Neon })
+	end
+	makePart({ Name="LotusCenter", Shape=Enum.PartType.Ball, Size=Vector3.new(0.8, 0.8, 0.8), Position=p.pos+Vector3.new(0, 0.7, 0), Color=Color3.fromRGB(255, 224, 100), Material=Enum.Material.Neon })
+end
+
+-- ============================================================
+-- BUILDING BUILDER (perimeter structures)
+-- ============================================================
+local function buildBuildingFromTheme(b)
+	local body = makePart({ Name="BuildingBody", Size=b.size, Position=b.pos + Vector3.new(0, b.size.Y / 2, 0), Color=b.color, Material=Enum.Material.Brick })
+	-- Roof (slightly larger)
+	makePart({ Name="BuildingRoof", Size=Vector3.new(b.size.X + 3, 2, b.size.Z + 3), Position=b.pos + Vector3.new(0, b.size.Y + 1, 0), Color=b.roofColor or Color3.fromRGB(120, 70, 50), Material=Enum.Material.Slate })
+	makePart({ Name="BuildingRoofCap", Size=Vector3.new(b.size.X - 2, 2, b.size.Z - 2), Position=b.pos + Vector3.new(0, b.size.Y + 3, 0), Color=b.roofColor or Color3.fromRGB(120, 70, 50), Material=Enum.Material.Slate })
+	-- Windows (grid pattern, 2-3 storeys)
+	local nWin = b.windows or 4
+	local winRows = math.max(2, math.floor(b.size.Y / 8))
+	local winCols = math.min(nWin, math.floor(b.size.X / 5))
+	local winColor = b.lit and (b.neonColor or Color3.fromRGB(255, 224, 100)) or Color3.fromRGB(40, 40, 56)
+	local winMat = b.lit and Enum.Material.Neon or Enum.Material.Glass
+	for r = 0, winRows - 1 do
+		for c = 0, winCols - 1 do
+			local sx = (c + 0.5) / winCols
+			local sy = (r + 0.5) / winRows
+			-- Skip some windows for lit (looks more random)
+			if b.lit and math.random() < 0.25 then continue end
+			-- Front
+			makePart({ Name="Window", Size=Vector3.new(2, 2, 0.3), Position=b.pos + Vector3.new(-b.size.X/2 + sx * b.size.X, sy * b.size.Y, b.size.Z/2 + 0.1), Color=winColor, Material=winMat, Transparency=b.lit and 0 or 0.4 })
+			-- Back
+			makePart({ Name="Window", Size=Vector3.new(2, 2, 0.3), Position=b.pos + Vector3.new(-b.size.X/2 + sx * b.size.X, sy * b.size.Y, -b.size.Z/2 - 0.1), Color=winColor, Material=winMat, Transparency=b.lit and 0 or 0.4 })
+		end
+	end
+	-- Side windows
+	local sideCols = math.floor(b.size.Z / 6)
+	for r = 0, winRows - 1 do
+		for c = 0, sideCols - 1 do
+			local sx = (c + 0.5) / sideCols
+			local sy = (r + 0.5) / winRows
+			if b.lit and math.random() < 0.3 then continue end
+			makePart({ Name="WindowL", Size=Vector3.new(0.3, 2, 2), Position=b.pos + Vector3.new(-b.size.X/2 - 0.1, sy * b.size.Y, -b.size.Z/2 + sx * b.size.Z), Color=winColor, Material=winMat, Transparency=b.lit and 0 or 0.4 })
+			makePart({ Name="WindowR", Size=Vector3.new(0.3, 2, 2), Position=b.pos + Vector3.new(b.size.X/2 + 0.1, sy * b.size.Y, -b.size.Z/2 + sx * b.size.Z), Color=winColor, Material=winMat, Transparency=b.lit and 0 or 0.4 })
+		end
+	end
+	-- Door + frame
+	makePart({ Name="BuildingDoor", Size=Vector3.new(3, 5, 0.4), Position=b.pos + Vector3.new(0, 2.5, b.size.Z/2 + 0.2), Color=Color3.fromRGB(60, 40, 24), Material=Enum.Material.Wood })
+	makePart({ Name="BuildingDoorFrame", Size=Vector3.new(4, 6, 0.6), Position=b.pos + Vector3.new(0, 3, b.size.Z/2 + 0.05), Color=b.accentColor or Color3.fromRGB(140, 100, 50), Material=Enum.Material.Wood })
+	-- Balcony (Ascent villas)
+	if b.hasBalcony then
+		makePart({ Name="Balcony", Size=Vector3.new(b.size.X + 4, 0.6, 4), Position=b.pos + Vector3.new(0, b.size.Y * 0.5, b.size.Z/2 + 2), Color=Color3.fromRGB(128, 106, 80), Material=Enum.Material.Wood })
+		-- Rails
+		for bx = 0, 4 do
+			makePart({ Name="BalconyRail", Size=Vector3.new(0.2, 2, 0.2), Position=b.pos + Vector3.new(-b.size.X/2 + (bx / 4) * b.size.X, b.size.Y * 0.5 + 1, b.size.Z/2 + 3.8), Color=Color3.fromRGB(80, 64, 48), Material=Enum.Material.Wood })
+		end
+		makePart({ Name="BalconyRailTop", Size=Vector3.new(b.size.X + 4, 0.2, 0.2), Position=b.pos + Vector3.new(0, b.size.Y * 0.5 + 2, b.size.Z/2 + 3.8), Color=Color3.fromRGB(80, 64, 48), Material=Enum.Material.Wood })
+	end
+	-- Monastery/temple golden trim
+	if b.isMonastery or b.isTemple then
+		makePart({ Name="GoldTrim", Size=Vector3.new(b.size.X + 4, 0.4, b.size.Z + 4), Position=b.pos + Vector3.new(0, b.size.Y - 0.5, 0), Color=b.accentColor or Color3.fromRGB(255, 200, 80), Material=Enum.Material.Metal })
+	end
+	-- Industrial vents
+	if b.isIndustrial then
+		for v = 0, 2 do
+			makePart({ Name="RoofVent", Size=Vector3.new(2, 1.5, 2), Position=b.pos + Vector3.new(-b.size.X/3 + v * (b.size.X/3), b.size.Y + 2, 0), Color=Color3.fromRGB(80, 70, 64), Material=Enum.Material.Metal })
+		end
+	end
+	-- Light glow (if lit)
+	if b.lit then
+		local pl = Instance.new("PointLight")
+		pl.Color = b.neonColor or Color3.fromRGB(255, 224, 100)
+		pl.Range = 30
+		pl.Brightness = 0.6
+		pl.Parent = body
+	end
+end
+
+-- ============================================================
+-- FLOOR PATCH BUILDER
+-- ============================================================
+local function buildFloorPatch(fp)
+	local mat = Enum.Material[fp.material or "Concrete"] or Enum.Material.Concrete
+	makePart({
+		Name = "FloorPatch",
+		Size = Vector3.new(fp.size.X, 0.3, fp.size.Z),
+		Position = fp.pos + Vector3.new(0, 0.16, 0),
+		Color = fp.color,
+		Material = mat,
+		CanCollide = false,
+	})
 end
 
 -- ============================================================
@@ -1031,6 +1581,20 @@ function MapBuilder.Build(mapName)
 	-- Ult orbs
 	for _, orbPos in ipairs(mapInfo.UltOrbs or {}) do
 		buildUltOrb(orbPos)
+	end
+
+	-- FLOOR PATCHES (theme color variation)
+	if theme.FloorPatches then
+		for _, fp in ipairs(theme.FloorPatches) do
+			buildFloorPatch(fp)
+		end
+	end
+
+	-- BUILDINGS (perimeter structures forming streets/courtyards)
+	if theme.Buildings then
+		for _, b in ipairs(theme.Buildings) do
+			buildBuildingFromTheme(b)
+		end
 	end
 
 	-- THEME-SPECIFIC PROPS

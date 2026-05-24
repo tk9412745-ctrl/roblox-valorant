@@ -320,119 +320,365 @@ const MAPS = {
 };
 
 // ===== THEME DATA (mirrors src/shared/MapTheme.lua) =====
-// Props specify decoration positions + types per map. Each prop is rendered by PROP_BUILDERS.
 const THEMES = {
   Ascent: {
-    floorColor: [180, 170, 150],   // slate cobblestone tint
-    floorRoughness: 0.95,
-    lampColor: 0xffdc96,
+    floorColor: [180, 170, 150], floorRoughness: 0.95, lampColor: 0xffdc96,
+    Buildings: [
+      { pos: [-110, 0, 130], size: [50, 40, 35], color: 0xdcb482, roofColor: 0xb45032, windows: 6, hasBalcony: true },
+      { pos: [-40, 0, 135], size: [40, 32, 25], color: 0xe6be8c, roofColor: 0xa04632, windows: 4 },
+      { pos: [40, 0, 135], size: [40, 36, 25], color: 0xd2aa78, roofColor: 0xb45032, windows: 5 },
+      { pos: [120, 0, 130], size: [55, 42, 35], color: 0xe6c391, roofColor: 0xaa4b37, windows: 7, hasBalcony: true },
+      { pos: [-110, 0, -130], size: [50, 38, 35], color: 0xd7af7d, roofColor: 0xb45537, windows: 6 },
+      { pos: [-40, 0, -135], size: [45, 34, 25], color: 0xe1b987, roofColor: 0xa54b32, windows: 5 },
+      { pos: [40, 0, -135], size: [45, 36, 25], color: 0xdcb482, roofColor: 0xb45032, windows: 5 },
+      { pos: [120, 0, -130], size: [50, 40, 35], color: 0xe1b987, roofColor: 0xaa4b37, windows: 6, hasBalcony: true },
+      { pos: [140, 0, 30], size: [25, 32, 50], color: 0xdcb482, roofColor: 0xaf5037, windows: 6 },
+      { pos: [140, 0, -30], size: [25, 30, 50], color: 0xe1b987, roofColor: 0xa54b32, windows: 5 },
+      { pos: [-140, 0, 30], size: [25, 32, 50], color: 0xdcb482, roofColor: 0xaf5037, windows: 6 },
+      { pos: [-140, 0, -30], size: [25, 30, 50], color: 0xe1b987, roofColor: 0xa54b32, windows: 5 },
+    ],
+    FloorPatches: [
+      { pos: [0, 0, 0], size: [60, 60], color: 0xc8aa82 },
+      { pos: [-90, 0, 60], size: [30, 30], color: 0xb49664 },
+      { pos: [90, 0, 60], size: [30, 30], color: 0xb49664 },
+      { pos: [0, 0, -60], size: [15, 80], color: 0xbea573 },
+      { pos: [0, 0, 60], size: [15, 80], color: 0xbea573 },
+      { pos: [-115, 0, 30], size: [15, 25], color: 0x50823c },
+      { pos: [115, 0, 30], size: [15, 25], color: 0x50823c },
+      { pos: [-115, 0, -30], size: [15, 25], color: 0x50823c },
+      { pos: [115, 0, -30], size: [15, 25], color: 0x50823c },
+    ],
     Props: [
       { type: "fountain", pos: [0, 0, -10], size: 8 },
+      { type: "fountain", pos: [0, 0, 50], size: 6 },
       { type: "archway", pos: [-110, 0, -20], width: 14 },
       { type: "archway", pos: [110, 0, -20], width: 14 },
-      { type: "statue", pos: [-40, 0, -55] },
-      { type: "statue", pos: [40, 0, -55] },
-      { type: "barrel_stack", pos: [-100, 0, -90] },
-      { type: "barrel_stack", pos: [100, 0, -90] },
-      { type: "cypress", pos: [-140, 0, -120] },
-      { type: "cypress", pos: [140, 0, -120] },
-      { type: "cypress", pos: [-140, 0, 120] },
-      { type: "cypress", pos: [140, 0, 120] },
+      { type: "archway", pos: [-90, 0, 30], width: 12 },
+      { type: "archway", pos: [90, 0, 30], width: 12 },
+      { type: "statue", pos: [-40, 0, -55] }, { type: "statue", pos: [40, 0, -55] },
+      { type: "statue", pos: [-80, 0, 110] }, { type: "statue", pos: [80, 0, 110] },
+      { type: "cypress", pos: [-140, 0, -100] }, { type: "cypress", pos: [140, 0, -100] },
+      { type: "cypress", pos: [-140, 0, -60] }, { type: "cypress", pos: [140, 0, -60] },
+      { type: "cypress", pos: [-140, 0, 0] }, { type: "cypress", pos: [140, 0, 0] },
+      { type: "cypress", pos: [-140, 0, 60] }, { type: "cypress", pos: [140, 0, 60] },
+      { type: "cypress", pos: [-140, 0, 100] }, { type: "cypress", pos: [140, 0, 100] },
+      { type: "hedge", pos: [-25, 0, 25], size: [15, 3, 1.5] },
+      { type: "hedge", pos: [25, 0, 25], size: [15, 3, 1.5] },
+      { type: "hedge", pos: [-25, 0, -25], size: [15, 3, 1.5] },
+      { type: "hedge", pos: [25, 0, -25], size: [15, 3, 1.5] },
+      { type: "hedge", pos: [-115, 0, 30], size: [12, 2.5, 1] },
+      { type: "hedge", pos: [115, 0, 30], size: [12, 2.5, 1] },
+      { type: "barrel_stack", pos: [-100, 0, -90] }, { type: "barrel_stack", pos: [100, 0, -90] },
+      { type: "barrel_stack", pos: [75, 0, 95] },
+      { type: "crate_pile", pos: [-105, 0, 95] }, { type: "crate_pile", pos: [-65, 0, 105] },
+      { type: "crate_pile", pos: [65, 0, 105] },
+      { type: "log_pile", pos: [95, 0, 100] }, { type: "log_pile", pos: [-95, 0, 100] },
+      { type: "hanging_laundry", from: [-130, 25, 90], to: [-50, 25, 90] },
+      { type: "hanging_laundry", from: [50, 25, 90], to: [130, 25, 90] },
+      { type: "hanging_laundry", from: [-130, 25, -90], to: [-50, 25, -90] },
+      { type: "planter", pos: [-20, 0, -100], color: 0xff6464 },
+      { type: "planter", pos: [20, 0, -100], color: 0xffc864 },
+      { type: "planter", pos: [-20, 0, 100], color: 0xdc50c8 },
+      { type: "planter", pos: [20, 0, 100], color: 0xff9632 },
+      { type: "wall_banner", pos: [-100, 18, 110], colors: [0x008c45, 0xffffff, 0xce1126] },
+      { type: "wall_banner", pos: [100, 18, 110], colors: [0x008c45, 0xffffff, 0xce1126] },
+      { type: "shop_sign", pos: [35, 12, -30], text: "PIZZA", color: 0xdc3c3c },
+      { type: "shop_sign", pos: [-35, 12, -30], text: "GELATO", color: 0x78c8dc },
+      { type: "well", pos: [-60, 0, -10] }, { type: "well", pos: [60, 0, -10] },
+      { type: "street_lamp", pos: [-30, 0, 0] }, { type: "street_lamp", pos: [30, 0, 0] },
+      { type: "street_lamp", pos: [-30, 0, -50] }, { type: "street_lamp", pos: [30, 0, -50] },
+      { type: "street_lamp", pos: [-30, 0, 50] }, { type: "street_lamp", pos: [30, 0, 50] },
+      { type: "bench", pos: [-15, 0, -5] }, { type: "bench", pos: [15, 0, -5] },
+      { type: "bench", pos: [-15, 0, 65] }, { type: "bench", pos: [15, 0, 65] },
     ],
   },
   Bind: {
-    floorColor: [230, 200, 150],
-    floorRoughness: 1.0,
-    lampColor: 0xffb450,
+    floorColor: [230, 200, 150], floorRoughness: 1.0, lampColor: 0xffb450,
+    Buildings: [
+      { pos: [-95, 0, 110], size: [40, 35, 30], color: 0xebc391, roofColor: 0xa0643c, windows: 6, accentColor: 0x506ea0 },
+      { pos: [-35, 0, 115], size: [35, 28, 20], color: 0xe1b482, roofColor: 0x965a37, windows: 4, accentColor: 0x506ea0 },
+      { pos: [35, 0, 115], size: [35, 32, 20], color: 0xe6b987, roofColor: 0xa0643c, windows: 5, accentColor: 0x506ea0 },
+      { pos: [95, 0, 110], size: [40, 38, 30], color: 0xebc391, roofColor: 0x965f3c, windows: 6, accentColor: 0x506ea0 },
+      { pos: [-95, 0, -110], size: [40, 35, 30], color: 0xe1b482, roofColor: 0xa0643c, windows: 6, accentColor: 0x506ea0 },
+      { pos: [-35, 0, -115], size: [35, 28, 20], color: 0xe6b987, roofColor: 0x965a37, windows: 4, accentColor: 0x506ea0 },
+      { pos: [35, 0, -115], size: [35, 32, 20], color: 0xe1b482, roofColor: 0xa0643c, windows: 5, accentColor: 0x506ea0 },
+      { pos: [95, 0, -110], size: [40, 38, 30], color: 0xebc391, roofColor: 0x965f3c, windows: 6, accentColor: 0x506ea0 },
+      { pos: [120, 0, 0], size: [20, 30, 60], color: 0xe6b987, roofColor: 0x9b5f3c, windows: 5, accentColor: 0x506ea0 },
+      { pos: [-120, 0, 0], size: [20, 30, 60], color: 0xe6b987, roofColor: 0x9b5f3c, windows: 5, accentColor: 0x506ea0 },
+    ],
+    FloorPatches: [
+      { pos: [-60, 0, 0], size: [40, 40], color: 0xd2a573 },
+      { pos: [60, 0, 0], size: [40, 40], color: 0xd2a573 },
+      { pos: [-80, 0, 50], size: [30, 30], color: 0xb48c5a },
+      { pos: [80, 0, 50], size: [30, 30], color: 0xb48c5a },
+      { pos: [-50, 0, 30], size: [8, 8], color: 0x506ea0 },
+      { pos: [50, 0, 30], size: [8, 8], color: 0x506ea0 },
+    ],
     Props: [
-      { type: "palm", pos: [-30, 0, 90] },
-      { type: "palm", pos: [30, 0, 90] },
-      { type: "palm", pos: [-30, 0, -90] },
-      { type: "palm", pos: [30, 0, -90] },
-      { type: "moroccan_arch", pos: [-50, 0, 0] },
-      { type: "moroccan_arch", pos: [50, 0, 0] },
-      { type: "lantern_hanging", pos: [75, 10, 30] },
-      { type: "lantern_hanging", pos: [-75, 10, 30] },
+      { type: "palm", pos: [-30, 0, 90] }, { type: "palm", pos: [30, 0, 90] },
+      { type: "palm", pos: [-30, 0, -90] }, { type: "palm", pos: [30, 0, -90] },
+      { type: "palm", pos: [-90, 0, 90] }, { type: "palm", pos: [90, 0, 90] },
+      { type: "palm", pos: [-90, 0, -90] }, { type: "palm", pos: [90, 0, -90] },
+      { type: "palm", pos: [-105, 0, 30] }, { type: "palm", pos: [105, 0, 30] },
+      { type: "palm", pos: [-105, 0, -30] }, { type: "palm", pos: [105, 0, -30] },
+      { type: "moroccan_arch", pos: [-50, 0, 0] }, { type: "moroccan_arch", pos: [50, 0, 0] },
+      { type: "moroccan_arch", pos: [-80, 0, 70] }, { type: "moroccan_arch", pos: [80, 0, 70] },
+      { type: "moroccan_arch", pos: [-50, 0, 90] }, { type: "moroccan_arch", pos: [50, 0, 90] },
+      { type: "lantern_hanging", pos: [75, 10, 30] }, { type: "lantern_hanging", pos: [-75, 10, 30] },
+      { type: "lantern_hanging", pos: [75, 10, -30] }, { type: "lantern_hanging", pos: [-75, 10, -30] },
+      { type: "lantern_hanging", pos: [50, 12, 70] }, { type: "lantern_hanging", pos: [-50, 12, 70] },
+      { type: "lantern_hanging", pos: [50, 12, -70] }, { type: "lantern_hanging", pos: [-50, 12, -70] },
       { type: "market_stall", pos: [-60, 0, 70], color: 0xc83c3c },
       { type: "market_stall", pos: [60, 0, 70], color: 0x3c64b4 },
-      { type: "well", pos: [-90, 0, -60] },
+      { type: "market_stall", pos: [-60, 0, -70], color: 0xc89632 },
+      { type: "market_stall", pos: [60, 0, -70], color: 0x9650b4 },
+      { type: "market_stall", pos: [-20, 0, -60], color: 0xb45032 },
+      { type: "market_stall", pos: [20, 0, -60], color: 0x3ca064 },
+      { type: "well", pos: [-90, 0, -60] }, { type: "well", pos: [90, 0, -60] },
+      { type: "well", pos: [0, 0, -50] },
+      { type: "hanging_carpet", from: [-115, 22, 80], to: [-75, 22, 80], color: 0xb43c3c },
+      { type: "hanging_carpet", from: [75, 22, 80], to: [115, 22, 80], color: 0x3c64b4 },
+      { type: "hanging_carpet", from: [-115, 22, -80], to: [-75, 22, -80], color: 0xc89632 },
+      { type: "hookah_cushion", pos: [70, 12, 30] }, { type: "hookah_cushion", pos: [-70, 17, 70] },
+      { type: "sand_pile", pos: [-100, 0, 0] }, { type: "sand_pile", pos: [100, 0, 0] },
+      { type: "camel_statue", pos: [0, 0, 70] },
+      { type: "date_palm", pos: [-40, 0, 40] }, { type: "date_palm", pos: [40, 0, 40] },
+      { type: "date_palm", pos: [-40, 0, -40] }, { type: "date_palm", pos: [40, 0, -40] },
+      { type: "pottery_jar", pos: [-70, 0, 20] }, { type: "pottery_jar", pos: [70, 0, 20] },
+      { type: "pottery_jar", pos: [-70, 0, -20] }, { type: "pottery_jar", pos: [70, 0, -20] },
+      { type: "pottery_jar", pos: [0, 0, 80] }, { type: "pottery_jar", pos: [0, 0, -80] },
+      { type: "crate_pile", pos: [-100, 0, 80] }, { type: "crate_pile", pos: [100, 0, 80] },
+      { type: "spice_basket", pos: [-55, 0, 75], color: 0xdc641e },
+      { type: "spice_basket", pos: [55, 0, 75], color: 0xdcb432 },
+      { type: "spice_basket", pos: [-55, 0, -65], color: 0xc83232 },
+      { type: "spice_basket", pos: [55, 0, -65], color: 0x96c832 },
     ],
   },
   Split: {
-    floorColor: [50, 50, 60],
-    floorRoughness: 0.7,
-    lampColor: 0x50c8ff,
+    floorColor: [50, 50, 60], floorRoughness: 0.7, lampColor: 0x50c8ff,
+    Buildings: [
+      { pos: [-95, 0, 115], size: [40, 60, 30], color: 0x323241, roofColor: 0x1e1e28, windows: 18, lit: true, neonColor: 0xff64c8 },
+      { pos: [-30, 0, 120], size: [30, 75, 20], color: 0x3c3c4b, roofColor: 0x1e1e28, windows: 22, lit: true, neonColor: 0x50c8ff },
+      { pos: [30, 0, 120], size: [30, 70, 20], color: 0x373746, roofColor: 0x1e1e28, windows: 20, lit: true, neonColor: 0xffc850 },
+      { pos: [95, 0, 115], size: [40, 65, 30], color: 0x2d2d3c, roofColor: 0x1e1e28, windows: 18, lit: true, neonColor: 0x50c8ff },
+      { pos: [-95, 0, -115], size: [40, 55, 30], color: 0x323241, roofColor: 0x1e1e28, windows: 16, lit: true, neonColor: 0xff64c8 },
+      { pos: [-30, 0, -120], size: [30, 80, 20], color: 0x3c3c4b, roofColor: 0x1e1e28, windows: 24, lit: true, neonColor: 0x50c8ff },
+      { pos: [30, 0, -120], size: [30, 70, 20], color: 0x373746, roofColor: 0x1e1e28, windows: 20, lit: true, neonColor: 0xff5050 },
+      { pos: [95, 0, -115], size: [40, 60, 30], color: 0x2d2d3c, roofColor: 0x1e1e28, windows: 18, lit: true, neonColor: 0xffc850 },
+      { pos: [120, 0, 30], size: [20, 45, 50], color: 0x323241, roofColor: 0x1e1e28, windows: 14, lit: true, neonColor: 0x50c8ff },
+      { pos: [120, 0, -30], size: [20, 45, 50], color: 0x373746, roofColor: 0x1e1e28, windows: 14, lit: true, neonColor: 0xff64c8 },
+      { pos: [-120, 0, 30], size: [20, 45, 50], color: 0x323241, roofColor: 0x1e1e28, windows: 14, lit: true, neonColor: 0xffc850 },
+      { pos: [-120, 0, -30], size: [20, 45, 50], color: 0x373746, roofColor: 0x1e1e28, windows: 14, lit: true, neonColor: 0xff64c8 },
+    ],
+    FloorPatches: [
+      { pos: [0, 0, -60], size: [20, 8], color: 0xdcdcdc },
+      { pos: [0, 0, 60], size: [20, 8], color: 0xdcdcdc },
+      { pos: [-60, 0, 0], size: [2, 60], color: 0xffdc32 },
+      { pos: [60, 0, 0], size: [2, 60], color: 0xffdc32 },
+    ],
     Props: [
-      { type: "vending", pos: [-40, 0, 30], color: 0xff64c8 },
-      { type: "vending", pos: [40, 0, 30], color: 0x50c8ff },
-      { type: "vending", pos: [-40, 0, -30], color: 0x32dc64 },
-      { type: "neon_sign", pos: [-115, 10, 0], color: 0xff64c8, text: "シ" },
-      { type: "neon_sign", pos: [115, 10, 0], color: 0x50c8ff, text: "ク" },
+      { type: "vending", pos: [-40, 0, 30], color: 0xff64c8 }, { type: "vending", pos: [-44, 0, 30], color: 0x50c8ff },
+      { type: "vending", pos: [40, 0, 30], color: 0x50c8ff }, { type: "vending", pos: [44, 0, 30], color: 0xffc850 },
+      { type: "vending", pos: [-40, 0, -30], color: 0x32dc64 }, { type: "vending", pos: [40, 0, -30], color: 0xff5050 },
+      { type: "neon_sign", pos: [-115, 10, 50], color: 0xff64c8, text: "シ" },
+      { type: "neon_sign", pos: [115, 10, 50], color: 0x50c8ff, text: "ク" },
+      { type: "neon_sign", pos: [-115, 10, -50], color: 0xffc850, text: "東" },
+      { type: "neon_sign", pos: [115, 10, -50], color: 0xff5050, text: "京" },
       { type: "neon_sign", pos: [0, 12, -130], color: 0xffc850, text: "東京" },
+      { type: "neon_sign", pos: [-60, 14, -120], color: 0x50dc50, text: "渋" },
+      { type: "neon_sign", pos: [60, 14, -120], color: 0xdc50dc, text: "谷" },
       { type: "ramen_stand", pos: [0, 0, 40] },
-      { type: "wire", from: [-115, 22, -40], to: [115, 22, -40] },
-      { type: "wire", from: [-115, 22, 40], to: [115, 22, 40] },
-      { type: "bicycle", pos: [-60, 0, 0] },
-      { type: "bicycle", pos: [60, 0, 0] },
-      { type: "ac_unit", pos: [-80, 17, 60] },
-      { type: "ac_unit", pos: [80, 17, 60] },
+      { type: "ramen_stand", pos: [-70, 0, 0] }, { type: "ramen_stand", pos: [70, 0, 0] },
+      { type: "wire", from: [-115, 25, -40], to: [115, 25, -40] },
+      { type: "wire", from: [-115, 25, 40], to: [115, 25, 40] },
+      { type: "wire", from: [-115, 27, 0], to: [115, 27, 0] },
+      { type: "wire", from: [0, 25, -115], to: [0, 25, 115] },
+      { type: "wire", from: [-50, 25, -115], to: [-50, 25, 115] },
+      { type: "wire", from: [50, 25, -115], to: [50, 25, 115] },
+      { type: "bicycle", pos: [-60, 0, 0] }, { type: "bicycle", pos: [60, 0, 0] },
+      { type: "bicycle", pos: [-50, 0, 70] }, { type: "bicycle", pos: [50, 0, 70] },
+      { type: "bicycle", pos: [-50, 0, -70] }, { type: "bicycle", pos: [50, 0, -70] },
+      { type: "ac_unit", pos: [-80, 17, 60] }, { type: "ac_unit", pos: [80, 17, 60] },
+      { type: "ac_unit", pos: [-85, 17, 65] }, { type: "ac_unit", pos: [85, 17, 65] },
+      { type: "trash_bin", pos: [-25, 0, 0] }, { type: "trash_bin", pos: [25, 0, 0] },
+      { type: "trash_bin", pos: [-70, 0, 30] }, { type: "trash_bin", pos: [70, 0, 30] },
+      { type: "phone_booth", pos: [-90, 0, 0] }, { type: "phone_booth", pos: [90, 0, 0] },
+      { type: "traffic_cone", pos: [-10, 0, -25] }, { type: "traffic_cone", pos: [0, 0, -25] },
+      { type: "traffic_cone", pos: [10, 0, -25] }, { type: "traffic_cone", pos: [-10, 0, 25] },
+      { type: "traffic_cone", pos: [0, 0, 25] }, { type: "traffic_cone", pos: [10, 0, 25] },
+      { type: "billboard", pos: [0, 30, -100], color: 0xff64c8, text: "TOKYO" },
+      { type: "billboard", pos: [0, 30, 100], color: 0x50c8ff, text: "渋谷" },
+      { type: "motorbike", pos: [-30, 0, 50] }, { type: "motorbike", pos: [30, 0, 50] },
+      { type: "sake_barrel", pos: [-15, 0, 45] }, { type: "sake_barrel", pos: [15, 0, 45] },
+      { type: "industrial_pipe", from: [-100, 1, 0], to: [-50, 1, 0] },
+      { type: "industrial_pipe", from: [50, 1, 0], to: [100, 1, 0] },
     ],
   },
   Haven: {
-    floorColor: [200, 190, 170],
-    floorRoughness: 0.9,
-    lampColor: 0xffc864,
+    floorColor: [200, 190, 170], floorRoughness: 0.9, lampColor: 0xffc864,
+    Buildings: [
+      { pos: [-130, 0, 140], size: [45, 40, 35], color: 0xb45a3c, roofColor: 0xdcb43c, windows: 8, accentColor: 0xffdc64, isMonastery: true },
+      { pos: [0, 0, 145], size: [50, 45, 30], color: 0xbe6446, roofColor: 0xdcb43c, windows: 10, accentColor: 0xffdc64, isMonastery: true },
+      { pos: [130, 0, 140], size: [45, 42, 35], color: 0xb45a3c, roofColor: 0xdcb43c, windows: 8, accentColor: 0xffdc64, isMonastery: true },
+      { pos: [-130, 0, -140], size: [45, 38, 35], color: 0xb45a3c, roofColor: 0xdcb43c, windows: 8, accentColor: 0xffdc64, isMonastery: true },
+      { pos: [0, 0, -145], size: [50, 40, 30], color: 0xbe6446, roofColor: 0xdcb43c, windows: 10, accentColor: 0xffdc64, isMonastery: true },
+      { pos: [130, 0, -140], size: [45, 40, 35], color: 0xb45a3c, roofColor: 0xdcb43c, windows: 8, accentColor: 0xffdc64, isMonastery: true },
+      { pos: [155, 0, 0], size: [30, 35, 70], color: 0xb45a3c, roofColor: 0xdcb43c, windows: 10, accentColor: 0xffdc64, isMonastery: true },
+      { pos: [-155, 0, 0], size: [30, 35, 70], color: 0xb45a3c, roofColor: 0xdcb43c, windows: 10, accentColor: 0xffdc64, isMonastery: true },
+    ],
+    FloorPatches: [
+      { pos: [0, 0, 0], size: [20, 200], color: 0xb4aa96 },
+      { pos: [0, 0, 0], size: [200, 20], color: 0xb4aa96 },
+      { pos: [0, 0, 0], size: [15, 15], color: 0xdcb450 },
+      { pos: [-100, 0, 70], size: [40, 40], color: 0xc8beaa },
+      { pos: [0, 0, 70], size: [40, 40], color: 0xc8beaa },
+      { pos: [100, 0, 70], size: [40, 40], color: 0xc8beaa },
+    ],
     Props: [
-      { type: "stupa", pos: [100, 0, 130] },
-      { type: "prayer_flags", from: [-130, 18, -60], to: [130, 18, -60] },
-      { type: "prayer_flags", from: [-130, 16, 60], to: [130, 16, 60] },
-      { type: "bell", pos: [-60, 0, 30] },
-      { type: "bell", pos: [60, 0, 30] },
-      { type: "tree", pos: [-140, 0, 140], color: 0xff96c8 },
-      { type: "tree", pos: [140, 0, 140], color: 0xff96c8 },
-      { type: "prayer_wheel", pos: [-30, 0, -10] },
-      { type: "prayer_wheel", pos: [30, 0, -10] },
-      { type: "brazier", pos: [-100, 0, -30] },
-      { type: "brazier", pos: [100, 0, -30] },
+      { type: "stupa", pos: [100, 0, 130] }, { type: "stupa", pos: [-100, 0, 130], scale: 0.7 },
+      { type: "stupa", pos: [0, 0, 130], scale: 0.85 },
+      { type: "prayer_flags", from: [-150, 22, -80], to: [150, 22, -80] },
+      { type: "prayer_flags", from: [-150, 20, -40], to: [150, 20, -40] },
+      { type: "prayer_flags", from: [-150, 20, 40], to: [150, 20, 40] },
+      { type: "prayer_flags", from: [-150, 22, 80], to: [150, 22, 80] },
+      { type: "prayer_flags", from: [-80, 18, -150], to: [-80, 18, 150] },
+      { type: "prayer_flags", from: [80, 18, -150], to: [80, 18, 150] },
+      { type: "bell", pos: [-60, 0, 30] }, { type: "bell", pos: [60, 0, 30] },
+      { type: "bell", pos: [-60, 0, -30] }, { type: "bell", pos: [60, 0, -30] },
+      { type: "bell", pos: [0, 0, -100] }, { type: "bell", pos: [0, 0, 100] },
+      { type: "tree", pos: [-140, 0, 100], color: 0xff96c8 }, { type: "tree", pos: [140, 0, 100], color: 0xff96c8 },
+      { type: "tree", pos: [-140, 0, -100], color: 0xff96c8 }, { type: "tree", pos: [140, 0, -100], color: 0xff96c8 },
+      { type: "tree", pos: [-140, 0, 30], color: 0xffb4dc }, { type: "tree", pos: [140, 0, 30], color: 0xffb4dc },
+      { type: "prayer_wheel", pos: [-30, 0, -10] }, { type: "prayer_wheel", pos: [-30, 0, 10] },
+      { type: "prayer_wheel", pos: [30, 0, -10] }, { type: "prayer_wheel", pos: [30, 0, 10] },
+      { type: "prayer_wheel", pos: [-30, 0, -30] }, { type: "prayer_wheel", pos: [30, 0, -30] },
+      { type: "prayer_wheel", pos: [-30, 0, 30] }, { type: "prayer_wheel", pos: [30, 0, 30] },
+      { type: "brazier", pos: [-100, 0, -30] }, { type: "brazier", pos: [100, 0, -30] },
+      { type: "brazier", pos: [-100, 0, 30] }, { type: "brazier", pos: [100, 0, 30] },
+      { type: "brazier", pos: [0, 0, 20] }, { type: "brazier", pos: [0, 0, -20] },
+      { type: "buddha", pos: [-50, 0, -100], small: true }, { type: "buddha", pos: [50, 0, -100], small: true },
+      { type: "stone_steps", pos: [-100, 0, 30] }, { type: "stone_steps", pos: [0, 0, 30] },
+      { type: "stone_steps", pos: [100, 0, 30] },
+      { type: "zen_rock", pos: [-50, 0, 80] }, { type: "zen_rock", pos: [50, 0, 80] },
+      { type: "zen_rock", pos: [-25, 0, 100] }, { type: "zen_rock", pos: [25, 0, 100] },
+      { type: "zen_rock", pos: [0, 0, 100] },
+      { type: "incense_holder", pos: [-30, 0, -50] }, { type: "incense_holder", pos: [30, 0, -50] },
+      { type: "incense_holder", pos: [0, 0, -80] },
     ],
   },
   Fracture: {
-    floorColor: [180, 150, 110],
-    floorRoughness: 1.0,
-    lampColor: 0xff6432,
+    floorColor: [180, 150, 110], floorRoughness: 1.0, lampColor: 0xff6432,
+    Buildings: [
+      { pos: [-110, 0, 130], size: [45, 25, 30], color: 0x8c785a, roofColor: 0x645a46, windows: 4, isIndustrial: true },
+      { pos: [0, 0, 135], size: [60, 30, 25], color: 0x968264, roofColor: 0x6e6450, windows: 6, isIndustrial: true },
+      { pos: [110, 0, 130], size: [45, 28, 30], color: 0x8c785a, roofColor: 0x645a46, windows: 4, isIndustrial: true },
+      { pos: [-110, 0, -130], size: [45, 25, 30], color: 0x968264, roofColor: 0x6e6450, windows: 5, isIndustrial: true },
+      { pos: [0, 0, -135], size: [60, 32, 25], color: 0x8c785a, roofColor: 0x645a46, windows: 6, isIndustrial: true },
+      { pos: [110, 0, -130], size: [45, 25, 30], color: 0x968264, roofColor: 0x6e6450, windows: 5, isIndustrial: true },
+      { pos: [140, 0, 0], size: [20, 22, 60], color: 0x826e55, roofColor: 0x5f5541, windows: 5, isIndustrial: true },
+      { pos: [-140, 0, 0], size: [20, 22, 60], color: 0x826e55, roofColor: 0x5f5541, windows: 5, isIndustrial: true },
+    ],
+    FloorPatches: [
+      { pos: [0, 0, 0], size: [80, 80], color: 0x50463c },
+      { pos: [-100, 0, 60], size: [40, 40], color: 0xdcb478 },
+      { pos: [100, 0, 60], size: [40, 40], color: 0xdcb478 },
+      { pos: [-100, 0, -60], size: [40, 40], color: 0xdcb478 },
+      { pos: [100, 0, -60], size: [40, 40], color: 0xdcb478 },
+      { pos: [0, 0, -20], size: [20, 4], color: 0xdcb432 },
+      { pos: [0, 0, 20], size: [20, 4], color: 0xdcb432 },
+      { pos: [-50, 0, -90], size: [8, 8], color: 0x1e1914 },
+      { pos: [50, 0, 90], size: [8, 8], color: 0x1e1914 },
+    ],
     Props: [
       { type: "wrecked_truck", pos: [-60, 0, -90], rot: 45 },
       { type: "wrecked_truck", pos: [60, 0, 90], rot: 220 },
+      { type: "wrecked_truck", pos: [-90, 0, 90], rot: 135 },
+      { type: "wrecked_truck", pos: [90, 0, -90], rot: 60 },
       { type: "wrecked_car", pos: [0, 0, -70], rot: 90 },
+      { type: "wrecked_car", pos: [0, 0, 70], rot: 270 },
+      { type: "wrecked_car", pos: [-40, 0, -30], rot: 30 },
+      { type: "wrecked_car", pos: [40, 0, 30], rot: 150 },
       { type: "container", pos: [-70, 0, 60], color: 0xa05028 },
       { type: "container", pos: [70, 0, -60], color: 0x3c5064 },
       { type: "container", pos: [70, 0, 60], color: 0x508c3c },
-      { type: "generator", pos: [0, 0, 30] },
-      { type: "generator", pos: [0, 0, -30] },
-      { type: "antenna", pos: [-130, 0, -130] },
-      { type: "antenna", pos: [130, 0, 130] },
-      { type: "warning_sign", pos: [-30, 0, 0] },
-      { type: "warning_sign", pos: [30, 0, 0] },
-      { type: "rebar_pile", pos: [-100, 0, 100] },
-      { type: "rebar_pile", pos: [100, 0, -100] },
+      { type: "container", pos: [-70, 0, -60], color: 0x8c5028 },
+      { type: "container", pos: [-90, 0, 30], color: 0x3c3c50 },
+      { type: "container", pos: [90, 0, -30], color: 0xb46432 },
+      { type: "generator", pos: [0, 0, 30] }, { type: "generator", pos: [0, 0, -30] },
+      { type: "generator", pos: [-40, 0, 0] }, { type: "generator", pos: [40, 0, 0] },
+      { type: "antenna", pos: [-130, 0, -130] }, { type: "antenna", pos: [130, 0, 130] },
+      { type: "antenna", pos: [-130, 0, 130] }, { type: "antenna", pos: [130, 0, -130] },
+      { type: "warning_sign", pos: [-30, 0, 0] }, { type: "warning_sign", pos: [30, 0, 0] },
+      { type: "warning_sign", pos: [-90, 0, 0] }, { type: "warning_sign", pos: [90, 0, 0] },
+      { type: "rebar_pile", pos: [-100, 0, 100] }, { type: "rebar_pile", pos: [100, 0, -100] },
+      { type: "rebar_pile", pos: [-50, 0, 100] }, { type: "rebar_pile", pos: [50, 0, -100] },
+      { type: "sandbag_wall", pos: [-20, 0, -50], length: 12 },
+      { type: "sandbag_wall", pos: [20, 0, 50], length: 12 },
+      { type: "sandbag_wall", pos: [-80, 0, 0], length: 16 },
+      { type: "sandbag_wall", pos: [80, 0, 0], length: 16 },
+      { type: "fuel_barrel", pos: [-95, 0, 45] }, { type: "fuel_barrel", pos: [-90, 0, 45] },
+      { type: "fuel_barrel", pos: [-85, 0, 45] }, { type: "fuel_barrel", pos: [95, 0, -45] },
+      { type: "fuel_barrel", pos: [90, 0, -45] }, { type: "fuel_barrel", pos: [85, 0, -45] },
+      { type: "floodlight", pos: [-60, 0, 0] }, { type: "floodlight", pos: [60, 0, 0] },
+      { type: "floodlight", pos: [0, 0, -60] }, { type: "floodlight", pos: [0, 0, 60] },
+      { type: "satellite_dish", pos: [-120, 0, 60] }, { type: "satellite_dish", pos: [120, 0, -60] },
+      { type: "wire_fence", from: [-140, 0, -50], to: [-140, 0, 50] },
+      { type: "wire_fence", from: [140, 0, -50], to: [140, 0, 50] },
+      { type: "solar_panel", pos: [-100, 0, -110] }, { type: "solar_panel", pos: [-60, 0, -110] },
+      { type: "solar_panel", pos: [60, 0, 110] }, { type: "solar_panel", pos: [100, 0, 110] },
+      { type: "crate_pile", pos: [-40, 0, 80] }, { type: "crate_pile", pos: [40, 0, -80] },
+      { type: "crate_pile", pos: [-70, 0, 30] }, { type: "crate_pile", pos: [70, 0, -30] },
     ],
   },
   Lotus: {
-    floorColor: [220, 210, 190],
-    floorRoughness: 0.5,    // marble = smooth
-    floorMetalness: 0.2,
-    lampColor: 0xffdc96,
+    floorColor: [220, 210, 190], floorRoughness: 0.5, floorMetalness: 0.2, lampColor: 0xffdc96,
+    Buildings: [
+      { pos: [-130, 0, 140], size: [45, 40, 35], color: 0xdcd2be, roofColor: 0xb48c50, windows: 6, accentColor: 0xffc850, isTemple: true },
+      { pos: [0, 0, 145], size: [60, 45, 30], color: 0xe1d7c3, roofColor: 0xbe965a, windows: 8, accentColor: 0xffc850, isTemple: true },
+      { pos: [130, 0, 140], size: [45, 42, 35], color: 0xdcd2be, roofColor: 0xb48c50, windows: 6, accentColor: 0xffc850, isTemple: true },
+      { pos: [-130, 0, -140], size: [45, 38, 35], color: 0xdcd2be, roofColor: 0xb48c50, windows: 6, accentColor: 0xffc850, isTemple: true },
+      { pos: [0, 0, -145], size: [60, 42, 30], color: 0xe1d7c3, roofColor: 0xbe965a, windows: 8, accentColor: 0xffc850, isTemple: true },
+      { pos: [130, 0, -140], size: [45, 40, 35], color: 0xdcd2be, roofColor: 0xb48c50, windows: 6, accentColor: 0xffc850, isTemple: true },
+      { pos: [155, 0, 0], size: [30, 32, 60], color: 0xd7cdb9, roofColor: 0xb48c50, windows: 8, accentColor: 0xffc850, isTemple: true },
+      { pos: [-155, 0, 0], size: [30, 32, 60], color: 0xd7cdb9, roofColor: 0xb48c50, windows: 8, accentColor: 0xffc850, isTemple: true },
+    ],
+    FloorPatches: [
+      { pos: [0, 0, 0], size: [200, 16], color: 0xf5f0e6 },
+      { pos: [0, 0, 0], size: [16, 200], color: 0xf5f0e6 },
+      { pos: [0, 0, 0], size: [20, 20], color: 0xb48c50 },
+      { pos: [-120, 0, 60], size: [30, 30], color: 0x508246 },
+      { pos: [120, 0, 60], size: [30, 30], color: 0x508246 },
+      { pos: [-120, 0, -60], size: [30, 30], color: 0x508246 },
+      { pos: [120, 0, -60], size: [30, 30], color: 0x508246 },
+    ],
     Props: [
       { type: "lotus_pond", pos: [0, 0, 0], size: 12 },
+      { type: "lotus_pond", pos: [-70, 0, 90], size: 8 }, { type: "lotus_pond", pos: [70, 0, 90], size: 8 },
       { type: "buddha", pos: [0, 0, -120] },
-      { type: "pillar", pos: [-90, 0, 90] },
-      { type: "pillar", pos: [90, 0, 90] },
-      { type: "pillar", pos: [-90, 0, -90] },
-      { type: "pillar", pos: [90, 0, -90] },
-      { type: "elephant_statue", pos: [-30, 0, -110] },
-      { type: "elephant_statue", pos: [30, 0, -110] },
-      { type: "banyan", pos: [-130, 0, 130] },
-      { type: "banyan", pos: [130, 0, 130] },
+      { type: "buddha", pos: [-100, 0, -60], small: true }, { type: "buddha", pos: [100, 0, -60], small: true },
+      { type: "pillar", pos: [-90, 0, 90] }, { type: "pillar", pos: [-60, 0, 90] },
+      { type: "pillar", pos: [60, 0, 90] }, { type: "pillar", pos: [90, 0, 90] },
+      { type: "pillar", pos: [-90, 0, -90] }, { type: "pillar", pos: [-60, 0, -90] },
+      { type: "pillar", pos: [60, 0, -90] }, { type: "pillar", pos: [90, 0, -90] },
+      { type: "pillar", pos: [-90, 0, 30] }, { type: "pillar", pos: [-90, 0, -30] },
+      { type: "pillar", pos: [90, 0, 30] }, { type: "pillar", pos: [90, 0, -30] },
+      { type: "elephant_statue", pos: [-30, 0, -110] }, { type: "elephant_statue", pos: [30, 0, -110] },
+      { type: "elephant_statue", pos: [-30, 0, 110] }, { type: "elephant_statue", pos: [30, 0, 110] },
+      { type: "banyan", pos: [-130, 0, 100] }, { type: "banyan", pos: [130, 0, 100] },
+      { type: "banyan", pos: [-130, 0, -100] }, { type: "banyan", pos: [130, 0, -100] },
+      { type: "stone_steps", pos: [-50, 0, 60] }, { type: "stone_steps", pos: [50, 0, 60] },
+      { type: "stone_steps", pos: [-50, 0, -60] }, { type: "stone_steps", pos: [50, 0, -60] },
+      { type: "cobra_statue", pos: [-50, 0, 0] }, { type: "cobra_statue", pos: [50, 0, 0] },
+      { type: "incense_holder", pos: [-30, 0, -50] }, { type: "incense_holder", pos: [30, 0, -50] },
+      { type: "incense_holder", pos: [-30, 0, 50] }, { type: "incense_holder", pos: [30, 0, 50] },
+      { type: "stone_bench", pos: [-15, 0, 25] }, { type: "stone_bench", pos: [15, 0, 25] },
+      { type: "stone_bench", pos: [-15, 0, -25] }, { type: "stone_bench", pos: [15, 0, -25] },
+      { type: "bell", pos: [-90, 0, 90] }, { type: "bell", pos: [90, 0, 90] },
+      { type: "mandala", pos: [-100, 0, -90] }, { type: "mandala", pos: [100, 0, -90] },
+      { type: "mandala", pos: [-100, 0, 90] }, { type: "mandala", pos: [100, 0, 90] },
+      { type: "lotus_flower", pos: [-40, 0, 40] }, { type: "lotus_flower", pos: [40, 0, 40] },
+      { type: "lotus_flower", pos: [-40, 0, -40] }, { type: "lotus_flower", pos: [40, 0, -40] },
+      { type: "stupa", pos: [0, 0, 100], scale: 0.8 },
     ],
   },
 };
@@ -917,6 +1163,705 @@ PROP_BUILDERS.banyan = (p) => {
   return g;
 };
 
+// ===== BUILDING BUILDER (perimeter structures with windows + roof) =====
+function buildBuilding(b) {
+  const g = new THREE.Group();
+  const [w, h, d] = b.size;
+  // Main body
+  const body = makeBox(w, h, d, b.color, { roughness: 0.85 });
+  body.position.set(b.pos[0], h / 2, b.pos[2]);
+  g.add(body);
+  // Sloped roof (slightly larger flat block)
+  const roof = makeBox(w + 3, 2, d + 3, b.roofColor || 0x644632, { roughness: 0.9 });
+  roof.position.set(b.pos[0], h + 1, b.pos[2]);
+  g.add(roof);
+  // Roof slope detail (pyramidal cap on top)
+  const cap = makeBox(w - 2, 2, d - 2, b.roofColor || 0x644632, { roughness: 0.9 });
+  cap.position.set(b.pos[0], h + 3, b.pos[2]);
+  g.add(cap);
+  // Windows — grid pattern on front face
+  const nWindows = Math.max(2, b.windows || 4);
+  const winRows = Math.floor(h / 8);
+  const winCols = Math.min(nWindows, Math.floor(w / 5));
+  const winColor = b.lit ? (b.neonColor || 0xffe064) : 0x282838;
+  const winEmissive = b.lit ? (b.neonColor || 0xffe064) : 0x141420;
+  for (let r = 0; r < winRows; r++) {
+    for (let c = 0; c < winCols; c++) {
+      const sx = (c + 0.5) / winCols;
+      const sy = (r + 0.5) / winRows;
+      // Skip random windows so it looks more realistic
+      if (b.lit && Math.random() < 0.25) continue;
+      const win = makeBox(2, 2, 0.3, winColor, { emissive: winEmissive, emissiveIntensity: b.lit ? 0.7 : 0 });
+      win.position.set(b.pos[0] - w/2 + sx * w, sy * h, b.pos[2] + d/2 + 0.1);
+      g.add(win);
+      // Back face windows too
+      const winBack = makeBox(2, 2, 0.3, winColor, { emissive: winEmissive, emissiveIntensity: b.lit ? 0.7 : 0 });
+      winBack.position.set(b.pos[0] - w/2 + sx * w, sy * h, b.pos[2] - d/2 - 0.1);
+      g.add(winBack);
+    }
+  }
+  // Side windows
+  const sideWinCols = Math.floor(d / 6);
+  for (let r = 0; r < winRows; r++) {
+    for (let c = 0; c < sideWinCols; c++) {
+      const sx = (c + 0.5) / sideWinCols;
+      const sy = (r + 0.5) / winRows;
+      if (b.lit && Math.random() < 0.3) continue;
+      const winL = makeBox(0.3, 2, 2, winColor, { emissive: winEmissive, emissiveIntensity: b.lit ? 0.7 : 0 });
+      winL.position.set(b.pos[0] - w/2 - 0.1, sy * h, b.pos[2] - d/2 + sx * d);
+      g.add(winL);
+      const winR = makeBox(0.3, 2, 2, winColor, { emissive: winEmissive, emissiveIntensity: b.lit ? 0.7 : 0 });
+      winR.position.set(b.pos[0] + w/2 + 0.1, sy * h, b.pos[2] - d/2 + sx * d);
+      g.add(winR);
+    }
+  }
+  // Door (front-facing center, bottom)
+  const door = makeBox(3, 5, 0.4, 0x3c2818, { roughness: 0.9 });
+  door.position.set(b.pos[0], 2.5, b.pos[2] + d/2 + 0.2);
+  g.add(door);
+  // Door frame
+  const frame = makeBox(4, 6, 0.6, b.accentColor || 0x886a32);
+  frame.position.set(b.pos[0], 3, b.pos[2] + d/2 + 0.05);
+  g.add(frame);
+  // Balcony (optional for villa-style)
+  if (b.hasBalcony) {
+    const balcony = makeBox(w + 4, 0.6, 4, 0x806a50, { roughness: 0.8 });
+    balcony.position.set(b.pos[0], h * 0.5, b.pos[2] + d/2 + 2);
+    g.add(balcony);
+    // Railing
+    for (let bx = 0; bx < 5; bx++) {
+      const rail = makeBox(0.2, 2, 0.2, 0x504030);
+      rail.position.set(b.pos[0] - w/2 + (bx / 4) * w, h * 0.5 + 1, b.pos[2] + d/2 + 3.8);
+      g.add(rail);
+    }
+    const railTop = makeBox(w + 4, 0.2, 0.2, 0x504030);
+    railTop.position.set(b.pos[0], h * 0.5 + 2, b.pos[2] + d/2 + 3.8);
+    g.add(railTop);
+  }
+  // Monastery-style: golden trim along roof
+  if (b.isMonastery || b.isTemple) {
+    const trim = makeBox(w + 4, 0.4, d + 4, b.accentColor || 0xffc850, { metalness: 0.6, emissive: b.accentColor || 0xffc850, emissiveIntensity: 0.2 });
+    trim.position.set(b.pos[0], h - 0.5, b.pos[2]);
+    g.add(trim);
+  }
+  // Industrial: roof vents
+  if (b.isIndustrial) {
+    for (let v = 0; v < 3; v++) {
+      const vent = makeBox(2, 1.5, 2, 0x504640, { metalness: 0.4 });
+      vent.position.set(b.pos[0] - w/3 + v * (w/3), h + 2, b.pos[2]);
+      g.add(vent);
+    }
+  }
+  // Building light glow (street side, only if lit)
+  if (b.lit) {
+    const lit = new THREE.PointLight(b.neonColor || 0xffe064, 0.6, 30);
+    lit.position.set(b.pos[0], h * 0.4, b.pos[2] + d/2 + 5);
+    g.add(lit);
+  }
+  return g;
+}
+
+// ===== FLOOR PATCH BUILDER =====
+function buildFloorPatch(p) {
+  const patch = new THREE.Mesh(
+    new THREE.PlaneGeometry(p.size[0], p.size[1]),
+    new THREE.MeshStandardMaterial({ color: p.color, roughness: 0.9 })
+  );
+  patch.rotation.x = -Math.PI / 2;
+  patch.position.set(p.pos[0], 0.1 + Math.random() * 0.02, p.pos[2]);
+  patch.receiveShadow = true;
+  return patch;
+}
+
+// ===== NEW PROP BUILDERS (densification) =====
+
+PROP_BUILDERS.crate_pile = (p) => {
+  const g = new THREE.Group();
+  // Stack of wooden crates
+  [[-1.5, 1, 0], [1.5, 1, 0], [-0.5, 1, 1.5], [0.5, 3, 0], [0, 3, 1.5]].forEach(([ox, oy, oz]) => {
+    const c = makeBox(2.5, 2, 2.5, 0xa07050, { roughness: 0.95 });
+    c.position.set(p.pos[0] + ox, oy, p.pos[2] + oz);
+    g.add(c);
+  });
+  return g;
+};
+
+PROP_BUILDERS.log_pile = (p) => {
+  const g = new THREE.Group();
+  for (let i = 0; i < 4; i++) {
+    const log = makeCylinder(0.8, 0.8, 6, 0x6e4828, { segments: 10 });
+    log.rotation.z = Math.PI / 2;
+    log.position.set(p.pos[0], 0.8 + (i % 2) * 1.6, p.pos[2] + (Math.floor(i / 2) * 1.6));
+    g.add(log);
+  }
+  return g;
+};
+
+PROP_BUILDERS.hanging_laundry = (p) => {
+  const g = new THREE.Group();
+  g.add(PROP_BUILDERS.wire(p));
+  const from = new THREE.Vector3(...p.from);
+  const to = new THREE.Vector3(...p.to);
+  const segments = 6;
+  const laundryColors = [0xff64c8, 0xffffff, 0xffc850, 0x50c8ff, 0xb464ff];
+  for (let i = 1; i < segments; i++) {
+    const t = i / segments;
+    const pos = from.clone().lerp(to, t);
+    const cloth = makeBox(0.1, 4, 3, laundryColors[i % laundryColors.length], { roughness: 0.95 });
+    cloth.position.set(pos.x, pos.y - 2, pos.z);
+    g.add(cloth);
+  }
+  return g;
+};
+
+PROP_BUILDERS.planter = (p) => {
+  const g = new THREE.Group();
+  const box = makeBox(3, 1.5, 3, 0x806846, { roughness: 0.9 }); box.position.set(p.pos[0], 0.75, p.pos[2]); g.add(box);
+  // Flowers (small spheres)
+  for (let i = 0; i < 5; i++) {
+    const angle = (i * 72) * Math.PI / 180;
+    const flower = makeSphere(0.5, p.color || 0xff6464, { emissive: p.color || 0xff6464, emissiveIntensity: 0.3 });
+    flower.position.set(p.pos[0] + Math.cos(angle) * 0.7, 2, p.pos[2] + Math.sin(angle) * 0.7);
+    g.add(flower);
+  }
+  // Green foliage
+  const foliage = makeSphere(1.2, 0x508c3c, { segments: 10 });
+  foliage.position.set(p.pos[0], 1.8, p.pos[2]);
+  g.add(foliage);
+  return g;
+};
+
+PROP_BUILDERS.wall_banner = (p) => {
+  const g = new THREE.Group();
+  // 3 vertical stripes (Italian flag style)
+  const colors = p.colors || [0x008c45, 0xffffff, 0xce1126];
+  for (let i = 0; i < 3; i++) {
+    const stripe = makeBox(2, 8, 0.3, colors[i], { roughness: 0.9 });
+    stripe.position.set(p.pos[0] - 2 + i * 2, p.pos[1] || 18, p.pos[2]);
+    g.add(stripe);
+  }
+  return g;
+};
+
+PROP_BUILDERS.shop_sign = (p) => {
+  const g = new THREE.Group();
+  const board = makeBox(8, 2.5, 0.4, p.color || 0xdc3c3c, { emissive: p.color || 0xdc3c3c, emissiveIntensity: 0.5 });
+  board.position.set(p.pos[0], p.pos[1] || 12, p.pos[2]);
+  g.add(board);
+  // Text via canvas
+  const canvas = document.createElement('canvas');
+  canvas.width = 256; canvas.height = 80;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '900 50px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(p.text || 'SHOP', 128, 40);
+  const tex = new THREE.CanvasTexture(canvas);
+  const textPlane = new THREE.Mesh(
+    new THREE.PlaneGeometry(7, 2),
+    new THREE.MeshBasicMaterial({ map: tex, transparent: true })
+  );
+  textPlane.position.set(p.pos[0], p.pos[1] || 12, p.pos[2] + 0.3);
+  g.add(textPlane);
+  const light = new THREE.PointLight(p.color || 0xdc3c3c, 0.8, 16);
+  light.position.copy(board.position);
+  g.add(light);
+  return g;
+};
+
+PROP_BUILDERS.street_lamp = (p) => {
+  const g = new THREE.Group();
+  const post = makeBox(0.4, 12, 0.4, 0x282832);
+  post.position.set(p.pos[0], 6, p.pos[2]);
+  g.add(post);
+  const arm = makeBox(2, 0.3, 0.3, 0x282832);
+  arm.position.set(p.pos[0] + 1, 11.5, p.pos[2]);
+  g.add(arm);
+  const lamp = makeSphere(0.7, 0xffe096, { emissive: 0xffe096, emissiveIntensity: 1.0 });
+  lamp.position.set(p.pos[0] + 2, 11, p.pos[2]);
+  g.add(lamp);
+  const light = new THREE.PointLight(0xffe096, 1.0, 15);
+  light.position.copy(lamp.position);
+  g.add(light);
+  return g;
+};
+
+PROP_BUILDERS.bench = (p) => {
+  const g = new THREE.Group();
+  const seat = makeBox(5, 0.4, 1.5, 0x643c1e, { roughness: 0.9 });
+  seat.position.set(p.pos[0], 1.5, p.pos[2]);
+  g.add(seat);
+  const back = makeBox(5, 2, 0.4, 0x643c1e, { roughness: 0.9 });
+  back.position.set(p.pos[0], 2.5, p.pos[2] - 0.5);
+  g.add(back);
+  // Legs
+  const lL = makeBox(0.4, 1.5, 1.5, 0x281e14); lL.position.set(p.pos[0] - 2, 0.75, p.pos[2]); g.add(lL);
+  const lR = makeBox(0.4, 1.5, 1.5, 0x281e14); lR.position.set(p.pos[0] + 2, 0.75, p.pos[2]); g.add(lR);
+  return g;
+};
+
+PROP_BUILDERS.hedge = (p) => {
+  const g = new THREE.Group();
+  const [w, h, d] = p.size;
+  const main = makeBox(w, h, d, 0x508c3c, { roughness: 1.0 });
+  main.position.set(p.pos[0], h / 2, p.pos[2]);
+  g.add(main);
+  // Top highlight (lighter green)
+  const top = makeBox(w, 0.5, d, 0x6ea050, { roughness: 1.0 });
+  top.position.set(p.pos[0], h + 0.25, p.pos[2]);
+  g.add(top);
+  return g;
+};
+
+PROP_BUILDERS.hanging_carpet = (p) => {
+  const g = new THREE.Group();
+  g.add(PROP_BUILDERS.wire(p));
+  const from = new THREE.Vector3(...p.from);
+  const to = new THREE.Vector3(...p.to);
+  const mid = from.clone().add(to).multiplyScalar(0.5);
+  const carpet = makeBox(Math.abs(to.x - from.x) - 4, 6, 0.2, p.color || 0xb43c3c, { roughness: 0.95 });
+  carpet.position.set(mid.x, mid.y - 4, mid.z);
+  g.add(carpet);
+  // Pattern stripes
+  for (let i = 1; i < 4; i++) {
+    const stripe = makeBox(Math.abs(to.x - from.x) - 4.5, 0.3, 0.25, 0x281414);
+    stripe.position.set(mid.x, mid.y - 2 - i * 1.3, mid.z);
+    g.add(stripe);
+  }
+  return g;
+};
+
+PROP_BUILDERS.hookah_cushion = (p) => {
+  const g = new THREE.Group();
+  // 4 cushions arranged in a square
+  for (let i = 0; i < 4; i++) {
+    const angle = (i * 90) * Math.PI / 180;
+    const cushion = makeBox(2, 0.6, 2, [0xb43c3c, 0xc8a032, 0x508c3c, 0x3c64b4][i], { roughness: 0.9 });
+    cushion.position.set(p.pos[0] + Math.cos(angle) * 1.5, p.pos[1] + 0.5, p.pos[2] + Math.sin(angle) * 1.5);
+    g.add(cushion);
+  }
+  // Hookah pipe in middle
+  const base = makeCylinder(0.6, 0.8, 1, 0x646464, { metalness: 0.6, segments: 12 });
+  base.position.set(p.pos[0], p.pos[1] + 0.5, p.pos[2]);
+  g.add(base);
+  const stem = makeCylinder(0.15, 0.15, 2.5, 0xc0a050, { metalness: 0.4 });
+  stem.position.set(p.pos[0], p.pos[1] + 2, p.pos[2]);
+  g.add(stem);
+  return g;
+};
+
+PROP_BUILDERS.sand_pile = (p) => {
+  const g = new THREE.Group();
+  const main = makeSphere(3, 0xe6c896, { segments: 16, roughness: 1.0 });
+  main.position.set(p.pos[0], 1.5, p.pos[2]);
+  main.scale.set(1, 0.5, 1);
+  g.add(main);
+  return g;
+};
+
+PROP_BUILDERS.camel_statue = (p) => {
+  const g = new THREE.Group();
+  // Body
+  const body = makeBox(4, 3, 1.8, 0xb4946e, { roughness: 0.9 });
+  body.position.set(p.pos[0], 3.5, p.pos[2]);
+  g.add(body);
+  // Hump
+  const hump = makeSphere(1.5, 0xb4946e, { segments: 12 });
+  hump.position.set(p.pos[0], 5.3, p.pos[2]);
+  g.add(hump);
+  // Neck
+  const neck = makeBox(0.8, 3.5, 0.8, 0xb4946e, { roughness: 0.9 });
+  neck.position.set(p.pos[0] + 1.5, 5, p.pos[2]);
+  neck.rotation.z = -0.3;
+  g.add(neck);
+  // Head
+  const head = makeBox(1.5, 1, 0.8, 0xb4946e, { roughness: 0.9 });
+  head.position.set(p.pos[0] + 2.5, 6.5, p.pos[2]);
+  g.add(head);
+  // Legs
+  for (const [ox, oz] of [[-1.3, -0.7], [1.3, -0.7], [-1.3, 0.7], [1.3, 0.7]]) {
+    const leg = makeBox(0.5, 2, 0.5, 0xa08864);
+    leg.position.set(p.pos[0] + ox, 1, p.pos[2] + oz);
+    g.add(leg);
+  }
+  return g;
+};
+
+PROP_BUILDERS.date_palm = (p) => {
+  const g = new THREE.Group();
+  const trunk = makeCylinder(0.5, 0.6, 10, 0x644628, { segments: 8 });
+  trunk.position.set(p.pos[0], 5, p.pos[2]);
+  g.add(trunk);
+  // Smaller palm with date clusters
+  for (let i = 0; i < 6; i++) {
+    const angle = (i * 60) * Math.PI / 180;
+    const frond = makeBox(5, 0.2, 1.5, 0x508232, { roughness: 0.95 });
+    frond.position.set(p.pos[0] + Math.cos(angle) * 2, 10, p.pos[2] + Math.sin(angle) * 2);
+    frond.rotation.set(0, angle, -0.3);
+    g.add(frond);
+  }
+  // Date clusters (small dark spheres hanging below fronds)
+  const dates = makeSphere(0.5, 0x6e3c1e);
+  dates.position.set(p.pos[0], 9, p.pos[2]);
+  g.add(dates);
+  return g;
+};
+
+PROP_BUILDERS.pottery_jar = (p) => {
+  const g = new THREE.Group();
+  // Big amphora-style jar
+  const body = makeSphere(1.2, 0xa55a32, { segments: 12, roughness: 0.85 });
+  body.position.set(p.pos[0], 1.5, p.pos[2]);
+  body.scale.set(1, 1.5, 1);
+  g.add(body);
+  const neck = makeCylinder(0.4, 0.5, 1, 0xa55a32, { segments: 10 });
+  neck.position.set(p.pos[0], 3, p.pos[2]);
+  g.add(neck);
+  return g;
+};
+
+PROP_BUILDERS.spice_basket = (p) => {
+  const g = new THREE.Group();
+  const basket = makeCylinder(1, 1, 1.5, 0x6e4828, { segments: 12 });
+  basket.position.set(p.pos[0], 0.75, p.pos[2]);
+  g.add(basket);
+  // Mound of spice on top
+  const spice = makeSphere(0.9, p.color || 0xdc641e, { segments: 12 });
+  spice.position.set(p.pos[0], 1.8, p.pos[2]);
+  spice.scale.set(1, 0.4, 1);
+  g.add(spice);
+  return g;
+};
+
+PROP_BUILDERS.trash_bin = (p) => {
+  const g = new THREE.Group();
+  const bin = makeCylinder(0.9, 0.7, 2.5, 0x282828, { segments: 12 });
+  bin.position.set(p.pos[0], 1.25, p.pos[2]);
+  g.add(bin);
+  const lid = makeCylinder(1, 1, 0.2, 0x3c3c3c, { segments: 12 });
+  lid.position.set(p.pos[0], 2.5, p.pos[2]);
+  g.add(lid);
+  return g;
+};
+
+PROP_BUILDERS.phone_booth = (p) => {
+  const g = new THREE.Group();
+  const body = makeBox(2, 7, 2, 0x32a050, { roughness: 0.6 });
+  body.position.set(p.pos[0], 3.5, p.pos[2]);
+  g.add(body);
+  // Glass walls (translucent)
+  const glassF = makeBox(1.8, 5, 0.1, 0xc8e1e1, { transparent: true, opacity: 0.4, roughness: 0.1 });
+  glassF.position.set(p.pos[0], 4, p.pos[2] + 1.05);
+  g.add(glassF);
+  // Top sign (PHONE / 電話)
+  const sign = makeBox(2.2, 0.8, 2.2, 0xff5050, { emissive: 0xff5050, emissiveIntensity: 0.5 });
+  sign.position.set(p.pos[0], 7.5, p.pos[2]);
+  g.add(sign);
+  return g;
+};
+
+PROP_BUILDERS.traffic_cone = (p) => {
+  const g = new THREE.Group();
+  const cone = makeCylinder(0.1, 0.8, 1.5, 0xff6428, { segments: 12, emissive: 0xff6428, emissiveIntensity: 0.2 });
+  cone.position.set(p.pos[0], 0.75, p.pos[2]);
+  g.add(cone);
+  // White stripe
+  const stripe = makeCylinder(0.4, 0.5, 0.2, 0xffffff, { segments: 12 });
+  stripe.position.set(p.pos[0], 0.9, p.pos[2]);
+  g.add(stripe);
+  return g;
+};
+
+PROP_BUILDERS.billboard = (p) => {
+  const g = new THREE.Group();
+  // Support poles
+  const poleL = makeBox(0.5, 30, 0.5, 0x32323c); poleL.position.set(p.pos[0] - 8, 15, p.pos[2]); g.add(poleL);
+  const poleR = makeBox(0.5, 30, 0.5, 0x32323c); poleR.position.set(p.pos[0] + 8, 15, p.pos[2]); g.add(poleR);
+  // Board
+  const board = makeBox(20, 8, 0.5, p.color || 0xff64c8, { emissive: p.color || 0xff64c8, emissiveIntensity: 1.2 });
+  board.position.set(p.pos[0], p.pos[1] || 30, p.pos[2]);
+  g.add(board);
+  // Text
+  if (p.text) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512; canvas.height = 200;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '900 120px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(p.text, 256, 100);
+    const tex = new THREE.CanvasTexture(canvas);
+    const textPlane = new THREE.Mesh(
+      new THREE.PlaneGeometry(18, 7),
+      new THREE.MeshBasicMaterial({ map: tex, transparent: true })
+    );
+    textPlane.position.set(p.pos[0], p.pos[1] || 30, p.pos[2] + 0.3);
+    g.add(textPlane);
+  }
+  const light = new THREE.PointLight(p.color || 0xff64c8, 2, 30);
+  light.position.copy(board.position);
+  g.add(light);
+  return g;
+};
+
+PROP_BUILDERS.motorbike = (p) => {
+  const g = new THREE.Group();
+  const wl = makeCylinder(1, 1, 0.4, 0x1e1e1e, { segments: 12 }); wl.rotation.z = Math.PI / 2; wl.position.set(p.pos[0] - 1.2, 1, p.pos[2]); g.add(wl);
+  const wr = makeCylinder(1, 1, 0.4, 0x1e1e1e, { segments: 12 }); wr.rotation.z = Math.PI / 2; wr.position.set(p.pos[0] + 1.2, 1, p.pos[2]); g.add(wr);
+  const body = makeBox(3, 0.8, 0.7, 0x282828, { metalness: 0.4 }); body.position.set(p.pos[0], 1.6, p.pos[2]); g.add(body);
+  const seat = makeBox(1.5, 0.3, 0.8, 0x141414); seat.position.set(p.pos[0] + 0.5, 2.1, p.pos[2]); g.add(seat);
+  const handle = makeBox(0.2, 1, 0.2, 0x141414); handle.position.set(p.pos[0] - 1, 2.5, p.pos[2]); g.add(handle);
+  return g;
+};
+
+PROP_BUILDERS.sake_barrel = (p) => {
+  const g = new THREE.Group();
+  const barrel = makeCylinder(0.9, 0.9, 1.8, 0xe6dcc8, { segments: 14 });
+  barrel.position.set(p.pos[0], 0.9, p.pos[2]);
+  g.add(barrel);
+  // Red label
+  const label = makeBox(1.6, 0.8, 0.05, 0xc83232);
+  label.position.set(p.pos[0], 1.2, p.pos[2] + 0.92);
+  g.add(label);
+  return g;
+};
+
+PROP_BUILDERS.industrial_pipe = (p) => {
+  const g = new THREE.Group();
+  const from = new THREE.Vector3(...p.from);
+  const to = new THREE.Vector3(...p.to);
+  const mid = from.clone().add(to).multiplyScalar(0.5);
+  const length = from.distanceTo(to);
+  const pipe = makeCylinder(0.4, 0.4, length, 0x646464, { segments: 12, metalness: 0.5 });
+  pipe.rotation.z = Math.PI / 2;
+  pipe.position.copy(mid);
+  // Orient along axis
+  pipe.lookAt(to);
+  pipe.rotateX(Math.PI / 2);
+  g.add(pipe);
+  return g;
+};
+
+PROP_BUILDERS.stone_steps = (p) => {
+  const g = new THREE.Group();
+  for (let i = 0; i < 4; i++) {
+    const step = makeBox(6 - i * 0.5, 0.4, 1.5, 0xb4aa96, { roughness: 0.9 });
+    step.position.set(p.pos[0], 0.2 + i * 0.4, p.pos[2] - i * 1.5);
+    g.add(step);
+  }
+  return g;
+};
+
+PROP_BUILDERS.zen_rock = (p) => {
+  const g = new THREE.Group();
+  const rock = makeSphere(1.5, 0x64645a, { segments: 8, roughness: 1.0 });
+  rock.position.set(p.pos[0], 1, p.pos[2]);
+  rock.scale.set(1, 0.7, 1.2);
+  g.add(rock);
+  return g;
+};
+
+PROP_BUILDERS.incense_holder = (p) => {
+  const g = new THREE.Group();
+  const base = makeBox(1, 0.8, 1, 0xb46e1e, { metalness: 0.5 });
+  base.position.set(p.pos[0], 0.4, p.pos[2]);
+  g.add(base);
+  // Incense sticks
+  for (let i = 0; i < 5; i++) {
+    const stick = makeBox(0.05, 2, 0.05, 0x8c5028);
+    stick.position.set(p.pos[0] + (i - 2) * 0.15, 1.8, p.pos[2]);
+    g.add(stick);
+    const tip = makeSphere(0.1, 0xff6432, { emissive: 0xff6432, emissiveIntensity: 1 });
+    tip.position.set(p.pos[0] + (i - 2) * 0.15, 2.8, p.pos[2]);
+    g.add(tip);
+  }
+  return g;
+};
+
+PROP_BUILDERS.sandbag_wall = (p) => {
+  const g = new THREE.Group();
+  const length = p.length || 12;
+  const rows = 3;
+  const bagsPerRow = Math.floor(length / 1.5);
+  for (let r = 0; r < rows; r++) {
+    for (let b = 0; b < bagsPerRow; b++) {
+      const bag = makeBox(1.4, 0.7, 1.5, 0xa08c64, { roughness: 1.0 });
+      bag.position.set(p.pos[0] - length/2 + b * 1.5 + (r % 2) * 0.75, 0.35 + r * 0.7, p.pos[2]);
+      g.add(bag);
+    }
+  }
+  return g;
+};
+
+PROP_BUILDERS.fuel_barrel = (p) => {
+  const g = new THREE.Group();
+  const barrel = makeCylinder(0.8, 0.8, 2.5, 0xc83c1e, { segments: 14, metalness: 0.3 });
+  barrel.position.set(p.pos[0], 1.25, p.pos[2]);
+  g.add(barrel);
+  // White stripe
+  const stripe = makeCylinder(0.81, 0.81, 0.3, 0xeeeeee, { segments: 14 });
+  stripe.position.set(p.pos[0], 1.5, p.pos[2]);
+  g.add(stripe);
+  return g;
+};
+
+PROP_BUILDERS.floodlight = (p) => {
+  const g = new THREE.Group();
+  // Tall pole
+  const pole = makeBox(0.4, 20, 0.4, 0x32323c);
+  pole.position.set(p.pos[0], 10, p.pos[2]);
+  g.add(pole);
+  // Lamp head
+  const head = makeBox(2, 1.5, 1.5, 0x141414, { metalness: 0.4 });
+  head.position.set(p.pos[0], 19, p.pos[2]);
+  g.add(head);
+  const bulb = makeBox(1.6, 1.1, 0.3, 0xffffe6, { emissive: 0xffffe6, emissiveIntensity: 1.5 });
+  bulb.position.set(p.pos[0], 19, p.pos[2] + 0.85);
+  g.add(bulb);
+  const light = new THREE.SpotLight(0xffffe6, 2, 40, Math.PI / 4, 0.3);
+  light.position.copy(head.position);
+  light.target.position.set(p.pos[0], 0, p.pos[2] + 10);
+  g.add(light);
+  g.add(light.target);
+  return g;
+};
+
+PROP_BUILDERS.satellite_dish = (p) => {
+  const g = new THREE.Group();
+  // Pole
+  const pole = makeBox(0.5, 8, 0.5, 0x4a4a50);
+  pole.position.set(p.pos[0], 4, p.pos[2]);
+  g.add(pole);
+  // Dish (parabolic — fake with sphere)
+  const dish = makeSphere(3, 0xc8c8c8, { segments: 16, metalness: 0.3 });
+  dish.position.set(p.pos[0], 9, p.pos[2]);
+  dish.scale.set(1, 0.3, 1);
+  dish.rotation.x = -Math.PI / 4;
+  g.add(dish);
+  // Receiver
+  const receiver = makeBox(0.4, 0.4, 1.5, 0x282828);
+  receiver.position.set(p.pos[0], 10.5, p.pos[2] - 1);
+  g.add(receiver);
+  return g;
+};
+
+PROP_BUILDERS.wire_fence = (p) => {
+  const g = new THREE.Group();
+  const from = new THREE.Vector3(...p.from);
+  const to = new THREE.Vector3(...p.to);
+  const length = from.distanceTo(to);
+  const posts = Math.ceil(length / 5);
+  const dir = to.clone().sub(from).normalize();
+  // Posts
+  for (let i = 0; i <= posts; i++) {
+    const t = i / posts;
+    const pos = from.clone().lerp(to, t);
+    const post = makeBox(0.3, 8, 0.3, 0x32323c);
+    post.position.set(pos.x, 4, pos.z);
+    g.add(post);
+  }
+  // Top wire
+  const wirePos = from.clone().add(to).multiplyScalar(0.5);
+  wirePos.y = 7;
+  const wireMesh = makeBox(length, 0.1, 0.1, 0x6e6e6e);
+  wireMesh.position.copy(wirePos);
+  wireMesh.lookAt(to.x, 7, to.z);
+  wireMesh.rotateY(Math.PI / 2);
+  g.add(wireMesh);
+  // Razor wire (top)
+  for (let i = 0; i < posts; i++) {
+    const t = (i + 0.5) / posts;
+    const pos = from.clone().lerp(to, t);
+    const razor = makeSphere(0.3, 0x9c9c9c, { segments: 8, metalness: 0.6 });
+    razor.position.set(pos.x, 8, pos.z);
+    g.add(razor);
+  }
+  return g;
+};
+
+PROP_BUILDERS.solar_panel = (p) => {
+  const g = new THREE.Group();
+  const post = makeBox(0.3, 3, 0.3, 0x32323c);
+  post.position.set(p.pos[0], 1.5, p.pos[2]);
+  g.add(post);
+  // Panel (tilted)
+  const panel = makeBox(5, 0.2, 3.5, 0x1e2864, { metalness: 0.8, roughness: 0.2, emissive: 0x14143c, emissiveIntensity: 0.15 });
+  panel.position.set(p.pos[0], 3.5, p.pos[2]);
+  panel.rotation.x = -0.4;
+  g.add(panel);
+  // Grid lines
+  for (let i = 1; i < 4; i++) {
+    const line = makeBox(5, 0.21, 0.05, 0x0a0a1e);
+    line.position.set(p.pos[0], 3.5 + (i - 2) * 0.05, p.pos[2] - 1.5 + i * 0.7);
+    line.rotation.x = -0.4;
+    g.add(line);
+  }
+  return g;
+};
+
+PROP_BUILDERS.cobra_statue = (p) => {
+  const g = new THREE.Group();
+  // Coiled body (3 stacked cylinders)
+  for (let i = 0; i < 3; i++) {
+    const coil = makeCylinder(1.2 - i * 0.2, 1.2 - i * 0.2, 0.6, 0xc8b496, { segments: 12 });
+    coil.position.set(p.pos[0], 0.3 + i * 0.6, p.pos[2]);
+    g.add(coil);
+  }
+  // Hood/head
+  const head = makeBox(1.5, 2, 0.5, 0xc8b496, { roughness: 0.5 });
+  head.position.set(p.pos[0], 3, p.pos[2]);
+  g.add(head);
+  // Eyes (red glow)
+  const eyeL = makeSphere(0.15, 0xff3232, { emissive: 0xff3232, emissiveIntensity: 1 });
+  eyeL.position.set(p.pos[0] - 0.3, 3.4, p.pos[2] + 0.3);
+  g.add(eyeL);
+  const eyeR = makeSphere(0.15, 0xff3232, { emissive: 0xff3232, emissiveIntensity: 1 });
+  eyeR.position.set(p.pos[0] + 0.3, 3.4, p.pos[2] + 0.3);
+  g.add(eyeR);
+  return g;
+};
+
+PROP_BUILDERS.stone_bench = (p) => {
+  const g = new THREE.Group();
+  const seat = makeBox(4, 0.6, 1.4, 0xc8b496, { roughness: 0.8 });
+  seat.position.set(p.pos[0], 1.5, p.pos[2]);
+  g.add(seat);
+  const lL = makeBox(0.6, 1.5, 1.4, 0xb4a082); lL.position.set(p.pos[0] - 1.7, 0.75, p.pos[2]); g.add(lL);
+  const lR = makeBox(0.6, 1.5, 1.4, 0xb4a082); lR.position.set(p.pos[0] + 1.7, 0.75, p.pos[2]); g.add(lR);
+  return g;
+};
+
+PROP_BUILDERS.mandala = (p) => {
+  const g = new THREE.Group();
+  // Layered discs (golden)
+  for (let i = 0; i < 3; i++) {
+    const disc = makeCylinder(3 - i * 0.7, 3 - i * 0.7, 0.15, [0xb4895a, 0xc8a064, 0xdcb478][i], { segments: 24, metalness: 0.5 });
+    disc.position.set(p.pos[0], 0.05 + i * 0.05, p.pos[2]);
+    g.add(disc);
+  }
+  return g;
+};
+
+PROP_BUILDERS.lotus_flower = (p) => {
+  const g = new THREE.Group();
+  // Petals (cone shape)
+  for (let i = 0; i < 8; i++) {
+    const angle = (i * 45) * Math.PI / 180;
+    const petal = makeBox(0.4, 0.2, 1.2, 0xffb4dc, { emissive: 0xff96c8, emissiveIntensity: 0.4 });
+    petal.position.set(p.pos[0] + Math.cos(angle) * 0.5, 0.5, p.pos[2] + Math.sin(angle) * 0.5);
+    petal.rotation.y = angle;
+    petal.rotation.z = 0.4;
+    g.add(petal);
+  }
+  // Center
+  const center = makeSphere(0.4, 0xffe064, { emissive: 0xffe064, emissiveIntensity: 0.6 });
+  center.position.set(p.pos[0], 0.7, p.pos[2]);
+  g.add(center);
+  return g;
+};
+
 // ===== MAP BUILDER =====
 let currentGroup = null;
 let activeOrbs = []; // for animation
@@ -955,12 +1900,29 @@ function buildMap(name) {
   floor.receiveShadow = true;
   group.add(floor);
 
-  // GRID overlay
+  // FLOOR PATCHES (theme color variation — laid before grid so grid sits on top)
+  const theme = THEMES[name];
+  if (theme && theme.FloorPatches) {
+    theme.FloorPatches.forEach(fp => {
+      const patch = buildFloorPatch(fp);
+      group.add(patch);
+    });
+  }
+
+  // GRID overlay (very subtle now)
   const grid = new THREE.GridHelper(Math.max(map.Dimensions.X, map.Dimensions.Z), 30, 0x000000, 0x222222);
-  grid.material.opacity = 0.25;
+  grid.material.opacity = 0.12;
   grid.material.transparent = true;
-  grid.position.y = 0.05;
+  grid.position.y = 0.18;
   group.add(grid);
+
+  // BUILDINGS (perimeter structures)
+  if (theme && theme.Buildings) {
+    theme.Buildings.forEach(b => {
+      const bg = buildBuilding(b);
+      group.add(bg);
+    });
+  }
 
   // BOUNDARY WALLS (low, just visual)
   const wallHeight = 4;
@@ -1148,7 +2110,6 @@ function buildMap(name) {
   }
 
   // ===== THEME PROPS =====
-  const theme = THEMES[name];
   if (theme && theme.Props) {
     theme.Props.forEach(prop => {
       const builder = PROP_BUILDERS[prop.type];

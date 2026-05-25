@@ -1077,40 +1077,50 @@ const THEMES = {
 
 const rgbColor = (rgb) => new THREE.Color(rgb[0]/255, rgb[1]/255, rgb[2]/255);
 
-// ===== SCENE SETUP =====
+// ===== SCENE SETUP — CINEMATIC =====
 const container = document.getElementById('canvas-container');
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight - 110);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+// Tone mapping for cinematic look
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.15;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
 container.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(55, window.innerWidth / (window.innerHeight - 110), 1, 2000);
-camera.position.set(150, 200, 250);
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / (window.innerHeight - 110), 1, 3000);
+camera.position.set(150, 80, 250);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
-controls.maxPolarAngle = Math.PI / 2.05; // don't go below ground
-controls.minDistance = 50;
+controls.maxPolarAngle = Math.PI / 2.02; // tilt up almost to horizon
+controls.minDistance = 30;
 controls.maxDistance = 800;
 
-// Lights
-const ambient = new THREE.AmbientLight(0xffffff, 0.55);
+// Lights — hero shot setup
+const ambient = new THREE.HemisphereLight(0xffdcb4, 0x504030, 0.45);
 scene.add(ambient);
-const sun = new THREE.DirectionalLight(0xffffff, 1.1);
-sun.position.set(100, 250, 100);
+const sun = new THREE.DirectionalLight(0xfff0d0, 2.4);
+sun.position.set(180, 220, 80);
 sun.castShadow = true;
-sun.shadow.mapSize.set(2048, 2048);
-sun.shadow.camera.left = -250;
-sun.shadow.camera.right = 250;
-sun.shadow.camera.top = 250;
-sun.shadow.camera.bottom = -250;
+sun.shadow.mapSize.set(4096, 4096);
+sun.shadow.camera.left = -300;
+sun.shadow.camera.right = 300;
+sun.shadow.camera.top = 300;
+sun.shadow.camera.bottom = -300;
 sun.shadow.camera.near = 0.5;
-sun.shadow.camera.far = 600;
+sun.shadow.camera.far = 700;
+sun.shadow.bias = -0.0003;
+sun.shadow.radius = 4;
 scene.add(sun);
+// Rim/back light for separation
+const rim = new THREE.DirectionalLight(0xb4c8ff, 0.5);
+rim.position.set(-150, 100, -100);
+scene.add(rim);
 
 // ===== TEXT LABEL via CanvasTexture =====
 function makeLabel(text, color = '#ffffff', size = 40) {
@@ -1563,14 +1573,29 @@ function buildBuilding(b) {
   const body = makeBox(w, h, d, b.color, { roughness: 0.85 });
   body.position.set(b.pos[0], h / 2, b.pos[2]);
   g.add(body);
-  // Sloped roof (slightly larger flat block)
-  const roof = makeBox(w + 3, 2, d + 3, b.roofColor || 0x644632, { roughness: 0.9 });
-  roof.position.set(b.pos[0], h + 1, b.pos[2]);
+  // Sloped roof — pyramidal/hip roof (looks like real building, not LEGO)
+  // Flat lip at top of walls
+  const eave = makeBox(w + 2, 0.5, d + 2, (b.roofColor || 0x644632), { roughness: 0.9 });
+  eave.position.set(b.pos[0], h + 0.25, b.pos[2]);
+  g.add(eave);
+  // Pyramid roof using cone-like geometry (4-sided)
+  const roofHeight = Math.min(w, d) * 0.25;
+  const roofGeo = new THREE.CylinderGeometry(0.1, Math.max(w, d) * 0.72, roofHeight, 4, 1);
+  const roofMat = new THREE.MeshStandardMaterial({ color: b.roofColor || 0x644632, roughness: 0.85 });
+  const roof = new THREE.Mesh(roofGeo, roofMat);
+  roof.position.set(b.pos[0], h + roofHeight / 2, b.pos[2]);
+  roof.rotation.y = Math.PI / 4;
+  // Scale to match rectangular footprint
+  roof.scale.set((w + 2) / (Math.max(w, d) * 1.414), 1, (d + 2) / (Math.max(w, d) * 1.414));
+  roof.castShadow = true;
+  roof.receiveShadow = true;
   g.add(roof);
-  // Roof slope detail (pyramidal cap on top)
-  const cap = makeBox(w - 2, 2, d - 2, b.roofColor || 0x644632, { roughness: 0.9 });
-  cap.position.set(b.pos[0], h + 3, b.pos[2]);
-  g.add(cap);
+  // Chimney (random 30% chance)
+  if (Math.random() < 0.35) {
+    const chimney = makeBox(1.5, 4, 1.5, 0x404040, { roughness: 0.95 });
+    chimney.position.set(b.pos[0] + (Math.random() - 0.5) * w * 0.4, h + roofHeight - 1, b.pos[2] + (Math.random() - 0.5) * d * 0.4);
+    g.add(chimney);
+  }
   // Windows — grid pattern on front face
   const nWindows = Math.max(2, b.windows || 4);
   const winRows = Math.floor(h / 8);
@@ -2609,8 +2634,26 @@ function buildMap(name) {
 
   const map = MAPS[name];
   const group = new THREE.Group();
-  scene.background = rgbColor(map.SkyColor);
-  scene.fog = new THREE.Fog(scene.background, 400, 1200);
+  // Gradient skybox (large sphere with vertical color blend)
+  const skyTopColor = rgbColor(map.SkyColor);
+  const skyBotColor = new THREE.Color(skyTopColor.r * 0.5 + 0.5, skyTopColor.g * 0.5 + 0.45, skyTopColor.b * 0.5 + 0.4);
+  const skyCanvas = document.createElement('canvas');
+  skyCanvas.width = 2; skyCanvas.height = 256;
+  const skyCtx = skyCanvas.getContext('2d');
+  const skyGrad = skyCtx.createLinearGradient(0, 0, 0, 256);
+  skyGrad.addColorStop(0, '#' + skyTopColor.getHexString());
+  skyGrad.addColorStop(0.6, '#' + skyBotColor.getHexString());
+  skyGrad.addColorStop(1, '#' + skyBotColor.clone().multiplyScalar(1.2).getHexString());
+  skyCtx.fillStyle = skyGrad;
+  skyCtx.fillRect(0, 0, 2, 256);
+  const skyTex = new THREE.CanvasTexture(skyCanvas);
+  skyTex.colorSpace = THREE.SRGBColorSpace;
+  scene.background = skyTex;
+  scene.fog = new THREE.Fog(skyBotColor, 300, 1400);
+  // Update sun color tint based on map theme
+  sun.color.copy(skyTopColor).multiplyScalar(1.0).lerp(new THREE.Color(0xffeec8), 0.5);
+  ambient.color.copy(skyTopColor).multiplyScalar(0.6);
+  ambient.groundColor.set(0x504030);
 
   // FLOOR (slightly larger than dimensions)
   const floorGeo = new THREE.PlaneGeometry(map.Dimensions.X, map.Dimensions.Z);
@@ -2872,8 +2915,9 @@ function buildMap(name) {
 
   // Reset camera to view the map fully
   const maxDim = Math.max(map.Dimensions.X, map.Dimensions.Z);
-  camera.position.set(maxDim * 0.6, maxDim * 0.7, maxDim * 0.9);
-  controls.target.set(0, 0, 0);
+  // Cinematic hero-shot angle (lower + closer to see depth)
+  camera.position.set(maxDim * 0.55, maxDim * 0.35, maxDim * 0.7);
+  controls.target.set(0, 15, 0);
   controls.update();
 }
 

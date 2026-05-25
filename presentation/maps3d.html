@@ -1743,115 +1743,486 @@ function makeFloorTexture(mapName, baseColor) {
   return tex;
 }
 
-// ===== BUILDING BUILDER (perimeter structures with windows + roof) =====
+// ===== BUILDING BUILDER — dispatches per architectural style =====
+// Each style produces visually distinct silhouette + roof + details
 function buildBuilding(b) {
-  const g = new THREE.Group();
-  const [w, h, d] = b.size;
-  // Main body
-  const body = makeBox(w, h, d, b.color, { roughness: 0.85 });
-  body.position.set(b.pos[0], h / 2, b.pos[2]);
-  g.add(body);
-  // Sloped roof — pyramidal/hip roof (looks like real building, not LEGO)
-  // Flat lip at top of walls
-  const eave = makeBox(w + 2, 0.5, d + 2, (b.roofColor || 0x644632), { roughness: 0.9 });
-  eave.position.set(b.pos[0], h + 0.25, b.pos[2]);
-  g.add(eave);
-  // Pyramid roof using cone-like geometry (4-sided)
-  const roofHeight = Math.min(w, d) * 0.25;
-  const roofGeo = new THREE.CylinderGeometry(0.1, Math.max(w, d) * 0.72, roofHeight, 4, 1);
-  const roofMat = new THREE.MeshStandardMaterial({ color: b.roofColor || 0x644632, roughness: 0.85 });
-  const roof = new THREE.Mesh(roofGeo, roofMat);
-  roof.position.set(b.pos[0], h + roofHeight / 2, b.pos[2]);
-  roof.rotation.y = Math.PI / 4;
-  // Scale to match rectangular footprint
-  roof.scale.set((w + 2) / (Math.max(w, d) * 1.414), 1, (d + 2) / (Math.max(w, d) * 1.414));
-  roof.castShadow = true;
-  roof.receiveShadow = true;
-  g.add(roof);
-  // Chimney (random 30% chance)
-  if (Math.random() < 0.35) {
-    const chimney = makeBox(1.5, 4, 1.5, 0x404040, { roughness: 0.95 });
-    chimney.position.set(b.pos[0] + (Math.random() - 0.5) * w * 0.4, h + roofHeight - 1, b.pos[2] + (Math.random() - 0.5) * d * 0.4);
-    g.add(chimney);
+  const style = b.style || (b.isMonastery ? 'pagoda' : b.isTemple ? 'temple' : b.lit ? 'skyscraper' : b.isIndustrial ? 'bunker' : b.accentColor === 0x506ea0 ? 'kasbah' : 'villa');
+  switch (style) {
+    case 'skyscraper': return buildSkyscraper(b);
+    case 'pagoda': return buildPagoda(b);
+    case 'temple': return buildTempleStyle(b);
+    case 'bunker': return buildBunker(b);
+    case 'kasbah': return buildKasbah(b);
+    default: return buildVilla(b);
   }
-  // Windows — grid pattern on front face
-  const nWindows = Math.max(2, b.windows || 4);
-  const winRows = Math.floor(h / 8);
-  const winCols = Math.min(nWindows, Math.floor(w / 5));
-  const winColor = b.lit ? (b.neonColor || 0xffe064) : 0x282838;
-  const winEmissive = b.lit ? (b.neonColor || 0xffe064) : 0x141420;
+}
+
+// Common: add windows to a body face
+function addWindowsToBody(g, b, w, h, d, winColor, winEmissive, lit) {
+  const winRows = Math.max(2, Math.floor(h / 6));
+  const winCols = Math.max(2, Math.floor(w / 5));
   for (let r = 0; r < winRows; r++) {
     for (let c = 0; c < winCols; c++) {
       const sx = (c + 0.5) / winCols;
       const sy = (r + 0.5) / winRows;
-      // Skip random windows so it looks more realistic
-      if (b.lit && Math.random() < 0.25) continue;
-      const win = makeBox(2, 2, 0.3, winColor, { emissive: winEmissive, emissiveIntensity: b.lit ? 0.7 : 0 });
+      if (lit && Math.random() < 0.25) continue;
+      const win = makeBox(2, 2, 0.3, winColor, { emissive: winEmissive, emissiveIntensity: lit ? 0.7 : 0 });
       win.position.set(b.pos[0] - w/2 + sx * w, sy * h, b.pos[2] + d/2 + 0.1);
       g.add(win);
-      // Back face windows too
-      const winBack = makeBox(2, 2, 0.3, winColor, { emissive: winEmissive, emissiveIntensity: b.lit ? 0.7 : 0 });
+      const winBack = makeBox(2, 2, 0.3, winColor, { emissive: winEmissive, emissiveIntensity: lit ? 0.7 : 0 });
       winBack.position.set(b.pos[0] - w/2 + sx * w, sy * h, b.pos[2] - d/2 - 0.1);
       g.add(winBack);
     }
   }
-  // Side windows
-  const sideWinCols = Math.floor(d / 6);
+  const sideCols = Math.max(1, Math.floor(d / 5));
   for (let r = 0; r < winRows; r++) {
-    for (let c = 0; c < sideWinCols; c++) {
-      const sx = (c + 0.5) / sideWinCols;
+    for (let c = 0; c < sideCols; c++) {
+      const sx = (c + 0.5) / sideCols;
       const sy = (r + 0.5) / winRows;
-      if (b.lit && Math.random() < 0.3) continue;
-      const winL = makeBox(0.3, 2, 2, winColor, { emissive: winEmissive, emissiveIntensity: b.lit ? 0.7 : 0 });
+      if (lit && Math.random() < 0.3) continue;
+      const winL = makeBox(0.3, 2, 2, winColor, { emissive: winEmissive, emissiveIntensity: lit ? 0.7 : 0 });
       winL.position.set(b.pos[0] - w/2 - 0.1, sy * h, b.pos[2] - d/2 + sx * d);
       g.add(winL);
-      const winR = makeBox(0.3, 2, 2, winColor, { emissive: winEmissive, emissiveIntensity: b.lit ? 0.7 : 0 });
+      const winR = makeBox(0.3, 2, 2, winColor, { emissive: winEmissive, emissiveIntensity: lit ? 0.7 : 0 });
       winR.position.set(b.pos[0] + w/2 + 0.1, sy * h, b.pos[2] - d/2 + sx * d);
       g.add(winR);
     }
   }
-  // Door (front-facing center, bottom)
+}
+
+// VILLA — Italian Renaissance style, pyramid roof
+function buildVilla(b) {
+  const g = new THREE.Group();
+  const [w, h, d] = b.size;
+  // Optional L-shape: add wing 30% chance
+  const hasWing = Math.random() < 0.35;
+  // Main body
+  const body = makeBox(w, h, d, b.color, { roughness: 0.85 });
+  body.position.set(b.pos[0], h / 2, b.pos[2]);
+  g.add(body);
+  // Eave + pyramid roof
+  const eave = makeBox(w + 2, 0.5, d + 2, b.roofColor || 0x644632, { roughness: 0.9 });
+  eave.position.set(b.pos[0], h + 0.25, b.pos[2]);
+  g.add(eave);
+  const roofHeight = Math.min(w, d) * 0.28;
+  const roof = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.1, Math.max(w, d) * 0.72, roofHeight, 4, 1),
+    new THREE.MeshStandardMaterial({ color: b.roofColor || 0x644632, roughness: 0.85 })
+  );
+  roof.position.set(b.pos[0], h + roofHeight / 2 + 0.5, b.pos[2]);
+  roof.rotation.y = Math.PI / 4;
+  roof.scale.set((w + 2) / (Math.max(w, d) * 1.414), 1, (d + 2) / (Math.max(w, d) * 1.414));
+  roof.castShadow = true; roof.receiveShadow = true;
+  g.add(roof);
+  // Chimney
+  if (Math.random() < 0.5) {
+    const chimney = makeBox(1.5, 4, 1.5, 0x404040, { roughness: 0.95 });
+    chimney.position.set(b.pos[0] + (Math.random() - 0.5) * w * 0.4, h + roofHeight - 1, b.pos[2] + (Math.random() - 0.5) * d * 0.4);
+    g.add(chimney);
+  }
+  // Windows (arched look — use slightly taller frames around small windows)
+  addWindowsToBody(g, b, w, h, d, 0x282838, 0x141420, false);
+  // Door
   const door = makeBox(3, 5, 0.4, 0x3c2818, { roughness: 0.9 });
-  door.position.set(b.pos[0], 2.5, b.pos[2] + d/2 + 0.2);
-  g.add(door);
-  // Door frame
+  door.position.set(b.pos[0], 2.5, b.pos[2] + d/2 + 0.2); g.add(door);
   const frame = makeBox(4, 6, 0.6, b.accentColor || 0x886a32);
-  frame.position.set(b.pos[0], 3, b.pos[2] + d/2 + 0.05);
-  g.add(frame);
-  // Balcony (optional for villa-style)
+  frame.position.set(b.pos[0], 3, b.pos[2] + d/2 + 0.05); g.add(frame);
+  // Balcony
   if (b.hasBalcony) {
-    const balcony = makeBox(w + 4, 0.6, 4, 0x806a50, { roughness: 0.8 });
-    balcony.position.set(b.pos[0], h * 0.5, b.pos[2] + d/2 + 2);
-    g.add(balcony);
-    // Railing
-    for (let bx = 0; bx < 5; bx++) {
+    const balcony = makeBox(w * 0.6, 0.6, 3, 0x806a50, { roughness: 0.8 });
+    balcony.position.set(b.pos[0], h * 0.55, b.pos[2] + d/2 + 1.5); g.add(balcony);
+    for (let bx = 0; bx < 4; bx++) {
       const rail = makeBox(0.2, 2, 0.2, 0x504030);
-      rail.position.set(b.pos[0] - w/2 + (bx / 4) * w, h * 0.5 + 1, b.pos[2] + d/2 + 3.8);
+      rail.position.set(b.pos[0] - w * 0.3 + (bx / 3) * w * 0.6, h * 0.55 + 1, b.pos[2] + d/2 + 2.8);
       g.add(rail);
     }
-    const railTop = makeBox(w + 4, 0.2, 0.2, 0x504030);
-    railTop.position.set(b.pos[0], h * 0.5 + 2, b.pos[2] + d/2 + 3.8);
-    g.add(railTop);
   }
-  // Monastery-style: golden trim along roof
-  if (b.isMonastery || b.isTemple) {
-    const trim = makeBox(w + 4, 0.4, d + 4, b.accentColor || 0xffc850, { metalness: 0.6, emissive: b.accentColor || 0xffc850, emissiveIntensity: 0.2 });
-    trim.position.set(b.pos[0], h - 0.5, b.pos[2]);
-    g.add(trim);
+  // Optional L-wing
+  if (hasWing) {
+    const wingW = w * 0.5;
+    const wingD = d * 0.5;
+    const wingH = h * 0.7;
+    const wingSide = Math.random() < 0.5 ? -1 : 1;
+    const wingX = b.pos[0] + wingSide * (w / 2 + wingW / 2);
+    const wingZ = b.pos[2] - d / 4;
+    const wing = makeBox(wingW, wingH, wingD, b.color, { roughness: 0.85 });
+    wing.position.set(wingX, wingH / 2, wingZ); g.add(wing);
+    // Wing roof
+    const wingRoofH = Math.min(wingW, wingD) * 0.28;
+    const wingRoof = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.1, Math.max(wingW, wingD) * 0.72, wingRoofH, 4, 1),
+      new THREE.MeshStandardMaterial({ color: b.roofColor || 0x644632, roughness: 0.85 })
+    );
+    wingRoof.position.set(wingX, wingH + wingRoofH / 2, wingZ);
+    wingRoof.rotation.y = Math.PI / 4;
+    wingRoof.scale.set((wingW + 2) / (Math.max(wingW, wingD) * 1.414), 1, (wingD + 2) / (Math.max(wingW, wingD) * 1.414));
+    g.add(wingRoof);
   }
-  // Industrial: roof vents
-  if (b.isIndustrial) {
-    for (let v = 0; v < 3; v++) {
-      const vent = makeBox(2, 1.5, 2, 0x504640, { metalness: 0.4 });
-      vent.position.set(b.pos[0] - w/3 + v * (w/3), h + 2, b.pos[2]);
-      g.add(vent);
+  return g;
+}
+
+// KASBAH — Moroccan, FLAT roof with parapet, blue door, small recessed windows
+function buildKasbah(b) {
+  const g = new THREE.Group();
+  const [w, h, d] = b.size;
+  const body = makeBox(w, h, d, b.color, { roughness: 0.95 });
+  body.position.set(b.pos[0], h / 2, b.pos[2]);
+  g.add(body);
+  // Crenellated parapet (notched top)
+  const parapetH = 2;
+  const parapet = makeBox(w + 1.5, parapetH, d + 1.5, b.color, { roughness: 0.95 });
+  parapet.position.set(b.pos[0], h + parapetH / 2, b.pos[2]);
+  g.add(parapet);
+  // Crenellation merlons (notches on top)
+  const merCount = Math.floor(w / 3);
+  for (let i = 0; i < merCount; i++) {
+    if (i % 2 === 0) continue;
+    const merlon = makeBox(1.2, 1, 1.2, b.color, { roughness: 0.95 });
+    merlon.position.set(b.pos[0] - w/2 + (i + 0.5) * (w / merCount), h + parapetH + 0.5, b.pos[2] - d/2);
+    g.add(merlon);
+    const merlon2 = merlon.clone();
+    merlon2.position.set(b.pos[0] - w/2 + (i + 0.5) * (w / merCount), h + parapetH + 0.5, b.pos[2] + d/2);
+    g.add(merlon2);
+  }
+  // Small recessed windows (smaller than villa)
+  const winRows = Math.max(2, Math.floor(h / 7));
+  const winCols = Math.max(2, Math.floor(w / 6));
+  for (let r = 0; r < winRows; r++) {
+    for (let c = 0; c < winCols; c++) {
+      const sx = (c + 0.5) / winCols;
+      const sy = (r + 0.5) / winRows;
+      const win = makeBox(1.4, 1.8, 0.3, 0x1e1428, { emissive: 0x1e1428 });
+      win.position.set(b.pos[0] - w/2 + sx * w, sy * h, b.pos[2] + d/2 + 0.1);
+      g.add(win);
+      // Blue tile frame around windows (Moroccan accent)
+      const winFrame = makeBox(1.7, 0.2, 0.5, b.accentColor || 0x506ea0);
+      winFrame.position.set(b.pos[0] - w/2 + sx * w, sy * h + 1.0, b.pos[2] + d/2 + 0.05);
+      g.add(winFrame);
+      const winFrame2 = makeBox(1.7, 0.2, 0.5, b.accentColor || 0x506ea0);
+      winFrame2.position.set(b.pos[0] - w/2 + sx * w, sy * h - 1.0, b.pos[2] + d/2 + 0.05);
+      g.add(winFrame2);
     }
   }
-  // Building light glow (street side, only if lit)
-  if (b.lit) {
-    const lit = new THREE.PointLight(b.neonColor || 0xffe064, 0.6, 30);
-    lit.position.set(b.pos[0], h * 0.4, b.pos[2] + d/2 + 5);
-    g.add(lit);
+  // Side windows
+  const sideCols = Math.max(1, Math.floor(d / 6));
+  for (let r = 0; r < winRows; r++) {
+    for (let c = 0; c < sideCols; c++) {
+      const sx = (c + 0.5) / sideCols;
+      const sy = (r + 0.5) / winRows;
+      const winL = makeBox(0.3, 1.8, 1.4, 0x1e1428, { emissive: 0x1e1428 });
+      winL.position.set(b.pos[0] - w/2 - 0.1, sy * h, b.pos[2] - d/2 + sx * d);
+      g.add(winL);
+      const winR = makeBox(0.3, 1.8, 1.4, 0x1e1428, { emissive: 0x1e1428 });
+      winR.position.set(b.pos[0] + w/2 + 0.1, sy * h, b.pos[2] - d/2 + sx * d);
+      g.add(winR);
+    }
+  }
+  // Blue arched door (horseshoe)
+  const door = makeBox(3, 5, 0.4, 0x14283c, { roughness: 0.9 });
+  door.position.set(b.pos[0], 2.5, b.pos[2] + d/2 + 0.2); g.add(door);
+  const archFrame = makeBox(4, 0.5, 0.6, b.accentColor || 0x506ea0);
+  archFrame.position.set(b.pos[0], 5.2, b.pos[2] + d/2 + 0.1); g.add(archFrame);
+  // Optional tower (kasbah corner tower)
+  if (Math.random() < 0.4) {
+    const towerSide = Math.random() < 0.5 ? -1 : 1;
+    const towerEnd = Math.random() < 0.5 ? -1 : 1;
+    const towerW = 8;
+    const tower = makeBox(towerW, h + 8, towerW, b.color, { roughness: 0.95 });
+    tower.position.set(b.pos[0] + towerSide * (w/2 - towerW/2), (h + 8)/2, b.pos[2] + towerEnd * (d/2 - towerW/2));
+    g.add(tower);
+    const towerCap = makeBox(towerW + 1, parapetH, towerW + 1, b.color);
+    towerCap.position.set(b.pos[0] + towerSide * (w/2 - towerW/2), h + 8 + parapetH/2, b.pos[2] + towerEnd * (d/2 - towerW/2));
+    g.add(towerCap);
+  }
+  return g;
+}
+
+// SKYSCRAPER — Tokyo cyberpunk, FLAT roof with rooftop equipment
+function buildSkyscraper(b) {
+  const g = new THREE.Group();
+  const [w, h, d] = b.size;
+  const body = makeBox(w, h, d, b.color, { roughness: 0.5, metalness: 0.3 });
+  body.position.set(b.pos[0], h / 2, b.pos[2]);
+  g.add(body);
+  // Flat slab roof (slightly larger lip)
+  const roofSlab = makeBox(w + 1, 0.6, d + 1, b.roofColor || 0x1e1e28, { roughness: 0.7 });
+  roofSlab.position.set(b.pos[0], h + 0.3, b.pos[2]);
+  g.add(roofSlab);
+  // Rooftop equipment cluster
+  const eqCount = 2 + Math.floor(Math.random() * 3);
+  for (let i = 0; i < eqCount; i++) {
+    const eqW = 2 + Math.random() * 3;
+    const eqH = 1.5 + Math.random() * 2;
+    const eq = makeBox(eqW, eqH, eqW, 0x282832, { metalness: 0.4 });
+    eq.position.set(b.pos[0] + (Math.random() - 0.5) * (w - eqW), h + 0.6 + eqH/2, b.pos[2] + (Math.random() - 0.5) * (d - eqW));
+    g.add(eq);
+  }
+  // Water tank (cylinder) on some buildings
+  if (Math.random() < 0.5) {
+    const tank = makeCylinder(2, 2, 4, 0x504640, { segments: 14 });
+    tank.position.set(b.pos[0] + (Math.random() - 0.5) * w * 0.3, h + 2.6, b.pos[2] + (Math.random() - 0.5) * d * 0.3);
+    g.add(tank);
+  }
+  // Tall antenna mast
+  if (Math.random() < 0.6) {
+    const mast = makeBox(0.3, 8 + Math.random() * 12, 0.3, 0x141420);
+    mast.position.set(b.pos[0] + (Math.random() - 0.5) * w * 0.4, h + 5, b.pos[2] + (Math.random() - 0.5) * d * 0.4);
+    g.add(mast);
+    // Red blinking light at top
+    const tip = makeSphere(0.4, 0xff3232, { emissive: 0xff3232, emissiveIntensity: 1 });
+    tip.position.set(mast.position.x, mast.position.y + (mast.geometry.parameters.height || 10) / 2 + 0.3, mast.position.z);
+    g.add(tip);
+  }
+  // Setback at top floor — stepped silhouette on 40%
+  if (Math.random() < 0.4) {
+    const setbackH = 6;
+    const setbackW = w * 0.65;
+    const setbackD = d * 0.65;
+    const setback = makeBox(setbackW, setbackH, setbackD, b.color, { roughness: 0.5, metalness: 0.3 });
+    setback.position.set(b.pos[0], h + 0.6 + setbackH / 2, b.pos[2]);
+    g.add(setback);
+    // Lit windows on setback
+    const sbWinRows = Math.floor(setbackH / 4);
+    const sbWinCols = Math.floor(setbackW / 4);
+    for (let r = 0; r < sbWinRows; r++) {
+      for (let c = 0; c < sbWinCols; c++) {
+        if (Math.random() < 0.4) continue;
+        const w2 = makeBox(2, 1.5, 0.3, b.neonColor || 0xffe064, { emissive: b.neonColor || 0xffe064, emissiveIntensity: 0.8 });
+        w2.position.set(b.pos[0] - setbackW/2 + (c + 0.5) * setbackW / sbWinCols, h + 0.6 + (r + 0.5) * setbackH / sbWinRows, b.pos[2] + setbackD/2 + 0.1);
+        g.add(w2);
+      }
+    }
+  }
+  // Many lit windows on body (dense, in vertical strips)
+  const stripCols = Math.max(3, Math.floor(w / 3));
+  const winRows = Math.floor(h / 3);
+  for (let c = 0; c < stripCols; c++) {
+    // Maybe whole strip dark
+    const stripDark = Math.random() < 0.15;
+    if (stripDark) continue;
+    for (let r = 0; r < winRows; r++) {
+      const sx = (c + 0.5) / stripCols;
+      const sy = (r + 0.5) / winRows;
+      if (Math.random() < 0.3) continue;
+      const winColor = Math.random() < 0.15 ? 0x141420 : (b.neonColor || 0xffe064);
+      const intensity = winColor === 0x141420 ? 0 : 0.8;
+      const win = makeBox(1.6, 1.5, 0.3, winColor, { emissive: winColor, emissiveIntensity: intensity });
+      win.position.set(b.pos[0] - w/2 + sx * w, sy * h, b.pos[2] + d/2 + 0.1);
+      g.add(win);
+      const winB = win.clone();
+      winB.position.set(b.pos[0] - w/2 + sx * w, sy * h, b.pos[2] - d/2 - 0.1);
+      g.add(winB);
+    }
+  }
+  // Side strip windows
+  const sideCols = Math.max(2, Math.floor(d / 3));
+  for (let c = 0; c < sideCols; c++) {
+    const stripDark = Math.random() < 0.2;
+    if (stripDark) continue;
+    for (let r = 0; r < winRows; r++) {
+      const sx = (c + 0.5) / sideCols;
+      const sy = (r + 0.5) / winRows;
+      if (Math.random() < 0.35) continue;
+      const winColor = b.neonColor || 0xffe064;
+      const winL = makeBox(0.3, 1.5, 1.6, winColor, { emissive: winColor, emissiveIntensity: 0.8 });
+      winL.position.set(b.pos[0] - w/2 - 0.1, sy * h, b.pos[2] - d/2 + sx * d);
+      g.add(winL);
+      const winR = winL.clone();
+      winR.position.set(b.pos[0] + w/2 + 0.1, sy * h, b.pos[2] - d/2 + sx * d);
+      g.add(winR);
+    }
+  }
+  // Ground-floor neon entrance sign
+  const sign = makeBox(w * 0.5, 1.2, 0.3, b.neonColor || 0xff64c8, { emissive: b.neonColor || 0xff64c8, emissiveIntensity: 1.5 });
+  sign.position.set(b.pos[0], 4, b.pos[2] + d/2 + 0.2);
+  g.add(sign);
+  // Glow
+  const lit = new THREE.PointLight(b.neonColor || 0xffe064, 0.8, 40);
+  lit.position.set(b.pos[0], h * 0.5, b.pos[2] + d/2 + 5);
+  g.add(lit);
+  return g;
+}
+
+// PAGODA — Haven monastery, stepped tiered roof
+function buildPagoda(b) {
+  const g = new THREE.Group();
+  const [w, h, d] = b.size;
+  const body = makeBox(w, h, d, b.color, { roughness: 0.85 });
+  body.position.set(b.pos[0], h / 2, b.pos[2]);
+  g.add(body);
+  // Tier 1 roof — wide overhanging eave
+  const tier1 = makeBox(w + 6, 1, d + 6, b.roofColor || 0xdcb43c, { roughness: 0.8 });
+  tier1.position.set(b.pos[0], h + 0.5, b.pos[2]);
+  g.add(tier1);
+  // Sloped detail on tier1 (downward angle on edges via skewed plane)
+  const tier1Sides = [
+    { x: 0, z: (d + 6) / 2, rot: [Math.PI/6, 0, 0], w: w + 6, d: 4 },
+    { x: 0, z: -(d + 6) / 2, rot: [-Math.PI/6, 0, 0], w: w + 6, d: 4 },
+    { x: (w + 6) / 2, z: 0, rot: [0, 0, -Math.PI/6], w: 4, d: d + 6 },
+    { x: -(w + 6) / 2, z: 0, rot: [0, 0, Math.PI/6], w: 4, d: d + 6 },
+  ];
+  for (const s of tier1Sides) {
+    const slope = makeBox(s.w, 0.3, s.d, b.roofColor || 0xdcb43c, { roughness: 0.8 });
+    slope.position.set(b.pos[0] + s.x, h + 0.5 + 1.5, b.pos[2] + s.z);
+    slope.rotation.set(...s.rot);
+    g.add(slope);
+  }
+  // Tier 2 — smaller roof on top
+  const t2H = h * 0.4;
+  const t2W = w * 0.6;
+  const t2D = d * 0.6;
+  const tier2body = makeBox(t2W, t2H, t2D, b.color, { roughness: 0.85 });
+  tier2body.position.set(b.pos[0], h + 1 + t2H / 2, b.pos[2]);
+  g.add(tier2body);
+  const tier2eave = makeBox(t2W + 4, 0.8, t2D + 4, b.roofColor || 0xdcb43c, { roughness: 0.8 });
+  tier2eave.position.set(b.pos[0], h + 1 + t2H + 0.4, b.pos[2]);
+  g.add(tier2eave);
+  // Golden trim along main roof
+  const trim = makeBox(w + 4, 0.3, d + 4, b.accentColor || 0xffc850, { metalness: 0.6, emissive: b.accentColor || 0xffc850, emissiveIntensity: 0.25 });
+  trim.position.set(b.pos[0], h - 0.5, b.pos[2]);
+  g.add(trim);
+  // Spire/finial on top
+  const finialBase = makeBox(0.8, 1, 0.8, b.accentColor || 0xffc850);
+  finialBase.position.set(b.pos[0], h + 1 + t2H + 1.3, b.pos[2]);
+  g.add(finialBase);
+  const finial = makeCylinder(0.1, 0.4, 3, b.accentColor || 0xffc850, { segments: 8, metalness: 0.7 });
+  finial.position.set(b.pos[0], h + 1 + t2H + 2.5 + 1.5, b.pos[2]);
+  g.add(finial);
+  // Windows
+  addWindowsToBody(g, b, w, h, d, 0x281414, 0x141420, false);
+  // Red door with golden frame
+  const door = makeBox(3, 5, 0.4, 0x6e1414, { roughness: 0.85 });
+  door.position.set(b.pos[0], 2.5, b.pos[2] + d/2 + 0.2);
+  g.add(door);
+  const frame = makeBox(4, 6, 0.6, b.accentColor || 0xffc850, { metalness: 0.4 });
+  frame.position.set(b.pos[0], 3, b.pos[2] + d/2 + 0.05);
+  g.add(frame);
+  return g;
+}
+
+// TEMPLE — Lotus Indian-style, multi-tiered with deep overhangs
+function buildTempleStyle(b) {
+  const g = new THREE.Group();
+  const [w, h, d] = b.size;
+  // Stepped pyramid silhouette (3 tiers shrinking up)
+  const tiers = [
+    { w: w, h: h * 0.5, d: d, y: h * 0.25 },
+    { w: w * 0.8, h: h * 0.3, d: d * 0.8, y: h * 0.5 + h * 0.15 },
+    { w: w * 0.55, h: h * 0.2, d: d * 0.55, y: h * 0.8 + h * 0.1 },
+  ];
+  for (const t of tiers) {
+    const tBody = makeBox(t.w, t.h, t.d, b.color, { roughness: 0.7 });
+    tBody.position.set(b.pos[0], t.y, b.pos[2]);
+    g.add(tBody);
+    // Golden trim at each tier edge
+    const tTrim = makeBox(t.w + 1, 0.4, t.d + 1, b.accentColor || 0xffc850, { metalness: 0.6, emissive: b.accentColor || 0xffc850, emissiveIntensity: 0.2 });
+    tTrim.position.set(b.pos[0], t.y + t.h / 2 + 0.2, b.pos[2]);
+    g.add(tTrim);
+  }
+  // Curved dome cap on top
+  const dome = makeSphere(w * 0.2, b.color, { segments: 14, roughness: 0.5 });
+  dome.position.set(b.pos[0], h + 1, b.pos[2]);
+  g.add(dome);
+  // Golden spire
+  const spire = makeCylinder(0.1, 0.3, 4, 0xffc850, { segments: 8, metalness: 0.7, emissive: 0xffc850, emissiveIntensity: 0.3 });
+  spire.position.set(b.pos[0], h + w * 0.2 + 2.5, b.pos[2]);
+  g.add(spire);
+  // Decorative columns at front
+  const colCount = Math.max(3, Math.floor(w / 8));
+  for (let i = 0; i < colCount; i++) {
+    const col = makeCylinder(0.7, 0.7, h * 0.55, 0xdcd2be, { segments: 10, roughness: 0.4 });
+    col.position.set(b.pos[0] - w/2 + 2 + (i / (colCount - 1)) * (w - 4), h * 0.275, b.pos[2] + d/2 + 0.5);
+    g.add(col);
+  }
+  // Windows (small high)
+  const winRows = 2;
+  const winCols = Math.max(3, Math.floor(w / 5));
+  for (let r = 0; r < winRows; r++) {
+    for (let c = 0; c < winCols; c++) {
+      const sx = (c + 0.5) / winCols;
+      const sy = (r + 0.5) / winRows * 0.4 + 0.5;  // upper half
+      const win = makeBox(1.2, 1.8, 0.3, 0x281428);
+      win.position.set(b.pos[0] - w/2 + sx * w, sy * h, b.pos[2] + d/2 + 0.1);
+      g.add(win);
+    }
+  }
+  // Arched entrance
+  const door = makeBox(4, 6, 0.4, 0x281408, { roughness: 0.9 });
+  door.position.set(b.pos[0], 3, b.pos[2] + d/2 + 0.2);
+  g.add(door);
+  const archCap = new THREE.Mesh(
+    new THREE.CylinderGeometry(2, 2, 0.4, 16, 1, false, 0, Math.PI),
+    new THREE.MeshStandardMaterial({ color: b.accentColor || 0xffc850, metalness: 0.5, roughness: 0.4 })
+  );
+  archCap.rotation.set(Math.PI / 2, 0, Math.PI / 2);
+  archCap.position.set(b.pos[0], 6.2, b.pos[2] + d/2 + 0.2);
+  g.add(archCap);
+  return g;
+}
+
+// BUNKER — Fracture industrial, FLAT corrugated roof + sandbags + railings
+function buildBunker(b) {
+  const g = new THREE.Group();
+  const [w, h, d] = b.size;
+  const body = makeBox(w, h, d, b.color, { roughness: 1.0 });
+  body.position.set(b.pos[0], h / 2, b.pos[2]);
+  g.add(body);
+  // Corrugated flat roof
+  const roofSlab = makeBox(w + 1.5, 0.4, d + 1.5, b.roofColor || 0x645a46, { roughness: 0.95 });
+  roofSlab.position.set(b.pos[0], h + 0.2, b.pos[2]);
+  g.add(roofSlab);
+  // Corrugated ridges (visible from afar)
+  const ridges = Math.floor(w / 2);
+  for (let i = 0; i < ridges; i++) {
+    const ridge = makeBox(0.3, 0.3, d + 1, (b.roofColor || 0x645a46) * 1.1, { roughness: 0.95 });
+    ridge.position.set(b.pos[0] - w/2 + (i + 0.5) * (w / ridges), h + 0.5, b.pos[2]);
+    g.add(ridge);
+  }
+  // Rooftop vents (3-4)
+  for (let v = 0; v < 3; v++) {
+    const vent = makeBox(2.5, 2, 2.5, 0x282828, { metalness: 0.4 });
+    vent.position.set(b.pos[0] - w/3 + v * (w/3), h + 1.4, b.pos[2] + (Math.random() - 0.5) * d * 0.5);
+    g.add(vent);
+  }
+  // Rooftop pipes
+  for (let p = 0; p < 2; p++) {
+    const pipe = makeCylinder(0.4, 0.4, 3, 0x504640, { segments: 8 });
+    pipe.position.set(b.pos[0] + (Math.random() - 0.5) * w * 0.5, h + 2, b.pos[2] + (Math.random() - 0.5) * d * 0.5);
+    g.add(pipe);
+  }
+  // Industrial side ladder (vertical)
+  const ladder = makeBox(0.3, h - 2, 1.2, 0x282828);
+  ladder.position.set(b.pos[0] + w/2 + 0.2, h/2, b.pos[2] + d/4);
+  g.add(ladder);
+  // Small slit-style windows (military)
+  const winRows = Math.max(1, Math.floor(h / 8));
+  const winCols = Math.max(2, Math.floor(w / 6));
+  for (let r = 0; r < winRows; r++) {
+    for (let c = 0; c < winCols; c++) {
+      const sx = (c + 0.5) / winCols;
+      const sy = (r + 0.5) / winRows * 0.7 + 0.15;
+      const win = makeBox(2.5, 0.8, 0.3, 0x141420);
+      win.position.set(b.pos[0] - w/2 + sx * w, sy * h, b.pos[2] + d/2 + 0.1);
+      g.add(win);
+      const winB = win.clone();
+      winB.position.set(b.pos[0] - w/2 + sx * w, sy * h, b.pos[2] - d/2 - 0.1);
+      g.add(winB);
+    }
+  }
+  // Metal door
+  const door = makeBox(3, 5, 0.4, 0x3c3c46, { metalness: 0.5, roughness: 0.7 });
+  door.position.set(b.pos[0], 2.5, b.pos[2] + d/2 + 0.2);
+  g.add(door);
+  // Hazard stripe over door
+  const stripe = makeBox(4, 0.4, 0.5, 0xdcc832);
+  stripe.position.set(b.pos[0], 5.2, b.pos[2] + d/2 + 0.05);
+  g.add(stripe);
+  // Sandbags along front base
+  for (let i = 0; i < Math.floor(w / 1.5); i++) {
+    if (Math.abs(i - winCols / 2) < 2) continue;  // skip door area
+    const bag = makeBox(1.4, 0.7, 1.5, 0xa08c64, { roughness: 1.0 });
+    bag.position.set(b.pos[0] - w/2 + (i + 0.5) * 1.5, 0.35, b.pos[2] + d/2 + 1);
+    g.add(bag);
   }
   return g;
 }

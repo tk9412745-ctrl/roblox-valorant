@@ -336,6 +336,21 @@ const THEMES = {
       { pos: [140, 0, -30], size: [25, 30, 50], color: 0xe1b987, roofColor: 0xa54b32, windows: 5 },
       { pos: [-140, 0, 30], size: [25, 32, 50], color: 0xdcb482, roofColor: 0xaf5037, windows: 6 },
       { pos: [-140, 0, -30], size: [25, 30, 50], color: 0xe1b987, roofColor: 0xa54b32, windows: 5 },
+      // INTERIOR (shops, site buildings, mid pizza)
+      { pos: [-90, 0, 60], size: [30, 22, 25], color: 0xe1b987, roofColor: 0xaf4b32, windows: 4, hasBalcony: true },
+      { pos: [90, 0, 60], size: [30, 22, 25], color: 0xd7af7d, roofColor: 0xaf4b32, windows: 4 },
+      { pos: [0, 0, -55], size: [22, 16, 18], color: 0xe6be8c, roofColor: 0xaa4b37, windows: 3 },
+      { pos: [-50, 0, -55], size: [18, 14, 16], color: 0xdcb482, roofColor: 0xaf5037, windows: 3 },
+      { pos: [50, 0, -55], size: [18, 14, 16], color: 0xe1b987, roofColor: 0xaa4b32, windows: 3 },
+      { pos: [-30, 0, 80], size: [15, 12, 14], color: 0xd7af7d, roofColor: 0xaf4b32, windows: 2 },
+      { pos: [30, 0, 80], size: [15, 12, 14], color: 0xd7af7d, roofColor: 0xaf4b32, windows: 2 },
+    ],
+    Awnings: [
+      { pos: [-90, 8, 47], size: [12, 0.5, 6], color: 0xdc3c3c },
+      { pos: [90, 8, 47], size: [12, 0.5, 6], color: 0x3c64b4 },
+      { pos: [0, 6, -45], size: [10, 0.5, 5], color: 0xdc3c3c },
+      { pos: [-50, 6, -45], size: [8, 0.5, 5], color: 0x78c8dc },
+      { pos: [50, 6, -45], size: [8, 0.5, 5], color: 0xffdc50 },
     ],
     FloorPatches: [
       { pos: [0, 0, 0], size: [60, 60], color: 0xc8aa82 },
@@ -390,6 +405,58 @@ const THEMES = {
       { type: "street_lamp", pos: [-30, 0, 50] }, { type: "street_lamp", pos: [30, 0, 50] },
       { type: "bench", pos: [-15, 0, -5] }, { type: "bench", pos: [15, 0, -5] },
       { type: "bench", pos: [-15, 0, 65] }, { type: "bench", pos: [15, 0, 65] },
+      // Interior walls forming corridors
+      { type: "interior_wall", pos: [-50, 0, 20], size: [0.5, 6, 20], color: 0xdcb482 },
+      { type: "interior_wall", pos: [50, 0, 20], size: [0.5, 6, 20], color: 0xdcb482 },
+      { type: "interior_wall", pos: [-70, 0, -10], size: [20, 6, 0.5], color: 0xdcb482 },
+      { type: "interior_wall", pos: [70, 0, -10], size: [20, 6, 0.5], color: 0xdcb482 },
+      // Column rows
+      { type: "column_row", pos: [0, 0, 40], length: 60, count: 5, color: 0xdcc8aa },
+      { type: "column_row", pos: [0, 0, -40], length: 60, count: 5, color: 0xdcc8aa },
+      // Parked cars
+      { type: "parked_car", pos: [-60, 0, 30], color: 0xb4503c },
+      { type: "parked_car", pos: [60, 0, 30], color: 0x5064b4 },
+      { type: "parked_car", pos: [-60, 0, -30], color: 0xdcc832 },
+      { type: "parked_car", pos: [60, 0, -30], color: 0x3c8c50 },
+      { type: "parked_car", pos: [-100, 0, -55], color: 0xc8c8c8 },
+      { type: "parked_car", pos: [100, 0, -55], color: 0x3c3c46 },
+      // Storefront awnings
+      { type: "storefront_awning", pos: [0, 7, -45], color: 0xdc3c3c },
+      { type: "storefront_awning", pos: [-50, 7, -45], color: 0x78c8dc },
+      { type: "storefront_awning", pos: [50, 7, -45], color: 0xffdc50 },
+      // Mailboxes
+      { type: "mailbox", pos: [-20, 0, -70] }, { type: "mailbox", pos: [20, 0, -70] },
+      // Newsstand
+      { type: "newsstand", pos: [0, 0, 25] },
+      // Stairs
+      { type: "stairs_up", pos: [-90, 0, 65], facing: "Z" },
+      { type: "stairs_up", pos: [90, 0, 65], facing: "Z" },
+      // More cypress in mid
+      { type: "cypress", pos: [-15, 0, 80] }, { type: "cypress", pos: [15, 0, 80] },
+      { type: "cypress", pos: [-15, 0, -80] }, { type: "cypress", pos: [15, 0, -80] },
+      // Olive trees
+      { type: "olive_tree", pos: [-60, 0, 60] }, { type: "olive_tree", pos: [60, 0, 60] },
+      { type: "olive_tree", pos: [-60, 0, -60] }, { type: "olive_tree", pos: [60, 0, -60] },
+      { type: "olive_tree", pos: [0, 0, 90] }, { type: "olive_tree", pos: [0, 0, -90] },
+      // Hanging baskets
+      { type: "hanging_basket", pos: [-100, 14, 130] },
+      { type: "hanging_basket", pos: [100, 14, 130] },
+      { type: "hanging_basket", pos: [-100, 14, -130] },
+      { type: "hanging_basket", pos: [100, 14, -130] },
+      // Outdoor tables
+      { type: "outdoor_table", pos: [-25, 0, -65] },
+      { type: "outdoor_table", pos: [25, 0, -65] },
+      { type: "outdoor_table", pos: [0, 0, -75] },
+      // Low walls
+      { type: "low_wall", pos: [-40, 0, 0], size: [15, 2.5, 0.6] },
+      { type: "low_wall", pos: [40, 0, 0], size: [15, 2.5, 0.6] },
+      // Street banners
+      { type: "street_banner", from: [-120, 25, 0], to: [-60, 25, 0], text: "FESTA" },
+      { type: "street_banner", from: [60, 25, 0], to: [120, 25, 0], text: "MERCATO" },
+      // Wooden carts
+      { type: "wooden_cart", pos: [-75, 0, -75] },
+      { type: "wooden_cart", pos: [75, 0, -75] },
+      { type: "wooden_cart", pos: [0, 0, 15] },
     ],
   },
   Bind: {
@@ -405,6 +472,21 @@ const THEMES = {
       { pos: [95, 0, -110], size: [40, 38, 30], color: 0xebc391, roofColor: 0x965f3c, windows: 6, accentColor: 0x506ea0 },
       { pos: [120, 0, 0], size: [20, 30, 60], color: 0xe6b987, roofColor: 0x9b5f3c, windows: 5, accentColor: 0x506ea0 },
       { pos: [-120, 0, 0], size: [20, 30, 60], color: 0xe6b987, roofColor: 0x9b5f3c, windows: 5, accentColor: 0x506ea0 },
+      // INTERIOR
+      { pos: [-80, 0, 50], size: [25, 18, 22], color: 0xebc391, roofColor: 0x9b5f3c, windows: 4, accentColor: 0x506ea0 },
+      { pos: [80, 0, 50], size: [25, 18, 22], color: 0xe1b482, roofColor: 0x9b5f3c, windows: 4, accentColor: 0x506ea0 },
+      { pos: [-80, 0, -50], size: [22, 15, 20], color: 0xebc391, roofColor: 0x9b5f3c, windows: 3, accentColor: 0x506ea0 },
+      { pos: [80, 0, -50], size: [22, 15, 20], color: 0xe1b482, roofColor: 0x9b5f3c, windows: 3, accentColor: 0x506ea0 },
+      { pos: [-50, 0, 0], size: [15, 10, 20], color: 0xe6b987, roofColor: 0x9b5f3c, windows: 2, accentColor: 0x506ea0 },
+      { pos: [50, 0, 0], size: [15, 10, 20], color: 0xe6b987, roofColor: 0x9b5f3c, windows: 2, accentColor: 0x506ea0 },
+    ],
+    Awnings: [
+      { pos: [-80, 8, 38], size: [15, 0.5, 7], color: 0xc83232 },
+      { pos: [80, 8, 38], size: [15, 0.5, 7], color: 0x506ea0 },
+      { pos: [-50, 8, 10], size: [10, 0.5, 6], color: 0xb45028 },
+      { pos: [50, 8, 10], size: [10, 0.5, 6], color: 0x506ea0 },
+      { pos: [-50, 8, -10], size: [10, 0.5, 6], color: 0xdcb432 },
+      { pos: [50, 8, -10], size: [10, 0.5, 6], color: 0xb43232 },
     ],
     FloorPatches: [
       { pos: [-60, 0, 0], size: [40, 40], color: 0xd2a573 },
@@ -452,6 +534,54 @@ const THEMES = {
       { type: "spice_basket", pos: [55, 0, 75], color: 0xdcb432 },
       { type: "spice_basket", pos: [-55, 0, -65], color: 0xc83232 },
       { type: "spice_basket", pos: [55, 0, -65], color: 0x96c832 },
+      // Dense market stalls
+      { type: "market_stall", pos: [-90, 0, 30], color: 0xdc64c8 },
+      { type: "market_stall", pos: [90, 0, 30], color: 0x32b478 },
+      { type: "market_stall", pos: [-90, 0, -30], color: 0xb4643c },
+      { type: "market_stall", pos: [90, 0, -30], color: 0x3c50b4 },
+      // Spice baskets clustered
+      { type: "spice_basket", pos: [-30, 0, 0], color: 0xdc6432 },
+      { type: "spice_basket", pos: [-30, 0, 5], color: 0xffdc32 },
+      { type: "spice_basket", pos: [-30, 0, -5], color: 0xb43232 },
+      { type: "spice_basket", pos: [30, 0, 0], color: 0x96dc32 },
+      { type: "spice_basket", pos: [30, 0, 5], color: 0xdc8232 },
+      { type: "spice_basket", pos: [30, 0, -5], color: 0x963c32 },
+      // Pottery clusters
+      { type: "pottery_jar", pos: [-25, 0, 30] }, { type: "pottery_jar", pos: [-20, 0, 35] },
+      { type: "pottery_jar", pos: [25, 0, 30] }, { type: "pottery_jar", pos: [20, 0, 35] },
+      // Interior walls
+      { type: "interior_wall", pos: [-40, 0, 0], size: [0.5, 8, 30], color: 0xe1b482 },
+      { type: "interior_wall", pos: [40, 0, 0], size: [0.5, 8, 30], color: 0xe1b482 },
+      // Column rows
+      { type: "column_row", pos: [0, 0, 50], length: 70, count: 6, color: 0xdcb482 },
+      { type: "column_row", pos: [0, 0, -50], length: 70, count: 6, color: 0xdcb482 },
+      // Many hanging lanterns over walkways
+      { type: "lantern_hanging", pos: [0, 14, 40] },
+      { type: "lantern_hanging", pos: [0, 14, -40] },
+      { type: "lantern_hanging", pos: [-20, 14, 0] },
+      { type: "lantern_hanging", pos: [20, 14, 0] },
+      { type: "lantern_hanging", pos: [-40, 14, 50] },
+      { type: "lantern_hanging", pos: [40, 14, 50] },
+      // Outdoor tables
+      { type: "outdoor_table", pos: [-40, 0, 30] }, { type: "outdoor_table", pos: [40, 0, 30] },
+      { type: "outdoor_table", pos: [-40, 0, -30] }, { type: "outdoor_table", pos: [40, 0, -30] },
+      // More hanging carpets
+      { type: "hanging_carpet", from: [-105, 22, 0], to: [-75, 22, 0], color: 0xb45028 },
+      { type: "hanging_carpet", from: [75, 22, 0], to: [105, 22, 0], color: 0x3c64b4 },
+      // Olive jars
+      { type: "pottery_jar", pos: [-100, 0, 0] }, { type: "pottery_jar", pos: [100, 0, 0] },
+      { type: "pottery_jar", pos: [-100, 0, 30] }, { type: "pottery_jar", pos: [100, 0, 30] },
+      // Sand piles
+      { type: "sand_pile", pos: [-60, 0, 0] }, { type: "sand_pile", pos: [60, 0, 0] },
+      // Low walls
+      { type: "low_wall", pos: [0, 0, 30], size: [12, 2.5, 0.6] },
+      { type: "low_wall", pos: [0, 0, -30], size: [12, 2.5, 0.6] },
+      // More camels
+      { type: "camel_statue", pos: [-50, 0, -40] },
+      { type: "camel_statue", pos: [50, 0, -40] },
+      // Stairs
+      { type: "stairs_up", pos: [80, 0, 40], facing: "Z" },
+      { type: "stairs_up", pos: [-80, 0, 65], facing: "Z" },
     ],
   },
   Split: {
@@ -469,6 +599,21 @@ const THEMES = {
       { pos: [120, 0, -30], size: [20, 45, 50], color: 0x373746, roofColor: 0x1e1e28, windows: 14, lit: true, neonColor: 0xff64c8 },
       { pos: [-120, 0, 30], size: [20, 45, 50], color: 0x323241, roofColor: 0x1e1e28, windows: 14, lit: true, neonColor: 0xffc850 },
       { pos: [-120, 0, -30], size: [20, 45, 50], color: 0x373746, roofColor: 0x1e1e28, windows: 14, lit: true, neonColor: 0xff64c8 },
+      // INTERIOR (Tokyo storefronts)
+      { pos: [-80, 0, 70], size: [25, 20, 22], color: 0x28283c, roofColor: 0x1e1e28, windows: 6, lit: true, neonColor: 0xff64c8 },
+      { pos: [80, 0, 70], size: [25, 20, 22], color: 0x2d2d3c, roofColor: 0x1e1e28, windows: 6, lit: true, neonColor: 0x50c8ff },
+      { pos: [0, 0, -60], size: [25, 18, 20], color: 0x232332, roofColor: 0x1e1e28, windows: 5, lit: true, neonColor: 0xffdc50 },
+      { pos: [-50, 0, -30], size: [20, 15, 18], color: 0x28283c, roofColor: 0x1e1e28, windows: 4, lit: true, neonColor: 0x32dc64 },
+      { pos: [50, 0, -30], size: [20, 15, 18], color: 0x28283c, roofColor: 0x1e1e28, windows: 4, lit: true, neonColor: 0xff6464 },
+      { pos: [-30, 0, 30], size: [15, 12, 14], color: 0x28283c, roofColor: 0x1e1e28, windows: 3, lit: true, neonColor: 0xff64c8 },
+      { pos: [30, 0, 30], size: [15, 12, 14], color: 0x28283c, roofColor: 0x1e1e28, windows: 3, lit: true, neonColor: 0x50c8ff },
+    ],
+    Awnings: [
+      { pos: [-80, 9, 56], size: [12, 0.5, 6], color: 0xff64c8 },
+      { pos: [80, 9, 56], size: [12, 0.5, 6], color: 0x50c8ff },
+      { pos: [0, 8, -48], size: [10, 0.5, 6], color: 0xffdc50 },
+      { pos: [-50, 6, -20], size: [10, 0.5, 5], color: 0x32dc64 },
+      { pos: [50, 6, -20], size: [10, 0.5, 5], color: 0xff6464 },
     ],
     FloorPatches: [
       { pos: [0, 0, -60], size: [20, 8], color: 0xdcdcdc },
@@ -512,6 +657,54 @@ const THEMES = {
       { type: "sake_barrel", pos: [-15, 0, 45] }, { type: "sake_barrel", pos: [15, 0, 45] },
       { type: "industrial_pipe", from: [-100, 1, 0], to: [-50, 1, 0] },
       { type: "industrial_pipe", from: [50, 1, 0], to: [100, 1, 0] },
+      // Parked cars
+      { type: "parked_car", pos: [-60, 0, 0], color: 0xdc323c },
+      { type: "parked_car", pos: [60, 0, 0], color: 0x3264dc },
+      { type: "parked_car", pos: [-60, 0, 30], color: 0x282832 },
+      { type: "parked_car", pos: [60, 0, 30], color: 0xc8c8c8 },
+      { type: "parked_car", pos: [0, 0, -90], color: 0xdcc83c },
+      // Traffic lights
+      { type: "traffic_light", pos: [-30, 0, -60] }, { type: "traffic_light", pos: [30, 0, 60] },
+      // Jersey barriers
+      { type: "jersey_barrier", pos: [-30, 0, 0], length: 14 },
+      { type: "jersey_barrier", pos: [30, 0, 0], length: 14 },
+      // Dumpsters
+      { type: "dumpster", pos: [-90, 0, 30], color: 0x326432 },
+      { type: "dumpster", pos: [90, 0, 30], color: 0x505064 },
+      // Transformer boxes
+      { type: "transformer_box", pos: [-100, 0, 60] },
+      { type: "transformer_box", pos: [100, 0, 60] },
+      // More vending clustered
+      { type: "vending", pos: [-90, 0, 0], color: 0xff64c8 },
+      { type: "vending", pos: [-94, 0, 0], color: 0x50c8ff },
+      { type: "vending", pos: [90, 0, 0], color: 0x32dc64 },
+      { type: "vending", pos: [94, 0, 0], color: 0xffc850 },
+      // Neon street lamps
+      { type: "neon_street_lamp", pos: [-30, 0, 0] }, { type: "neon_street_lamp", pos: [30, 0, 0] },
+      { type: "neon_street_lamp", pos: [-30, 0, -90] }, { type: "neon_street_lamp", pos: [30, 0, -90] },
+      { type: "neon_street_lamp", pos: [-90, 0, -60] }, { type: "neon_street_lamp", pos: [90, 0, -60] },
+      // Interior walls
+      { type: "interior_wall", pos: [0, 0, -40], size: [20, 8, 0.5], color: 0x3c3c50 },
+      { type: "interior_wall", pos: [0, 0, 40], size: [20, 8, 0.5], color: 0x3c3c50 },
+      // Manholes
+      { type: "manhole", pos: [-30, 0, 30] }, { type: "manhole", pos: [30, 0, 30] },
+      { type: "manhole", pos: [-30, 0, -30] }, { type: "manhole", pos: [30, 0, -30] },
+      // Stairs
+      { type: "stairs_up", pos: [-80, 0, 50], facing: "Z" },
+      { type: "stairs_up", pos: [80, 0, 50], facing: "Z" },
+      // Bicycle racks
+      { type: "bicycle", pos: [-25, 0, 60] }, { type: "bicycle", pos: [-20, 0, 60] },
+      { type: "bicycle", pos: [25, 0, 60] }, { type: "bicycle", pos: [20, 0, 60] },
+      // More trash bins
+      { type: "trash_bin", pos: [-90, 0, 60] }, { type: "trash_bin", pos: [90, 0, 60] },
+      { type: "trash_bin", pos: [0, 0, -90] }, { type: "trash_bin", pos: [0, 0, 90] },
+      // Vending stack at mid
+      { type: "vending", pos: [0, 0, 0], color: 0xff64c8 },
+      { type: "vending", pos: [4, 0, 0], color: 0x50c8ff },
+      // Newsstand
+      { type: "newsstand", pos: [-50, 0, 50] }, { type: "newsstand", pos: [50, 0, 50] },
+      // Mailboxes
+      { type: "mailbox", pos: [-70, 0, 20] }, { type: "mailbox", pos: [70, 0, 20] },
     ],
   },
   Haven: {
@@ -525,6 +718,18 @@ const THEMES = {
       { pos: [130, 0, -140], size: [45, 40, 35], color: 0xb45a3c, roofColor: 0xdcb43c, windows: 8, accentColor: 0xffdc64, isMonastery: true },
       { pos: [155, 0, 0], size: [30, 35, 70], color: 0xb45a3c, roofColor: 0xdcb43c, windows: 10, accentColor: 0xffdc64, isMonastery: true },
       { pos: [-155, 0, 0], size: [30, 35, 70], color: 0xb45a3c, roofColor: 0xdcb43c, windows: 10, accentColor: 0xffdc64, isMonastery: true },
+      // INTERIOR halls
+      { pos: [-100, 0, 70], size: [30, 22, 25], color: 0xb45a3c, roofColor: 0xdcb43c, windows: 5, accentColor: 0xffdc64, isMonastery: true },
+      { pos: [0, 0, 70], size: [28, 20, 22], color: 0xb45a3c, roofColor: 0xdcb43c, windows: 5, accentColor: 0xffdc64, isMonastery: true },
+      { pos: [100, 0, 70], size: [30, 22, 25], color: 0xb45a3c, roofColor: 0xdcb43c, windows: 5, accentColor: 0xffdc64, isMonastery: true },
+      { pos: [-50, 0, 0], size: [20, 14, 18], color: 0xb45a3c, roofColor: 0xdcb43c, windows: 3, accentColor: 0xffdc64, isMonastery: true },
+      { pos: [50, 0, 0], size: [20, 14, 18], color: 0xb45a3c, roofColor: 0xdcb43c, windows: 3, accentColor: 0xffdc64, isMonastery: true },
+      { pos: [0, 0, -70], size: [25, 18, 22], color: 0xb45a3c, roofColor: 0xdcb43c, windows: 5, accentColor: 0xffdc64, isMonastery: true },
+    ],
+    Awnings: [
+      { pos: [-100, 9, 56], size: [14, 0.5, 7], color: 0xb45a3c },
+      { pos: [0, 9, 56], size: [14, 0.5, 7], color: 0xdcb43c },
+      { pos: [100, 9, 56], size: [14, 0.5, 7], color: 0xb45a3c },
     ],
     FloorPatches: [
       { pos: [0, 0, 0], size: [20, 200], color: 0xb4aa96 },
@@ -564,6 +769,52 @@ const THEMES = {
       { type: "zen_rock", pos: [0, 0, 100] },
       { type: "incense_holder", pos: [-30, 0, -50] }, { type: "incense_holder", pos: [30, 0, -50] },
       { type: "incense_holder", pos: [0, 0, -80] },
+      // More prayer wheels lining walls
+      { type: "prayer_wheel", pos: [-50, 0, -10] }, { type: "prayer_wheel", pos: [-50, 0, 10] },
+      { type: "prayer_wheel", pos: [50, 0, -10] }, { type: "prayer_wheel", pos: [50, 0, 10] },
+      // More braziers
+      { type: "brazier", pos: [-50, 0, 50] }, { type: "brazier", pos: [50, 0, 50] },
+      { type: "brazier", pos: [-50, 0, -50] }, { type: "brazier", pos: [50, 0, -50] },
+      { type: "brazier", pos: [0, 0, 50] }, { type: "brazier", pos: [0, 0, -50] },
+      // More stupas
+      { type: "stupa", pos: [-50, 0, 100], scale: 0.6 },
+      { type: "stupa", pos: [50, 0, 100], scale: 0.6 },
+      { type: "stupa", pos: [-100, 0, -120], scale: 0.7 },
+      { type: "stupa", pos: [100, 0, -120], scale: 0.7 },
+      // Column rows
+      { type: "column_row", pos: [0, 0, 30], length: 80, count: 7, color: 0xc8b48c },
+      { type: "column_row", pos: [0, 0, -30], length: 80, count: 7, color: 0xc8b48c },
+      // Interior walls
+      { type: "interior_wall", pos: [-60, 0, 0], size: [0.5, 8, 30], color: 0xb45a3c },
+      { type: "interior_wall", pos: [60, 0, 0], size: [0.5, 8, 30], color: 0xb45a3c },
+      { type: "interior_wall", pos: [-50, 0, -90], size: [20, 6, 0.5], color: 0xb45a3c },
+      { type: "interior_wall", pos: [50, 0, -90], size: [20, 6, 0.5], color: 0xb45a3c },
+      // Zen rocks
+      { type: "zen_rock", pos: [-70, 0, 80] }, { type: "zen_rock", pos: [70, 0, 80] },
+      { type: "zen_rock", pos: [-70, 0, 40] }, { type: "zen_rock", pos: [70, 0, 40] },
+      { type: "zen_rock", pos: [0, 0, 0] }, { type: "zen_rock", pos: [-15, 0, 0] },
+      { type: "zen_rock", pos: [15, 0, 0] },
+      // Stone stairs
+      { type: "stone_steps", pos: [-50, 0, 70] }, { type: "stone_steps", pos: [50, 0, 70] },
+      // More bells
+      { type: "bell", pos: [-30, 0, 80] }, { type: "bell", pos: [30, 0, 80] },
+      { type: "bell", pos: [-30, 0, -80] }, { type: "bell", pos: [30, 0, -80] },
+      // Buddhas throughout
+      { type: "buddha", pos: [-100, 0, -70], small: true },
+      { type: "buddha", pos: [100, 0, -70], small: true },
+      { type: "buddha", pos: [0, 0, -90], small: true },
+      // More trees
+      { type: "tree", pos: [-70, 0, 60], color: 0xff78b4 }, { type: "tree", pos: [70, 0, 60], color: 0xff78b4 },
+      { type: "tree", pos: [-70, 0, -60], color: 0xff78b4 }, { type: "tree", pos: [70, 0, -60], color: 0xff78b4 },
+      // Banners
+      { type: "street_banner", from: [-120, 25, 0], to: [-60, 25, 0], text: "OM", color: 0xffdc64 },
+      { type: "street_banner", from: [60, 25, 0], to: [120, 25, 0], text: "OM", color: 0xffdc64 },
+      // Incense holders
+      { type: "incense_holder", pos: [-15, 0, 30] }, { type: "incense_holder", pos: [15, 0, 30] },
+      { type: "incense_holder", pos: [-15, 0, -30] }, { type: "incense_holder", pos: [15, 0, -30] },
+      // Low walls
+      { type: "low_wall", pos: [-40, 0, 60], size: [15, 2.5, 0.6] },
+      { type: "low_wall", pos: [40, 0, 60], size: [15, 2.5, 0.6] },
     ],
   },
   Fracture: {
@@ -577,6 +828,21 @@ const THEMES = {
       { pos: [110, 0, -130], size: [45, 25, 30], color: 0x968264, roofColor: 0x6e6450, windows: 5, isIndustrial: true },
       { pos: [140, 0, 0], size: [20, 22, 60], color: 0x826e55, roofColor: 0x5f5541, windows: 5, isIndustrial: true },
       { pos: [-140, 0, 0], size: [20, 22, 60], color: 0x826e55, roofColor: 0x5f5541, windows: 5, isIndustrial: true },
+      // INTERIOR bunkers
+      { pos: [-90, 0, 0], size: [28, 18, 22], color: 0x8c785a, roofColor: 0x645a46, windows: 4, isIndustrial: true },
+      { pos: [90, 0, 0], size: [28, 18, 22], color: 0x8c785a, roofColor: 0x645a46, windows: 4, isIndustrial: true },
+      { pos: [0, 0, 60], size: [25, 15, 20], color: 0x968264, roofColor: 0x6e6450, windows: 4, isIndustrial: true },
+      { pos: [0, 0, -60], size: [25, 15, 20], color: 0x968264, roofColor: 0x6e6450, windows: 4, isIndustrial: true },
+      { pos: [-50, 0, 50], size: [15, 10, 15], color: 0x786450, roofColor: 0x5f5541, windows: 2, isIndustrial: true },
+      { pos: [50, 0, 50], size: [15, 10, 15], color: 0x786450, roofColor: 0x5f5541, windows: 2, isIndustrial: true },
+      { pos: [-50, 0, -50], size: [15, 10, 15], color: 0x786450, roofColor: 0x5f5541, windows: 2, isIndustrial: true },
+      { pos: [50, 0, -50], size: [15, 10, 15], color: 0x786450, roofColor: 0x5f5541, windows: 2, isIndustrial: true },
+    ],
+    Awnings: [
+      { pos: [-90, 8, 13], size: [12, 0.5, 5], color: 0xffc850 },
+      { pos: [90, 8, 13], size: [12, 0.5, 5], color: 0xffc850 },
+      { pos: [0, 7, 50], size: [10, 0.5, 5], color: 0xc86432 },
+      { pos: [0, 7, -50], size: [10, 0.5, 5], color: 0xc86432 },
     ],
     FloorPatches: [
       { pos: [0, 0, 0], size: [80, 80], color: 0x50463c },
@@ -628,6 +894,60 @@ const THEMES = {
       { type: "solar_panel", pos: [60, 0, 110] }, { type: "solar_panel", pos: [100, 0, 110] },
       { type: "crate_pile", pos: [-40, 0, 80] }, { type: "crate_pile", pos: [40, 0, -80] },
       { type: "crate_pile", pos: [-70, 0, 30] }, { type: "crate_pile", pos: [70, 0, -30] },
+      // MASSIVE container yard
+      { type: "container", pos: [-40, 0, 80], color: 0xb46432 },
+      { type: "container", pos: [40, 0, 80], color: 0x50648c },
+      { type: "container", pos: [-40, 0, -80], color: 0x3c3c5a },
+      { type: "container", pos: [40, 0, -80], color: 0xa05028 },
+      { type: "container", pos: [-110, 0, 90], color: 0x50a050 },
+      { type: "container", pos: [110, 0, -90], color: 0xa03c3c },
+      // Stacked containers
+      { type: "container_stack", pos: [0, 0, 100] },
+      { type: "container_stack", pos: [0, 0, -100] },
+      // Parked military trucks
+      { type: "parked_car", pos: [-50, 0, 30], color: 0x78825a },
+      { type: "parked_car", pos: [50, 0, -30], color: 0x78825a },
+      { type: "parked_car", pos: [-80, 0, -60], color: 0x8c643c },
+      { type: "parked_car", pos: [80, 0, 60], color: 0x8c643c },
+      // Jersey barriers
+      { type: "jersey_barrier", pos: [-30, 0, -50], length: 18 },
+      { type: "jersey_barrier", pos: [30, 0, 50], length: 18 },
+      { type: "jersey_barrier", pos: [0, 0, 0], length: 14 },
+      // Fuel barrel clusters
+      { type: "fuel_barrel", pos: [-60, 0, 30] }, { type: "fuel_barrel", pos: [-55, 0, 30] },
+      { type: "fuel_barrel", pos: [60, 0, -30] }, { type: "fuel_barrel", pos: [55, 0, -30] },
+      // Sandbag walls
+      { type: "sandbag_wall", pos: [-50, 0, 0], length: 12 },
+      { type: "sandbag_wall", pos: [50, 0, 0], length: 12 },
+      { type: "sandbag_wall", pos: [0, 0, 80], length: 14 },
+      { type: "sandbag_wall", pos: [0, 0, -80], length: 14 },
+      // Forklifts
+      { type: "forklift", pos: [-100, 0, 30] },
+      { type: "forklift", pos: [100, 0, -30] },
+      // Floodlights
+      { type: "floodlight", pos: [-90, 0, -90] }, { type: "floodlight", pos: [90, 0, 90] },
+      { type: "floodlight", pos: [-30, 0, 80] }, { type: "floodlight", pos: [30, 0, -80] },
+      // Dumpsters
+      { type: "dumpster", pos: [-90, 0, 0], color: 0x50321e },
+      { type: "dumpster", pos: [90, 0, 0], color: 0x50321e },
+      // Warning signs
+      { type: "warning_sign", pos: [-60, 0, 60] }, { type: "warning_sign", pos: [60, 0, 60] },
+      { type: "warning_sign", pos: [-60, 0, -60] }, { type: "warning_sign", pos: [60, 0, -60] },
+      { type: "warning_sign", pos: [0, 0, -100] }, { type: "warning_sign", pos: [0, 0, 100] },
+      // More antennas
+      { type: "antenna", pos: [0, 0, 130] }, { type: "antenna", pos: [0, 0, -130] },
+      // Interior walls
+      { type: "interior_wall", pos: [-40, 0, 0], size: [0.5, 8, 20], color: 0x8c785a },
+      { type: "interior_wall", pos: [40, 0, 0], size: [0.5, 8, 20], color: 0x8c785a },
+      // Wire fences
+      { type: "wire_fence", from: [-80, 0, -100], to: [80, 0, -100] },
+      { type: "wire_fence", from: [-80, 0, 100], to: [80, 0, 100] },
+      // Crates everywhere
+      { type: "crate_pile", pos: [-70, 0, -30] }, { type: "crate_pile", pos: [70, 0, 30] },
+      { type: "crate_pile", pos: [0, 0, 50] }, { type: "crate_pile", pos: [0, 0, -50] },
+      // Industrial pipes
+      { type: "industrial_pipe", from: [-100, 1, 50], to: [-50, 1, 50] },
+      { type: "industrial_pipe", from: [50, 1, -50], to: [100, 1, -50] },
     ],
   },
   Lotus: {
@@ -641,6 +961,21 @@ const THEMES = {
       { pos: [130, 0, -140], size: [45, 40, 35], color: 0xdcd2be, roofColor: 0xb48c50, windows: 6, accentColor: 0xffc850, isTemple: true },
       { pos: [155, 0, 0], size: [30, 32, 60], color: 0xd7cdb9, roofColor: 0xb48c50, windows: 8, accentColor: 0xffc850, isTemple: true },
       { pos: [-155, 0, 0], size: [30, 32, 60], color: 0xd7cdb9, roofColor: 0xb48c50, windows: 8, accentColor: 0xffc850, isTemple: true },
+      // INTERIOR temples
+      { pos: [-100, 0, 60], size: [28, 22, 24], color: 0xdcd2be, roofColor: 0xb48c50, windows: 5, accentColor: 0xffc850, isTemple: true },
+      { pos: [0, 0, 80], size: [28, 22, 22], color: 0xe1d7c3, roofColor: 0xbe965a, windows: 5, accentColor: 0xffc850, isTemple: true },
+      { pos: [100, 0, 60], size: [28, 22, 24], color: 0xdcd2be, roofColor: 0xb48c50, windows: 5, accentColor: 0xffc850, isTemple: true },
+      // Shrines
+      { pos: [-50, 0, 30], size: [15, 12, 14], color: 0xdcd2be, roofColor: 0xb48c50, windows: 2, accentColor: 0xffc850, isTemple: true },
+      { pos: [50, 0, 30], size: [15, 12, 14], color: 0xdcd2be, roofColor: 0xb48c50, windows: 2, accentColor: 0xffc850, isTemple: true },
+      { pos: [-50, 0, -30], size: [15, 12, 14], color: 0xdcd2be, roofColor: 0xb48c50, windows: 2, accentColor: 0xffc850, isTemple: true },
+      { pos: [50, 0, -30], size: [15, 12, 14], color: 0xdcd2be, roofColor: 0xb48c50, windows: 2, accentColor: 0xffc850, isTemple: true },
+      { pos: [0, 0, -60], size: [20, 16, 18], color: 0xe1d7c3, roofColor: 0xb48c50, windows: 3, accentColor: 0xffc850, isTemple: true },
+    ],
+    Awnings: [
+      { pos: [-100, 9, 47], size: [14, 0.5, 6], color: 0xb48c50 },
+      { pos: [0, 9, 68], size: [14, 0.5, 6], color: 0xb48c50 },
+      { pos: [100, 9, 47], size: [14, 0.5, 6], color: 0xb48c50 },
     ],
     FloorPatches: [
       { pos: [0, 0, 0], size: [200, 16], color: 0xf5f0e6 },
@@ -679,6 +1014,63 @@ const THEMES = {
       { type: "lotus_flower", pos: [-40, 0, 40] }, { type: "lotus_flower", pos: [40, 0, 40] },
       { type: "lotus_flower", pos: [-40, 0, -40] }, { type: "lotus_flower", pos: [40, 0, -40] },
       { type: "stupa", pos: [0, 0, 100], scale: 0.8 },
+      // MASSIVE pillar density
+      { type: "pillar", pos: [-30, 0, 50] }, { type: "pillar", pos: [0, 0, 50] }, { type: "pillar", pos: [30, 0, 50] },
+      { type: "pillar", pos: [-30, 0, -50] }, { type: "pillar", pos: [0, 0, -50] }, { type: "pillar", pos: [30, 0, -50] },
+      { type: "pillar", pos: [-30, 0, 0] }, { type: "pillar", pos: [30, 0, 0] },
+      { type: "pillar", pos: [-30, 0, 20] }, { type: "pillar", pos: [30, 0, 20] },
+      { type: "pillar", pos: [-30, 0, -20] }, { type: "pillar", pos: [30, 0, -20] },
+      // Interior walls
+      { type: "interior_wall", pos: [-40, 0, 70], size: [20, 8, 0.5], color: 0xdcd2be },
+      { type: "interior_wall", pos: [40, 0, 70], size: [20, 8, 0.5], color: 0xdcd2be },
+      { type: "interior_wall", pos: [-40, 0, -70], size: [20, 8, 0.5], color: 0xdcd2be },
+      { type: "interior_wall", pos: [40, 0, -70], size: [20, 8, 0.5], color: 0xdcd2be },
+      // Column rows
+      { type: "column_row", pos: [0, 0, 40], length: 100, count: 9, color: 0xdcd2be },
+      { type: "column_row", pos: [0, 0, -40], length: 100, count: 9, color: 0xdcd2be },
+      // More lotus flowers
+      { type: "lotus_flower", pos: [-15, 0, 80] }, { type: "lotus_flower", pos: [15, 0, 80] },
+      { type: "lotus_flower", pos: [-15, 0, -80] }, { type: "lotus_flower", pos: [15, 0, -80] },
+      { type: "lotus_flower", pos: [0, 0, 80] }, { type: "lotus_flower", pos: [0, 0, -80] },
+      // More banyans
+      { type: "banyan", pos: [-130, 0, 0] }, { type: "banyan", pos: [130, 0, 0] },
+      // Stone benches
+      { type: "stone_bench", pos: [-50, 0, 60] }, { type: "stone_bench", pos: [50, 0, 60] },
+      { type: "stone_bench", pos: [-50, 0, -60] }, { type: "stone_bench", pos: [50, 0, -60] },
+      { type: "stone_bench", pos: [-100, 0, 0] }, { type: "stone_bench", pos: [100, 0, 0] },
+      // Mandalas
+      { type: "mandala", pos: [-50, 0, 0] }, { type: "mandala", pos: [50, 0, 0] },
+      { type: "mandala", pos: [0, 0, 60] }, { type: "mandala", pos: [0, 0, -60] },
+      // More elephants
+      { type: "elephant_statue", pos: [-50, 0, 70] },
+      { type: "elephant_statue", pos: [50, 0, 70] },
+      // Incense throughout
+      { type: "incense_holder", pos: [-15, 0, 0] }, { type: "incense_holder", pos: [15, 0, 0] },
+      { type: "incense_holder", pos: [-15, 0, 60] }, { type: "incense_holder", pos: [15, 0, 60] },
+      // More cobras
+      { type: "cobra_statue", pos: [-90, 0, 0] }, { type: "cobra_statue", pos: [90, 0, 0] },
+      { type: "cobra_statue", pos: [0, 0, 30] }, { type: "cobra_statue", pos: [0, 0, -30] },
+      // More stupas
+      { type: "stupa", pos: [-60, 0, 130], scale: 0.7 },
+      { type: "stupa", pos: [60, 0, 130], scale: 0.7 },
+      // More buddhas
+      { type: "buddha", pos: [-50, 0, -90], small: true }, { type: "buddha", pos: [50, 0, -90], small: true },
+      { type: "buddha", pos: [-100, 0, 30], small: true }, { type: "buddha", pos: [100, 0, 30], small: true },
+      // More lotus ponds
+      { type: "lotus_pond", pos: [-100, 0, 30], size: 6 },
+      { type: "lotus_pond", pos: [100, 0, 30], size: 6 },
+      // Stone stairs
+      { type: "stone_steps", pos: [-100, 0, 50] },
+      { type: "stone_steps", pos: [0, 0, 70] },
+      { type: "stone_steps", pos: [100, 0, 50] },
+      // Low walls
+      { type: "low_wall", pos: [-40, 0, 30], size: [15, 2.5, 0.6] },
+      { type: "low_wall", pos: [40, 0, 30], size: [15, 2.5, 0.6] },
+      { type: "low_wall", pos: [-40, 0, -30], size: [15, 2.5, 0.6] },
+      { type: "low_wall", pos: [40, 0, -30], size: [15, 2.5, 0.6] },
+      // Banners
+      { type: "street_banner", from: [-120, 25, 0], to: [-60, 25, 0], text: "LOTUS", color: 0xffc850 },
+      { type: "street_banner", from: [60, 25, 0], to: [120, 25, 0], text: "LOTUS", color: 0xffc850 },
     ],
   },
 };
@@ -1846,21 +2238,355 @@ PROP_BUILDERS.mandala = (p) => {
 
 PROP_BUILDERS.lotus_flower = (p) => {
   const g = new THREE.Group();
-  // Petals (cone shape)
   for (let i = 0; i < 8; i++) {
     const angle = (i * 45) * Math.PI / 180;
     const petal = makeBox(0.4, 0.2, 1.2, 0xffb4dc, { emissive: 0xff96c8, emissiveIntensity: 0.4 });
     petal.position.set(p.pos[0] + Math.cos(angle) * 0.5, 0.5, p.pos[2] + Math.sin(angle) * 0.5);
-    petal.rotation.y = angle;
-    petal.rotation.z = 0.4;
+    petal.rotation.y = angle; petal.rotation.z = 0.4;
     g.add(petal);
   }
-  // Center
   const center = makeSphere(0.4, 0xffe064, { emissive: 0xffe064, emissiveIntensity: 0.6 });
   center.position.set(p.pos[0], 0.7, p.pos[2]);
   g.add(center);
   return g;
 };
+
+// ===== MEGA-DENSIFICATION PROPS =====
+
+PROP_BUILDERS.interior_wall = (p) => {
+  const w = makeBox(p.size[0], p.size[1], p.size[2], p.color || 0xb4946e, { roughness: 0.9 });
+  w.position.set(p.pos[0], p.size[1] / 2, p.pos[2]);
+  return w;
+};
+
+PROP_BUILDERS.column_row = (p) => {
+  const g = new THREE.Group();
+  const length = p.length || 60;
+  const count = p.count || 5;
+  for (let i = 0; i < count; i++) {
+    const t = (i + 0.5) / count;
+    const x = p.pos[0] - length/2 + t * length;
+    const base = makeBox(2, 0.8, 2, 0xc8b496); base.position.set(x, 0.4, p.pos[2]); g.add(base);
+    const shaft = makeCylinder(0.7, 0.7, 9, p.color || 0xdcc8aa, { segments: 12 });
+    shaft.position.set(x, 5, p.pos[2]); g.add(shaft);
+    const cap = makeBox(2, 0.8, 2, 0xc8b496); cap.position.set(x, 9.7, p.pos[2]); g.add(cap);
+  }
+  return g;
+};
+
+PROP_BUILDERS.parked_car = (p) => {
+  const g = new THREE.Group();
+  // Body (lower)
+  const body = makeBox(5, 1.5, 2.8, p.color || 0x3c3c46, { metalness: 0.3, roughness: 0.4 });
+  body.position.set(p.pos[0], 1.5, p.pos[2]); g.add(body);
+  // Cab (upper)
+  const cab = makeBox(3.5, 1.4, 2.6, p.color || 0x3c3c46, { metalness: 0.3, roughness: 0.4 });
+  cab.position.set(p.pos[0] - 0.3, 3, p.pos[2]); g.add(cab);
+  // Windows
+  const windF = makeBox(1.4, 1.0, 2.55, 0x141420, { metalness: 0.5 });
+  windF.position.set(p.pos[0] + 0.9, 3, p.pos[2]); g.add(windF);
+  const windB = makeBox(1.4, 1.0, 2.55, 0x141420, { metalness: 0.5 });
+  windB.position.set(p.pos[0] - 1.5, 3, p.pos[2]); g.add(windB);
+  // Wheels
+  for (const [ox, oz] of [[-1.7, -1.5], [1.7, -1.5], [-1.7, 1.5], [1.7, 1.5]]) {
+    const w = makeCylinder(0.6, 0.6, 0.5, 0x141414, { segments: 14 });
+    w.rotation.x = Math.PI / 2;
+    w.position.set(p.pos[0] + ox, 0.6, p.pos[2] + oz);
+    g.add(w);
+  }
+  // Headlights
+  const hl = makeBox(0.3, 0.4, 0.5, 0xfffadc, { emissive: 0xfffadc, emissiveIntensity: 0.5 });
+  hl.position.set(p.pos[0] + 2.55, 1.5, p.pos[2] - 0.8); g.add(hl);
+  const hr = hl.clone(); hr.position.set(p.pos[0] + 2.55, 1.5, p.pos[2] + 0.8); g.add(hr);
+  return g;
+};
+
+PROP_BUILDERS.storefront_awning = function storefront_awning(p) {
+  const g = new THREE.Group();
+  const aw = makeBox(p.size ? p.size[0] : 8, 0.3, p.size ? p.size[2] : 5, p.color || 0xdc3c3c, { roughness: 0.9 });
+  aw.position.set(p.pos[0], p.pos[1] || 7, p.pos[2]);
+  g.add(aw);
+  // Support beams
+  const sl = makeBox(0.2, p.pos[1] || 7, 0.2, 0x282828);
+  sl.position.set(p.pos[0] - 3, (p.pos[1] || 7) / 2, p.pos[2]); g.add(sl);
+  const sr = makeBox(0.2, p.pos[1] || 7, 0.2, 0x282828);
+  sr.position.set(p.pos[0] + 3, (p.pos[1] || 7) / 2, p.pos[2]); g.add(sr);
+  return g;
+};
+
+PROP_BUILDERS.mailbox = (p) => {
+  const g = new THREE.Group();
+  const post = makeBox(0.3, 3, 0.3, 0x282828); post.position.set(p.pos[0], 1.5, p.pos[2]); g.add(post);
+  const box = makeBox(1.5, 1.2, 1, 0x3c64dc, { metalness: 0.3 }); box.position.set(p.pos[0], 3.2, p.pos[2]); g.add(box);
+  return g;
+};
+
+PROP_BUILDERS.newsstand = (p) => {
+  const g = new THREE.Group();
+  const body = makeBox(4, 4, 2, 0x4a3c28, { roughness: 0.9 }); body.position.set(p.pos[0], 2, p.pos[2]); g.add(body);
+  // Roof
+  const roof = makeBox(5, 0.4, 2.5, 0x643c1e); roof.position.set(p.pos[0], 4.3, p.pos[2]); g.add(roof);
+  // Newspapers (stack)
+  const stack = makeBox(2.5, 0.5, 1.5, 0xe6e6e6); stack.position.set(p.pos[0], 4.6, p.pos[2]); g.add(stack);
+  return g;
+};
+
+PROP_BUILDERS.stairs_up = (p) => {
+  const g = new THREE.Group();
+  for (let i = 0; i < 5; i++) {
+    const step = makeBox(8, 0.6, 1.5, 0xb4a082, { roughness: 0.8 });
+    step.position.set(p.pos[0], 0.3 + i * 0.6, p.pos[2] - i * 1.5);
+    g.add(step);
+  }
+  return g;
+};
+
+PROP_BUILDERS.olive_tree = (p) => {
+  const g = new THREE.Group();
+  const trunk = makeCylinder(0.5, 0.7, 7, 0x6e5a3c, { segments: 10 });
+  trunk.position.set(p.pos[0], 3.5, p.pos[2]); g.add(trunk);
+  // Wide silvery foliage
+  for (let i = 0; i < 5; i++) {
+    const angle = (i * 72) * Math.PI / 180;
+    const f = makeSphere(2.5, 0x8ca878, { segments: 10 });
+    f.position.set(p.pos[0] + Math.cos(angle) * 2, 7.5, p.pos[2] + Math.sin(angle) * 2);
+    g.add(f);
+  }
+  // Center foliage
+  const top = makeSphere(2.8, 0x96b482, { segments: 10 });
+  top.position.set(p.pos[0], 8.5, p.pos[2]); g.add(top);
+  return g;
+};
+
+PROP_BUILDERS.hanging_basket = (p) => {
+  const g = new THREE.Group();
+  const chain = makeBox(0.15, 3, 0.15, 0x282828);
+  chain.position.set(p.pos[0], p.pos[1] - 1.5, p.pos[2]); g.add(chain);
+  const basket = makeCylinder(1.2, 1.0, 1.2, 0x6e4828, { segments: 12 });
+  basket.position.set(p.pos[0], p.pos[1] - 3.5, p.pos[2]); g.add(basket);
+  // Flowers in basket
+  for (let i = 0; i < 5; i++) {
+    const angle = (i * 72) * Math.PI / 180;
+    const f = makeSphere(0.4, [0xff6464, 0xffc864, 0xc864ff, 0xff96c8, 0xfff064][i], { emissive: 0xffffff, emissiveIntensity: 0.1 });
+    f.position.set(p.pos[0] + Math.cos(angle) * 0.7, p.pos[1] - 3, p.pos[2] + Math.sin(angle) * 0.7);
+    g.add(f);
+  }
+  // Green leaves draping
+  const drape = makeSphere(1.5, 0x508c3c, { segments: 10 });
+  drape.position.set(p.pos[0], p.pos[1] - 4.2, p.pos[2]);
+  drape.scale.set(1, 0.4, 1); g.add(drape);
+  return g;
+};
+
+PROP_BUILDERS.outdoor_table = (p) => {
+  const g = new THREE.Group();
+  const top = makeCylinder(1.3, 1.3, 0.2, 0xeeeeee, { segments: 12, roughness: 0.5 });
+  top.position.set(p.pos[0], 2.5, p.pos[2]); g.add(top);
+  const post = makeBox(0.3, 2.5, 0.3, 0x282828);
+  post.position.set(p.pos[0], 1.25, p.pos[2]); g.add(post);
+  // 4 chairs
+  for (let i = 0; i < 4; i++) {
+    const angle = (i * 90 + 45) * Math.PI / 180;
+    const seat = makeBox(1, 0.2, 1, 0x282828);
+    seat.position.set(p.pos[0] + Math.cos(angle) * 2.5, 1.5, p.pos[2] + Math.sin(angle) * 2.5);
+    g.add(seat);
+    const back = makeBox(0.2, 1.5, 1, 0x282828);
+    back.position.set(p.pos[0] + Math.cos(angle) * 3, 2.2, p.pos[2] + Math.sin(angle) * 3);
+    back.rotation.y = angle + Math.PI / 2; g.add(back);
+  }
+  return g;
+};
+
+PROP_BUILDERS.low_wall = (p) => {
+  const w = makeBox(p.size[0], p.size[1], p.size[2], 0xc8b496, { roughness: 0.95 });
+  w.position.set(p.pos[0], p.size[1] / 2, p.pos[2]);
+  return w;
+};
+
+PROP_BUILDERS.street_banner = (p) => {
+  const g = new THREE.Group();
+  g.add(PROP_BUILDERS.wire(p));
+  const from = new THREE.Vector3(...p.from);
+  const to = new THREE.Vector3(...p.to);
+  const mid = from.clone().add(to).multiplyScalar(0.5);
+  const len = from.distanceTo(to);
+  const banner = makeBox(len - 4, 4, 0.2, p.color || 0xdc3c3c, { roughness: 0.9 });
+  banner.position.set(mid.x, mid.y - 3, mid.z);
+  g.add(banner);
+  if (p.text) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512; canvas.height = 128;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '900 80px Arial';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(p.text, 256, 64);
+    const tex = new THREE.CanvasTexture(canvas);
+    const plane = new THREE.Mesh(
+      new THREE.PlaneGeometry(len - 5, 3),
+      new THREE.MeshBasicMaterial({ map: tex, transparent: true })
+    );
+    plane.position.set(mid.x, mid.y - 3, mid.z + 0.2);
+    g.add(plane);
+  }
+  return g;
+};
+
+PROP_BUILDERS.wooden_cart = (p) => {
+  const g = new THREE.Group();
+  const bed = makeBox(4, 0.6, 2.5, 0x8c5a32, { roughness: 0.95 });
+  bed.position.set(p.pos[0], 1.5, p.pos[2]); g.add(bed);
+  // 2 large wooden wheels
+  const wl = makeCylinder(1.2, 1.2, 0.3, 0x6e4828, { segments: 14 });
+  wl.rotation.z = Math.PI / 2; wl.position.set(p.pos[0] + 0.5, 1.2, p.pos[2] - 1.5); g.add(wl);
+  const wr = makeCylinder(1.2, 1.2, 0.3, 0x6e4828, { segments: 14 });
+  wr.rotation.z = Math.PI / 2; wr.position.set(p.pos[0] + 0.5, 1.2, p.pos[2] + 1.5); g.add(wr);
+  // Handle bars
+  const hl = makeBox(3, 0.2, 0.2, 0x6e4828);
+  hl.position.set(p.pos[0] - 2.5, 1.5, p.pos[2] - 1); g.add(hl);
+  const hr = makeBox(3, 0.2, 0.2, 0x6e4828);
+  hr.position.set(p.pos[0] - 2.5, 1.5, p.pos[2] + 1); g.add(hr);
+  // Cargo (sacks)
+  for (let i = 0; i < 3; i++) {
+    const sack = makeBox(1, 0.8, 0.8, 0xa08c64, { roughness: 1.0 });
+    sack.position.set(p.pos[0] - 1 + i * 1, 2.2, p.pos[2]);
+    g.add(sack);
+  }
+  return g;
+};
+
+PROP_BUILDERS.traffic_light = (p) => {
+  const g = new THREE.Group();
+  const post = makeBox(0.3, 10, 0.3, 0x282832);
+  post.position.set(p.pos[0], 5, p.pos[2]); g.add(post);
+  const arm = makeBox(2, 0.3, 0.3, 0x282832);
+  arm.position.set(p.pos[0] + 1, 9.5, p.pos[2]); g.add(arm);
+  // Light box
+  const box = makeBox(0.6, 2.4, 0.5, 0x141414);
+  box.position.set(p.pos[0] + 2, 9, p.pos[2]); g.add(box);
+  // 3 lights
+  const red = makeSphere(0.25, 0xff3232, { emissive: 0xff3232, emissiveIntensity: 1.0 });
+  red.position.set(p.pos[0] + 2.3, 9.8, p.pos[2]); g.add(red);
+  const yellow = makeSphere(0.25, 0xdcdc32, { emissive: 0x282828 });
+  yellow.position.set(p.pos[0] + 2.3, 9, p.pos[2]); g.add(yellow);
+  const green = makeSphere(0.25, 0x32dc32, { emissive: 0x282828 });
+  green.position.set(p.pos[0] + 2.3, 8.2, p.pos[2]); g.add(green);
+  return g;
+};
+
+PROP_BUILDERS.jersey_barrier = (p) => {
+  const g = new THREE.Group();
+  const length = p.length || 14;
+  // Trapezoidal-ish (wider at bottom)
+  const bot = makeBox(length, 0.6, 1.4, 0xc8c8c8, { roughness: 0.9 });
+  bot.position.set(p.pos[0], 0.3, p.pos[2]); g.add(bot);
+  const top = makeBox(length, 1.6, 0.8, 0xc8c8c8, { roughness: 0.9 });
+  top.position.set(p.pos[0], 1.4, p.pos[2]); g.add(top);
+  // Yellow stripes
+  const stripe = makeBox(length, 0.1, 0.85, 0xdcc832);
+  stripe.position.set(p.pos[0], 1.5, p.pos[2]); g.add(stripe);
+  return g;
+};
+
+PROP_BUILDERS.dumpster = (p) => {
+  const g = new THREE.Group();
+  const body = makeBox(6, 3.5, 3, p.color || 0x326432, { metalness: 0.3 });
+  body.position.set(p.pos[0], 1.75, p.pos[2]); g.add(body);
+  // Slanted lid (tilted)
+  const lid = makeBox(6.5, 0.4, 3.5, 0x282828);
+  lid.position.set(p.pos[0], 3.65, p.pos[2] - 0.3);
+  lid.rotation.x = -0.15; g.add(lid);
+  // Wheels (4 small)
+  for (const [ox, oz] of [[-2.5, -1.4], [2.5, -1.4], [-2.5, 1.4], [2.5, 1.4]]) {
+    const w = makeCylinder(0.3, 0.3, 0.3, 0x141414, { segments: 10 });
+    w.rotation.x = Math.PI / 2;
+    w.position.set(p.pos[0] + ox, 0.3, p.pos[2] + oz); g.add(w);
+  }
+  return g;
+};
+
+PROP_BUILDERS.transformer_box = (p) => {
+  const g = new THREE.Group();
+  const body = makeBox(2.5, 4, 2, 0x4a4a55, { metalness: 0.5 });
+  body.position.set(p.pos[0], 2, p.pos[2]); g.add(body);
+  // Warning sign on side
+  const sign = makeBox(1, 1, 0.05, 0xdcdc32);
+  sign.position.set(p.pos[0], 3, p.pos[2] + 1.02); g.add(sign);
+  return g;
+};
+
+PROP_BUILDERS.neon_street_lamp = (p) => {
+  const g = new THREE.Group();
+  const post = makeBox(0.4, 14, 0.4, 0x14141e);
+  post.position.set(p.pos[0], 7, p.pos[2]); g.add(post);
+  // Curved neon tube
+  const arm = makeBox(0.3, 3, 0.3, 0x14141e);
+  arm.position.set(p.pos[0], 13, p.pos[2]); arm.rotation.z = 0.4; g.add(arm);
+  const lamp = makeBox(2, 0.4, 0.6, 0x50c8ff, { emissive: 0x50c8ff, emissiveIntensity: 1.5 });
+  lamp.position.set(p.pos[0] + 1.2, 14.5, p.pos[2]); g.add(lamp);
+  const light = new THREE.PointLight(0x50c8ff, 1.2, 20);
+  light.position.copy(lamp.position); g.add(light);
+  return g;
+};
+
+PROP_BUILDERS.manhole = (p) => {
+  const m = makeCylinder(1.2, 1.2, 0.15, 0x32323c, { segments: 16, metalness: 0.4 });
+  m.position.set(p.pos[0], 0.2, p.pos[2]);
+  return m;
+};
+
+PROP_BUILDERS.container_stack = (p) => {
+  const g = new THREE.Group();
+  // Bottom container
+  const c1 = makeBox(12, 6, 5, 0xa05028, { roughness: 0.9 });
+  c1.position.set(p.pos[0], 3, p.pos[2]); g.add(c1);
+  // Top container (offset)
+  const c2 = makeBox(12, 6, 5, 0x3c5064, { roughness: 0.9 });
+  c2.position.set(p.pos[0] + 1, 9, p.pos[2]); g.add(c2);
+  return g;
+};
+
+PROP_BUILDERS.forklift = (p) => {
+  const g = new THREE.Group();
+  // Body
+  const body = makeBox(3, 2.5, 2, 0xdcb432, { metalness: 0.3 });
+  body.position.set(p.pos[0], 1.5, p.pos[2]); g.add(body);
+  // Cab
+  const cab = makeBox(2, 2.5, 2, 0xdcb432, { metalness: 0.3 });
+  cab.position.set(p.pos[0] - 0.5, 4, p.pos[2]); g.add(cab);
+  // Mast (vertical lift)
+  const mast = makeBox(0.5, 8, 0.5, 0x32323c);
+  mast.position.set(p.pos[0] + 2, 4, p.pos[2]); g.add(mast);
+  // Forks (2 horizontal)
+  const forkL = makeBox(3, 0.2, 0.4, 0x646464);
+  forkL.position.set(p.pos[0] + 3.5, 1, p.pos[2] - 0.5); g.add(forkL);
+  const forkR = makeBox(3, 0.2, 0.4, 0x646464);
+  forkR.position.set(p.pos[0] + 3.5, 1, p.pos[2] + 0.5); g.add(forkR);
+  // Wheels
+  for (const [ox, oz] of [[-1.2, -1.2], [1.2, -1.2], [-1.2, 1.2], [1.2, 1.2]]) {
+    const w = makeCylinder(0.7, 0.7, 0.4, 0x141414, { segments: 12 });
+    w.rotation.x = Math.PI / 2;
+    w.position.set(p.pos[0] + ox, 0.7, p.pos[2] + oz);
+    g.add(w);
+  }
+  return g;
+};
+
+// ===== AWNING RENDERER (above buildings, overhanging walkways) =====
+function buildAwning(a) {
+  const g = new THREE.Group();
+  const aw = makeBox(a.size[0], a.size[1], a.size[2], a.color || 0xdc3c3c, { roughness: 0.9 });
+  aw.position.set(a.pos[0], a.pos[1], a.pos[2]);
+  g.add(aw);
+  // Support pillars
+  const sl = makeBox(0.3, a.pos[1] - 0.5, 0.3, 0x282828);
+  sl.position.set(a.pos[0] - a.size[0]/2 + 0.5, (a.pos[1] - 0.5)/2, a.pos[2]);
+  g.add(sl);
+  const sr = makeBox(0.3, a.pos[1] - 0.5, 0.3, 0x282828);
+  sr.position.set(a.pos[0] + a.size[0]/2 - 0.5, (a.pos[1] - 0.5)/2, a.pos[2]);
+  g.add(sr);
+  return g;
+}
 
 // ===== MAP BUILDER =====
 let currentGroup = null;
@@ -1916,11 +2642,19 @@ function buildMap(name) {
   grid.position.y = 0.18;
   group.add(grid);
 
-  // BUILDINGS (perimeter structures)
+  // BUILDINGS (perimeter + interior structures)
   if (theme && theme.Buildings) {
     theme.Buildings.forEach(b => {
       const bg = buildBuilding(b);
       group.add(bg);
+    });
+  }
+
+  // AWNINGS (overhead structures extending from buildings)
+  if (theme && theme.Awnings) {
+    theme.Awnings.forEach(a => {
+      const ag = buildAwning(a);
+      group.add(ag);
     });
   }
 

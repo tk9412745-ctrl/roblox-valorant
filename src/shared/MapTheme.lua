@@ -31,12 +31,28 @@ MapTheme.Themes = {
 			{ pos = Vector3.new(-40, 0, -135), size = Vector3.new(45, 34, 25), color = Color3.fromRGB(225, 185, 135), roofColor = Color3.fromRGB(165, 75, 50), windows = 5 },
 			{ pos = Vector3.new(40, 0, -135), size = Vector3.new(45, 36, 25), color = Color3.fromRGB(220, 180, 130), roofColor = Color3.fromRGB(180, 80, 50), windows = 5 },
 			{ pos = Vector3.new(120, 0, -130), size = Vector3.new(50, 40, 35), color = Color3.fromRGB(225, 185, 135), roofColor = Color3.fromRGB(170, 75, 55), windows = 6, hasBalcony = true },
-			-- East row
+			-- East/west rows
 			{ pos = Vector3.new(140, 0, 30), size = Vector3.new(25, 32, 50), color = Color3.fromRGB(220, 180, 130), roofColor = Color3.fromRGB(175, 80, 55), windows = 6 },
 			{ pos = Vector3.new(140, 0, -30), size = Vector3.new(25, 30, 50), color = Color3.fromRGB(225, 185, 135), roofColor = Color3.fromRGB(165, 75, 50), windows = 5 },
-			-- West row
 			{ pos = Vector3.new(-140, 0, 30), size = Vector3.new(25, 32, 50), color = Color3.fromRGB(220, 180, 130), roofColor = Color3.fromRGB(175, 80, 55), windows = 6 },
 			{ pos = Vector3.new(-140, 0, -30), size = Vector3.new(25, 30, 50), color = Color3.fromRGB(225, 185, 135), roofColor = Color3.fromRGB(165, 75, 50), windows = 5 },
+			-- INTERIOR BUILDINGS (inside playspace — shops, A Site building, B Boathouse, Mid Pizza)
+			{ pos = Vector3.new(-90, 0, 60), size = Vector3.new(30, 22, 25), color = Color3.fromRGB(225, 185, 135), roofColor = Color3.fromRGB(175, 75, 50), windows = 4, hasBalcony = true },  -- A Site building
+			{ pos = Vector3.new(90, 0, 60), size = Vector3.new(30, 22, 25), color = Color3.fromRGB(215, 175, 125), roofColor = Color3.fromRGB(175, 75, 50), windows = 4 },  -- B Boathouse
+			{ pos = Vector3.new(0, 0, -55), size = Vector3.new(22, 16, 18), color = Color3.fromRGB(230, 190, 140), roofColor = Color3.fromRGB(170, 75, 55), windows = 3 },  -- Mid Pizza shop
+			{ pos = Vector3.new(-50, 0, -55), size = Vector3.new(18, 14, 16), color = Color3.fromRGB(220, 180, 130), roofColor = Color3.fromRGB(175, 80, 55), windows = 3 },  -- Gelato
+			{ pos = Vector3.new(50, 0, -55), size = Vector3.new(18, 14, 16), color = Color3.fromRGB(225, 185, 135), roofColor = Color3.fromRGB(170, 75, 50), windows = 3 },  -- Catwalk house
+			{ pos = Vector3.new(-30, 0, 80), size = Vector3.new(15, 12, 14), color = Color3.fromRGB(215, 175, 125), roofColor = Color3.fromRGB(175, 75, 50), windows = 2 },  -- A Garden hut
+			{ pos = Vector3.new(30, 0, 80), size = Vector3.new(15, 12, 14), color = Color3.fromRGB(215, 175, 125), roofColor = Color3.fromRGB(175, 75, 50), windows = 2 },  -- B Market
+		},
+
+		-- AWNINGS (overhead structures extending from buildings)
+		Awnings = {
+			{ pos = Vector3.new(-90, 8, 47), size = Vector3.new(12, 0.5, 6), color = Color3.fromRGB(220, 60, 60) },
+			{ pos = Vector3.new(90, 8, 47), size = Vector3.new(12, 0.5, 6), color = Color3.fromRGB(60, 100, 180) },
+			{ pos = Vector3.new(0, 6, -45), size = Vector3.new(10, 0.5, 5), color = Color3.fromRGB(220, 60, 60) },
+			{ pos = Vector3.new(-50, 6, -45), size = Vector3.new(8, 0.5, 5), color = Color3.fromRGB(120, 200, 220) },
+			{ pos = Vector3.new(50, 6, -45), size = Vector3.new(8, 0.5, 5), color = Color3.fromRGB(255, 220, 80) },
 		},
 
 		-- Floor patches (color variation breaking up monotone floor)
@@ -128,6 +144,64 @@ MapTheme.Themes = {
 			{ type = "bench", pos = Vector3.new(15, 0, -5) },
 			{ type = "bench", pos = Vector3.new(-15, 0, 65) },
 			{ type = "bench", pos = Vector3.new(15, 0, 65) },
+			-- INTERIOR WALLS forming corridors
+			{ type = "interior_wall", pos = Vector3.new(-50, 0, 20), size = Vector3.new(0.5, 6, 20), color = Color3.fromRGB(220, 180, 130) },
+			{ type = "interior_wall", pos = Vector3.new(50, 0, 20), size = Vector3.new(0.5, 6, 20), color = Color3.fromRGB(220, 180, 130) },
+			{ type = "interior_wall", pos = Vector3.new(-70, 0, -10), size = Vector3.new(20, 6, 0.5), color = Color3.fromRGB(220, 180, 130) },
+			{ type = "interior_wall", pos = Vector3.new(70, 0, -10), size = Vector3.new(20, 6, 0.5), color = Color3.fromRGB(220, 180, 130) },
+			-- Column rows lining paths
+			{ type = "column_row", pos = Vector3.new(0, 0, 40), length = 60, count = 5, color = Color3.fromRGB(220, 200, 170) },
+			{ type = "column_row", pos = Vector3.new(0, 0, -40), length = 60, count = 5, color = Color3.fromRGB(220, 200, 170) },
+			-- Parked Vespa-style cars
+			{ type = "parked_car", pos = Vector3.new(-60, 0, 30), color = Color3.fromRGB(180, 80, 60) },
+			{ type = "parked_car", pos = Vector3.new(60, 0, 30), color = Color3.fromRGB(80, 100, 180) },
+			{ type = "parked_car", pos = Vector3.new(-60, 0, -30), color = Color3.fromRGB(220, 200, 50) },
+			{ type = "parked_car", pos = Vector3.new(60, 0, -30), color = Color3.fromRGB(60, 140, 80) },
+			{ type = "parked_car", pos = Vector3.new(-100, 0, -55), color = Color3.fromRGB(200, 200, 200) },
+			{ type = "parked_car", pos = Vector3.new(100, 0, -55), color = Color3.fromRGB(60, 60, 70) },
+			-- Storefront awnings
+			{ type = "storefront_awning", pos = Vector3.new(0, 7, -45), color = Color3.fromRGB(220, 60, 60) },
+			{ type = "storefront_awning", pos = Vector3.new(-50, 7, -45), color = Color3.fromRGB(120, 200, 220) },
+			{ type = "storefront_awning", pos = Vector3.new(50, 7, -45), color = Color3.fromRGB(255, 220, 80) },
+			-- Mailboxes
+			{ type = "mailbox", pos = Vector3.new(-20, 0, -70) },
+			{ type = "mailbox", pos = Vector3.new(20, 0, -70) },
+			-- Newspaper kiosks
+			{ type = "newsstand", pos = Vector3.new(0, 0, 25) },
+			-- Stairs to A Heaven and B platforms
+			{ type = "stairs_up", pos = Vector3.new(-90, 0, 65), facing = "Z" },
+			{ type = "stairs_up", pos = Vector3.new(90, 0, 65), facing = "Z" },
+			-- More cypress trees lining mid path
+			{ type = "cypress", pos = Vector3.new(-15, 0, 80) },
+			{ type = "cypress", pos = Vector3.new(15, 0, 80) },
+			{ type = "cypress", pos = Vector3.new(-15, 0, -80) },
+			{ type = "cypress", pos = Vector3.new(15, 0, -80) },
+			-- Olive trees (smaller, throughout)
+			{ type = "olive_tree", pos = Vector3.new(-60, 0, 60) },
+			{ type = "olive_tree", pos = Vector3.new(60, 0, 60) },
+			{ type = "olive_tree", pos = Vector3.new(-60, 0, -60) },
+			{ type = "olive_tree", pos = Vector3.new(60, 0, -60) },
+			{ type = "olive_tree", pos = Vector3.new(0, 0, 90) },
+			{ type = "olive_tree", pos = Vector3.new(0, 0, -90) },
+			-- Hanging plant baskets
+			{ type = "hanging_basket", pos = Vector3.new(-100, 14, 130) },
+			{ type = "hanging_basket", pos = Vector3.new(100, 14, 130) },
+			{ type = "hanging_basket", pos = Vector3.new(-100, 14, -130) },
+			{ type = "hanging_basket", pos = Vector3.new(100, 14, -130) },
+			-- Tables with chairs (outdoor café)
+			{ type = "outdoor_table", pos = Vector3.new(-25, 0, -65) },
+			{ type = "outdoor_table", pos = Vector3.new(25, 0, -65) },
+			{ type = "outdoor_table", pos = Vector3.new(0, 0, -75) },
+			-- Stone low walls (defensive cover)
+			{ type = "low_wall", pos = Vector3.new(-40, 0, 0), size = Vector3.new(15, 2.5, 0.6) },
+			{ type = "low_wall", pos = Vector3.new(40, 0, 0), size = Vector3.new(15, 2.5, 0.6) },
+			-- Banners across street (over walkways)
+			{ type = "street_banner", from = Vector3.new(-120, 25, 0), to = Vector3.new(-60, 25, 0), text = "FESTA" },
+			{ type = "street_banner", from = Vector3.new(60, 25, 0), to = Vector3.new(120, 25, 0), text = "MERCATO" },
+			-- Old wooden carts
+			{ type = "wooden_cart", pos = Vector3.new(-75, 0, -75) },
+			{ type = "wooden_cart", pos = Vector3.new(75, 0, -75) },
+			{ type = "wooden_cart", pos = Vector3.new(0, 0, 15) },
 		},
 		Particles = { type = "dust", color = Color3.fromRGB(255, 240, 200), rate = 3 },
 	},
@@ -159,6 +233,22 @@ MapTheme.Themes = {
 			-- East/west covered souk passages
 			{ pos = Vector3.new(120, 0, 0), size = Vector3.new(20, 30, 60), color = Color3.fromRGB(230, 185, 135), roofColor = Color3.fromRGB(155, 95, 60), windows = 5, accentColor = Color3.fromRGB(80, 110, 160) },
 			{ pos = Vector3.new(-120, 0, 0), size = Vector3.new(20, 30, 60), color = Color3.fromRGB(230, 185, 135), roofColor = Color3.fromRGB(155, 95, 60), windows = 5, accentColor = Color3.fromRGB(80, 110, 160) },
+			-- INTERIOR BUILDINGS (Bath house, Hookah lounge, Showers, market stalls)
+			{ pos = Vector3.new(-80, 0, 50), size = Vector3.new(25, 18, 22), color = Color3.fromRGB(235, 195, 145), roofColor = Color3.fromRGB(155, 95, 60), windows = 4, accentColor = Color3.fromRGB(80, 110, 160) },  -- A Bath
+			{ pos = Vector3.new(80, 0, 50), size = Vector3.new(25, 18, 22), color = Color3.fromRGB(225, 180, 130), roofColor = Color3.fromRGB(155, 95, 60), windows = 4, accentColor = Color3.fromRGB(80, 110, 160) },  -- B Hookah lounge
+			{ pos = Vector3.new(-80, 0, -50), size = Vector3.new(22, 15, 20), color = Color3.fromRGB(235, 195, 145), roofColor = Color3.fromRGB(155, 95, 60), windows = 3, accentColor = Color3.fromRGB(80, 110, 160) },
+			{ pos = Vector3.new(80, 0, -50), size = Vector3.new(22, 15, 20), color = Color3.fromRGB(225, 180, 130), roofColor = Color3.fromRGB(155, 95, 60), windows = 3, accentColor = Color3.fromRGB(80, 110, 160) },
+			{ pos = Vector3.new(-50, 0, 0), size = Vector3.new(15, 10, 20), color = Color3.fromRGB(230, 185, 135), roofColor = Color3.fromRGB(155, 95, 60), windows = 2, accentColor = Color3.fromRGB(80, 110, 160) },
+			{ pos = Vector3.new(50, 0, 0), size = Vector3.new(15, 10, 20), color = Color3.fromRGB(230, 185, 135), roofColor = Color3.fromRGB(155, 95, 60), windows = 2, accentColor = Color3.fromRGB(80, 110, 160) },
+		},
+
+		Awnings = {
+			{ pos = Vector3.new(-80, 8, 38), size = Vector3.new(15, 0.5, 7), color = Color3.fromRGB(200, 50, 50) },
+			{ pos = Vector3.new(80, 8, 38), size = Vector3.new(15, 0.5, 7), color = Color3.fromRGB(80, 110, 160) },
+			{ pos = Vector3.new(-50, 8, 10), size = Vector3.new(10, 0.5, 6), color = Color3.fromRGB(180, 80, 40) },
+			{ pos = Vector3.new(50, 8, 10), size = Vector3.new(10, 0.5, 6), color = Color3.fromRGB(80, 110, 160) },
+			{ pos = Vector3.new(-50, 8, -10), size = Vector3.new(10, 0.5, 6), color = Color3.fromRGB(220, 180, 50) },
+			{ pos = Vector3.new(50, 8, -10), size = Vector3.new(10, 0.5, 6), color = Color3.fromRGB(180, 50, 50) },
 		},
 
 		FloorPatches = {
@@ -251,6 +341,65 @@ MapTheme.Themes = {
 			{ type = "spice_basket", pos = Vector3.new(55, 0, 75), color = Color3.fromRGB(220, 180, 50) },
 			{ type = "spice_basket", pos = Vector3.new(-55, 0, -65), color = Color3.fromRGB(200, 50, 50) },
 			{ type = "spice_basket", pos = Vector3.new(55, 0, -65), color = Color3.fromRGB(150, 200, 50) },
+			-- More market stalls (souk density)
+			{ type = "market_stall", pos = Vector3.new(-90, 0, 30), color = Color3.fromRGB(220, 100, 200) },
+			{ type = "market_stall", pos = Vector3.new(90, 0, 30), color = Color3.fromRGB(50, 180, 120) },
+			{ type = "market_stall", pos = Vector3.new(-90, 0, -30), color = Color3.fromRGB(180, 100, 60) },
+			{ type = "market_stall", pos = Vector3.new(90, 0, -30), color = Color3.fromRGB(60, 80, 180) },
+			-- Spice baskets clustered
+			{ type = "spice_basket", pos = Vector3.new(-30, 0, 0), color = Color3.fromRGB(220, 100, 50) },
+			{ type = "spice_basket", pos = Vector3.new(-30, 0, 5), color = Color3.fromRGB(255, 220, 50) },
+			{ type = "spice_basket", pos = Vector3.new(-30, 0, -5), color = Color3.fromRGB(180, 50, 50) },
+			{ type = "spice_basket", pos = Vector3.new(30, 0, 0), color = Color3.fromRGB(150, 220, 50) },
+			{ type = "spice_basket", pos = Vector3.new(30, 0, 5), color = Color3.fromRGB(220, 130, 50) },
+			{ type = "spice_basket", pos = Vector3.new(30, 0, -5), color = Color3.fromRGB(150, 60, 50) },
+			-- Pottery clusters
+			{ type = "pottery_jar", pos = Vector3.new(-25, 0, 30) },
+			{ type = "pottery_jar", pos = Vector3.new(-20, 0, 35) },
+			{ type = "pottery_jar", pos = Vector3.new(25, 0, 30) },
+			{ type = "pottery_jar", pos = Vector3.new(20, 0, 35) },
+			-- Interior walls (corridors)
+			{ type = "interior_wall", pos = Vector3.new(-40, 0, 0), size = Vector3.new(0.5, 8, 30), color = Color3.fromRGB(225, 180, 130) },
+			{ type = "interior_wall", pos = Vector3.new(40, 0, 0), size = Vector3.new(0.5, 8, 30), color = Color3.fromRGB(225, 180, 130) },
+			{ type = "interior_wall", pos = Vector3.new(-30, 0, 50), size = Vector3.new(15, 8, 0.5), color = Color3.fromRGB(225, 180, 130) },
+			{ type = "interior_wall", pos = Vector3.new(30, 0, 50), size = Vector3.new(15, 8, 0.5), color = Color3.fromRGB(225, 180, 130) },
+			-- Column rows
+			{ type = "column_row", pos = Vector3.new(0, 0, 50), length = 70, count = 6, color = Color3.fromRGB(220, 180, 130) },
+			{ type = "column_row", pos = Vector3.new(0, 0, -50), length = 70, count = 6, color = Color3.fromRGB(220, 180, 130) },
+			-- Many more hanging lanterns (over walkways)
+			{ type = "lantern_hanging", pos = Vector3.new(0, 14, 40) },
+			{ type = "lantern_hanging", pos = Vector3.new(0, 14, -40) },
+			{ type = "lantern_hanging", pos = Vector3.new(-20, 14, 0) },
+			{ type = "lantern_hanging", pos = Vector3.new(20, 14, 0) },
+			{ type = "lantern_hanging", pos = Vector3.new(-40, 14, 50) },
+			{ type = "lantern_hanging", pos = Vector3.new(40, 14, 50) },
+			-- Outdoor tables (cafe seating)
+			{ type = "outdoor_table", pos = Vector3.new(-40, 0, 30) },
+			{ type = "outdoor_table", pos = Vector3.new(40, 0, 30) },
+			{ type = "outdoor_table", pos = Vector3.new(-40, 0, -30) },
+			{ type = "outdoor_table", pos = Vector3.new(40, 0, -30) },
+			-- More hanging carpets
+			{ type = "hanging_carpet", from = Vector3.new(-105, 22, 0), to = Vector3.new(-75, 22, 0), color = Color3.fromRGB(180, 80, 40) },
+			{ type = "hanging_carpet", from = Vector3.new(75, 22, 0), to = Vector3.new(105, 22, 0), color = Color3.fromRGB(60, 100, 180) },
+			-- Olive jars
+			{ type = "pottery_jar", pos = Vector3.new(-100, 0, 0) },
+			{ type = "pottery_jar", pos = Vector3.new(100, 0, 0) },
+			{ type = "pottery_jar", pos = Vector3.new(-100, 0, 30) },
+			{ type = "pottery_jar", pos = Vector3.new(100, 0, 30) },
+			-- Sand piles
+			{ type = "sand_pile", pos = Vector3.new(-60, 0, 0) },
+			{ type = "sand_pile", pos = Vector3.new(60, 0, 0) },
+			-- Low walls (defensive cover)
+			{ type = "low_wall", pos = Vector3.new(0, 0, 30), size = Vector3.new(12, 2.5, 0.6) },
+			{ type = "low_wall", pos = Vector3.new(0, 0, -30), size = Vector3.new(12, 2.5, 0.6) },
+			{ type = "low_wall", pos = Vector3.new(-70, 0, 80), size = Vector3.new(0.6, 2.5, 12) },
+			{ type = "low_wall", pos = Vector3.new(70, 0, 80), size = Vector3.new(0.6, 2.5, 12) },
+			-- Camels (lots!)
+			{ type = "camel_statue", pos = Vector3.new(-50, 0, -40), rot = 30 },
+			{ type = "camel_statue", pos = Vector3.new(50, 0, -40), rot = -30 },
+			-- Stone stairs to B Hookah platform
+			{ type = "stairs_up", pos = Vector3.new(80, 0, 40), facing = "Z" },
+			{ type = "stairs_up", pos = Vector3.new(-80, 0, 65), facing = "Z" },
 		},
 		Particles = { type = "sand", color = Color3.fromRGB(255, 220, 180), rate = 5 },
 	},
@@ -283,6 +432,22 @@ MapTheme.Themes = {
 			{ pos = Vector3.new(120, 0, -30), size = Vector3.new(20, 45, 50), color = Color3.fromRGB(55, 55, 70), roofColor = Color3.fromRGB(30, 30, 40), windows = 14, lit = true, neonColor = Color3.fromRGB(255, 100, 200) },
 			{ pos = Vector3.new(-120, 0, 30), size = Vector3.new(20, 45, 50), color = Color3.fromRGB(50, 50, 65), roofColor = Color3.fromRGB(30, 30, 40), windows = 14, lit = true, neonColor = Color3.fromRGB(255, 200, 80) },
 			{ pos = Vector3.new(-120, 0, -30), size = Vector3.new(20, 45, 50), color = Color3.fromRGB(55, 55, 70), roofColor = Color3.fromRGB(30, 30, 40), windows = 14, lit = true, neonColor = Color3.fromRGB(255, 100, 200) },
+			-- INTERIOR BUILDINGS (convenience stores, arcades, ramen booths inside play area)
+			{ pos = Vector3.new(-80, 0, 70), size = Vector3.new(25, 20, 22), color = Color3.fromRGB(40, 40, 55), roofColor = Color3.fromRGB(25, 25, 35), windows = 6, lit = true, neonColor = Color3.fromRGB(255, 100, 200) },  -- A Site building
+			{ pos = Vector3.new(80, 0, 70), size = Vector3.new(25, 20, 22), color = Color3.fromRGB(45, 45, 60), roofColor = Color3.fromRGB(25, 25, 35), windows = 6, lit = true, neonColor = Color3.fromRGB(80, 200, 255) },  -- B Site building
+			{ pos = Vector3.new(0, 0, -60), size = Vector3.new(25, 18, 20), color = Color3.fromRGB(35, 35, 50), roofColor = Color3.fromRGB(25, 25, 35), windows = 5, lit = true, neonColor = Color3.fromRGB(255, 220, 80) },  -- Mid Mail
+			{ pos = Vector3.new(-50, 0, -30), size = Vector3.new(20, 15, 18), color = Color3.fromRGB(40, 40, 55), roofColor = Color3.fromRGB(25, 25, 35), windows = 4, lit = true, neonColor = Color3.fromRGB(50, 220, 100) },  -- Arcade
+			{ pos = Vector3.new(50, 0, -30), size = Vector3.new(20, 15, 18), color = Color3.fromRGB(40, 40, 55), roofColor = Color3.fromRGB(25, 25, 35), windows = 4, lit = true, neonColor = Color3.fromRGB(255, 100, 100) },  -- Manga shop
+			{ pos = Vector3.new(-30, 0, 30), size = Vector3.new(15, 12, 14), color = Color3.fromRGB(40, 40, 55), roofColor = Color3.fromRGB(25, 25, 35), windows = 3, lit = true, neonColor = Color3.fromRGB(255, 100, 200) },  -- 7-Eleven
+			{ pos = Vector3.new(30, 0, 30), size = Vector3.new(15, 12, 14), color = Color3.fromRGB(40, 40, 55), roofColor = Color3.fromRGB(25, 25, 35), windows = 3, lit = true, neonColor = Color3.fromRGB(80, 200, 255) },  -- Karaoke
+		},
+
+		Awnings = {
+			{ pos = Vector3.new(-80, 9, 56), size = Vector3.new(12, 0.5, 6), color = Color3.fromRGB(255, 100, 200) },
+			{ pos = Vector3.new(80, 9, 56), size = Vector3.new(12, 0.5, 6), color = Color3.fromRGB(80, 200, 255) },
+			{ pos = Vector3.new(0, 8, -48), size = Vector3.new(10, 0.5, 6), color = Color3.fromRGB(255, 220, 80) },
+			{ pos = Vector3.new(-50, 6, -20), size = Vector3.new(10, 0.5, 5), color = Color3.fromRGB(50, 220, 100) },
+			{ pos = Vector3.new(50, 6, -20), size = Vector3.new(10, 0.5, 5), color = Color3.fromRGB(255, 100, 100) },
 		},
 
 		FloorPatches = {
@@ -360,6 +525,66 @@ MapTheme.Themes = {
 			-- Air conditioner pipes on ground (industrial)
 			{ type = "industrial_pipe", from = Vector3.new(-100, 1, 0), to = Vector3.new(-50, 1, 0) },
 			{ type = "industrial_pipe", from = Vector3.new(50, 1, 0), to = Vector3.new(100, 1, 0) },
+			-- Parked cars (Tokyo street)
+			{ type = "parked_car", pos = Vector3.new(-60, 0, 0), color = Color3.fromRGB(220, 50, 60) },
+			{ type = "parked_car", pos = Vector3.new(60, 0, 0), color = Color3.fromRGB(50, 100, 220) },
+			{ type = "parked_car", pos = Vector3.new(-60, 0, 30), color = Color3.fromRGB(40, 40, 50) },
+			{ type = "parked_car", pos = Vector3.new(60, 0, 30), color = Color3.fromRGB(200, 200, 200) },
+			{ type = "parked_car", pos = Vector3.new(0, 0, -90), color = Color3.fromRGB(220, 200, 60) },
+			-- Traffic lights
+			{ type = "traffic_light", pos = Vector3.new(-30, 0, -60) },
+			{ type = "traffic_light", pos = Vector3.new(30, 0, 60) },
+			-- Jersey barriers (concrete dividers)
+			{ type = "jersey_barrier", pos = Vector3.new(-30, 0, 0), length = 14 },
+			{ type = "jersey_barrier", pos = Vector3.new(30, 0, 0), length = 14 },
+			-- Dumpsters
+			{ type = "dumpster", pos = Vector3.new(-90, 0, 30), color = Color3.fromRGB(50, 100, 50) },
+			{ type = "dumpster", pos = Vector3.new(90, 0, 30), color = Color3.fromRGB(80, 80, 100) },
+			-- Transformer boxes
+			{ type = "transformer_box", pos = Vector3.new(-100, 0, 60) },
+			{ type = "transformer_box", pos = Vector3.new(100, 0, 60) },
+			-- More vending machines clustered everywhere
+			{ type = "vending", pos = Vector3.new(-90, 0, 0), color = Color3.fromRGB(255, 100, 200) },
+			{ type = "vending", pos = Vector3.new(-94, 0, 0), color = Color3.fromRGB(80, 200, 255) },
+			{ type = "vending", pos = Vector3.new(90, 0, 0), color = Color3.fromRGB(50, 220, 100) },
+			{ type = "vending", pos = Vector3.new(94, 0, 0), color = Color3.fromRGB(255, 200, 80) },
+			-- More street lamps (neon blue)
+			{ type = "neon_street_lamp", pos = Vector3.new(-30, 0, 0) },
+			{ type = "neon_street_lamp", pos = Vector3.new(30, 0, 0) },
+			{ type = "neon_street_lamp", pos = Vector3.new(-30, 0, -90) },
+			{ type = "neon_street_lamp", pos = Vector3.new(30, 0, -90) },
+			{ type = "neon_street_lamp", pos = Vector3.new(-90, 0, -60) },
+			{ type = "neon_street_lamp", pos = Vector3.new(90, 0, -60) },
+			-- Interior walls
+			{ type = "interior_wall", pos = Vector3.new(0, 0, -40), size = Vector3.new(20, 8, 0.5), color = Color3.fromRGB(60, 60, 80) },
+			{ type = "interior_wall", pos = Vector3.new(0, 0, 40), size = Vector3.new(20, 8, 0.5), color = Color3.fromRGB(60, 60, 80) },
+			-- Manholes
+			{ type = "manhole", pos = Vector3.new(-30, 0, 30) },
+			{ type = "manhole", pos = Vector3.new(30, 0, 30) },
+			{ type = "manhole", pos = Vector3.new(-30, 0, -30) },
+			{ type = "manhole", pos = Vector3.new(30, 0, -30) },
+			-- Stairs
+			{ type = "stairs_up", pos = Vector3.new(-80, 0, 50), facing = "Z" },
+			{ type = "stairs_up", pos = Vector3.new(80, 0, 50), facing = "Z" },
+			-- Bicycle racks
+			{ type = "bicycle", pos = Vector3.new(-25, 0, 60) },
+			{ type = "bicycle", pos = Vector3.new(-20, 0, 60) },
+			{ type = "bicycle", pos = Vector3.new(25, 0, 60) },
+			{ type = "bicycle", pos = Vector3.new(20, 0, 60) },
+			-- More trash bins
+			{ type = "trash_bin", pos = Vector3.new(-90, 0, 60) },
+			{ type = "trash_bin", pos = Vector3.new(90, 0, 60) },
+			{ type = "trash_bin", pos = Vector3.new(0, 0, -90) },
+			{ type = "trash_bin", pos = Vector3.new(0, 0, 90) },
+			-- Vending stack near mid
+			{ type = "vending", pos = Vector3.new(0, 0, 0), color = Color3.fromRGB(255, 100, 200) },
+			{ type = "vending", pos = Vector3.new(4, 0, 0), color = Color3.fromRGB(80, 200, 255) },
+			-- Newspaper boxes
+			{ type = "newsstand", pos = Vector3.new(-50, 0, 50) },
+			{ type = "newsstand", pos = Vector3.new(50, 0, 50) },
+			-- Mailboxes
+			{ type = "mailbox", pos = Vector3.new(-70, 0, 20) },
+			{ type = "mailbox", pos = Vector3.new(70, 0, 20) },
 		},
 		Particles = { type = "neon_glow", color = Color3.fromRGB(255, 100, 200), rate = 8 },
 	},
@@ -389,6 +614,19 @@ MapTheme.Themes = {
 			-- East/west wings
 			{ pos = Vector3.new(155, 0, 0), size = Vector3.new(30, 35, 70), color = Color3.fromRGB(180, 90, 60), roofColor = Color3.fromRGB(220, 180, 60), windows = 10, accentColor = Color3.fromRGB(255, 220, 100), isMonastery = true },
 			{ pos = Vector3.new(-155, 0, 0), size = Vector3.new(30, 35, 70), color = Color3.fromRGB(180, 90, 60), roofColor = Color3.fromRGB(220, 180, 60), windows = 10, accentColor = Color3.fromRGB(255, 220, 100), isMonastery = true },
+			-- INTERIOR BUILDINGS (monastery halls inside playspace)
+			{ pos = Vector3.new(-100, 0, 70), size = Vector3.new(30, 22, 25), color = Color3.fromRGB(180, 90, 60), roofColor = Color3.fromRGB(220, 180, 60), windows = 5, accentColor = Color3.fromRGB(255, 220, 100), isMonastery = true },  -- A Site hall
+			{ pos = Vector3.new(0, 0, 70), size = Vector3.new(28, 20, 22), color = Color3.fromRGB(180, 90, 60), roofColor = Color3.fromRGB(220, 180, 60), windows = 5, accentColor = Color3.fromRGB(255, 220, 100), isMonastery = true },  -- B Site hall
+			{ pos = Vector3.new(100, 0, 70), size = Vector3.new(30, 22, 25), color = Color3.fromRGB(180, 90, 60), roofColor = Color3.fromRGB(220, 180, 60), windows = 5, accentColor = Color3.fromRGB(255, 220, 100), isMonastery = true },  -- C Site hall
+			{ pos = Vector3.new(-50, 0, 0), size = Vector3.new(20, 14, 18), color = Color3.fromRGB(180, 90, 60), roofColor = Color3.fromRGB(220, 180, 60), windows = 3, accentColor = Color3.fromRGB(255, 220, 100), isMonastery = true },
+			{ pos = Vector3.new(50, 0, 0), size = Vector3.new(20, 14, 18), color = Color3.fromRGB(180, 90, 60), roofColor = Color3.fromRGB(220, 180, 60), windows = 3, accentColor = Color3.fromRGB(255, 220, 100), isMonastery = true },
+			{ pos = Vector3.new(0, 0, -70), size = Vector3.new(25, 18, 22), color = Color3.fromRGB(180, 90, 60), roofColor = Color3.fromRGB(220, 180, 60), windows = 5, accentColor = Color3.fromRGB(255, 220, 100), isMonastery = true },
+		},
+
+		Awnings = {
+			{ pos = Vector3.new(-100, 9, 56), size = Vector3.new(14, 0.5, 7), color = Color3.fromRGB(180, 90, 60) },
+			{ pos = Vector3.new(0, 9, 56), size = Vector3.new(14, 0.5, 7), color = Color3.fromRGB(220, 180, 60) },
+			{ pos = Vector3.new(100, 9, 56), size = Vector3.new(14, 0.5, 7), color = Color3.fromRGB(180, 90, 60) },
 		},
 
 		FloorPatches = {
@@ -462,6 +700,67 @@ MapTheme.Themes = {
 			{ type = "incense_holder", pos = Vector3.new(-30, 0, -50) },
 			{ type = "incense_holder", pos = Vector3.new(30, 0, -50) },
 			{ type = "incense_holder", pos = Vector3.new(0, 0, -80) },
+			-- Lots more prayer wheels lining walls
+			{ type = "prayer_wheel", pos = Vector3.new(-50, 0, -10) },
+			{ type = "prayer_wheel", pos = Vector3.new(-50, 0, 10) },
+			{ type = "prayer_wheel", pos = Vector3.new(50, 0, -10) },
+			{ type = "prayer_wheel", pos = Vector3.new(50, 0, 10) },
+			-- More braziers (warm lighting throughout)
+			{ type = "brazier", pos = Vector3.new(-50, 0, 50) },
+			{ type = "brazier", pos = Vector3.new(50, 0, 50) },
+			{ type = "brazier", pos = Vector3.new(-50, 0, -50) },
+			{ type = "brazier", pos = Vector3.new(50, 0, -50) },
+			{ type = "brazier", pos = Vector3.new(0, 0, 50) },
+			{ type = "brazier", pos = Vector3.new(0, 0, -50) },
+			-- More stupas (different scales)
+			{ type = "stupa", pos = Vector3.new(-50, 0, 100), scale = 0.6 },
+			{ type = "stupa", pos = Vector3.new(50, 0, 100), scale = 0.6 },
+			{ type = "stupa", pos = Vector3.new(-100, 0, -120), scale = 0.7 },
+			{ type = "stupa", pos = Vector3.new(100, 0, -120), scale = 0.7 },
+			-- Column rows lining mid path
+			{ type = "column_row", pos = Vector3.new(0, 0, 30), length = 80, count = 7, color = Color3.fromRGB(200, 180, 140) },
+			{ type = "column_row", pos = Vector3.new(0, 0, -30), length = 80, count = 7, color = Color3.fromRGB(200, 180, 140) },
+			-- Interior walls
+			{ type = "interior_wall", pos = Vector3.new(-60, 0, 0), size = Vector3.new(0.5, 8, 30), color = Color3.fromRGB(180, 90, 60) },
+			{ type = "interior_wall", pos = Vector3.new(60, 0, 0), size = Vector3.new(0.5, 8, 30), color = Color3.fromRGB(180, 90, 60) },
+			{ type = "interior_wall", pos = Vector3.new(-50, 0, -90), size = Vector3.new(20, 6, 0.5), color = Color3.fromRGB(180, 90, 60) },
+			{ type = "interior_wall", pos = Vector3.new(50, 0, -90), size = Vector3.new(20, 6, 0.5), color = Color3.fromRGB(180, 90, 60) },
+			-- Zen rock gardens
+			{ type = "zen_rock", pos = Vector3.new(-70, 0, 80) },
+			{ type = "zen_rock", pos = Vector3.new(70, 0, 80) },
+			{ type = "zen_rock", pos = Vector3.new(-70, 0, 40) },
+			{ type = "zen_rock", pos = Vector3.new(70, 0, 40) },
+			{ type = "zen_rock", pos = Vector3.new(0, 0, 0) },
+			{ type = "zen_rock", pos = Vector3.new(-15, 0, 0) },
+			{ type = "zen_rock", pos = Vector3.new(15, 0, 0) },
+			-- Stone stairs throughout
+			{ type = "stone_steps", pos = Vector3.new(-50, 0, 70) },
+			{ type = "stone_steps", pos = Vector3.new(50, 0, 70) },
+			-- More bells
+			{ type = "bell", pos = Vector3.new(-30, 0, 80) },
+			{ type = "bell", pos = Vector3.new(30, 0, 80) },
+			{ type = "bell", pos = Vector3.new(-30, 0, -80) },
+			{ type = "bell", pos = Vector3.new(30, 0, -80) },
+			-- Buddha statues throughout
+			{ type = "buddha", pos = Vector3.new(-100, 0, -70), small = true },
+			{ type = "buddha", pos = Vector3.new(100, 0, -70), small = true },
+			{ type = "buddha", pos = Vector3.new(0, 0, -90), small = true },
+			-- More trees
+			{ type = "tree", pos = Vector3.new(-70, 0, 60), color = Color3.fromRGB(255, 120, 180) },
+			{ type = "tree", pos = Vector3.new(70, 0, 60), color = Color3.fromRGB(255, 120, 180) },
+			{ type = "tree", pos = Vector3.new(-70, 0, -60), color = Color3.fromRGB(255, 120, 180) },
+			{ type = "tree", pos = Vector3.new(70, 0, -60), color = Color3.fromRGB(255, 120, 180) },
+			-- Banners
+			{ type = "street_banner", from = Vector3.new(-120, 25, 0), to = Vector3.new(-60, 25, 0), text = "OM", color = Color3.fromRGB(255, 220, 100) },
+			{ type = "street_banner", from = Vector3.new(60, 25, 0), to = Vector3.new(120, 25, 0), text = "OM", color = Color3.fromRGB(255, 220, 100) },
+			-- More incense holders
+			{ type = "incense_holder", pos = Vector3.new(-15, 0, 30) },
+			{ type = "incense_holder", pos = Vector3.new(15, 0, 30) },
+			{ type = "incense_holder", pos = Vector3.new(-15, 0, -30) },
+			{ type = "incense_holder", pos = Vector3.new(15, 0, -30) },
+			-- Low walls (defensive cover)
+			{ type = "low_wall", pos = Vector3.new(-40, 0, 60), size = Vector3.new(15, 2.5, 0.6) },
+			{ type = "low_wall", pos = Vector3.new(40, 0, 60), size = Vector3.new(15, 2.5, 0.6) },
 		},
 		Particles = { type = "incense", color = Color3.fromRGB(255, 250, 240), rate = 4 },
 	},
@@ -491,6 +790,22 @@ MapTheme.Themes = {
 			-- East/west large bunkers
 			{ pos = Vector3.new(140, 0, 0), size = Vector3.new(20, 22, 60), color = Color3.fromRGB(130, 110, 85), roofColor = Color3.fromRGB(95, 85, 65), windows = 5, isIndustrial = true },
 			{ pos = Vector3.new(-140, 0, 0), size = Vector3.new(20, 22, 60), color = Color3.fromRGB(130, 110, 85), roofColor = Color3.fromRGB(95, 85, 65), windows = 5, isIndustrial = true },
+			-- INTERIOR research buildings + supply shacks
+			{ pos = Vector3.new(-90, 0, 0), size = Vector3.new(28, 18, 22), color = Color3.fromRGB(140, 120, 90), roofColor = Color3.fromRGB(100, 90, 70), windows = 4, isIndustrial = true },  -- A Bunker
+			{ pos = Vector3.new(90, 0, 0), size = Vector3.new(28, 18, 22), color = Color3.fromRGB(140, 120, 90), roofColor = Color3.fromRGB(100, 90, 70), windows = 4, isIndustrial = true },  -- B Bunker
+			{ pos = Vector3.new(0, 0, 60), size = Vector3.new(25, 15, 20), color = Color3.fromRGB(150, 130, 100), roofColor = Color3.fromRGB(110, 100, 80), windows = 4, isIndustrial = true },  -- N control
+			{ pos = Vector3.new(0, 0, -60), size = Vector3.new(25, 15, 20), color = Color3.fromRGB(150, 130, 100), roofColor = Color3.fromRGB(110, 100, 80), windows = 4, isIndustrial = true },  -- S control
+			{ pos = Vector3.new(-50, 0, 50), size = Vector3.new(15, 10, 15), color = Color3.fromRGB(120, 100, 80), roofColor = Color3.fromRGB(95, 85, 65), windows = 2, isIndustrial = true },
+			{ pos = Vector3.new(50, 0, 50), size = Vector3.new(15, 10, 15), color = Color3.fromRGB(120, 100, 80), roofColor = Color3.fromRGB(95, 85, 65), windows = 2, isIndustrial = true },
+			{ pos = Vector3.new(-50, 0, -50), size = Vector3.new(15, 10, 15), color = Color3.fromRGB(120, 100, 80), roofColor = Color3.fromRGB(95, 85, 65), windows = 2, isIndustrial = true },
+			{ pos = Vector3.new(50, 0, -50), size = Vector3.new(15, 10, 15), color = Color3.fromRGB(120, 100, 80), roofColor = Color3.fromRGB(95, 85, 65), windows = 2, isIndustrial = true },
+		},
+
+		Awnings = {
+			{ pos = Vector3.new(-90, 8, 13), size = Vector3.new(12, 0.5, 5), color = Color3.fromRGB(255, 200, 80) },
+			{ pos = Vector3.new(90, 8, 13), size = Vector3.new(12, 0.5, 5), color = Color3.fromRGB(255, 200, 80) },
+			{ pos = Vector3.new(0, 7, 50), size = Vector3.new(10, 0.5, 5), color = Color3.fromRGB(200, 100, 50) },
+			{ pos = Vector3.new(0, 7, -50), size = Vector3.new(10, 0.5, 5), color = Color3.fromRGB(200, 100, 50) },
 		},
 
 		FloorPatches = {
@@ -579,6 +894,70 @@ MapTheme.Themes = {
 			{ type = "crate_pile", pos = Vector3.new(40, 0, -80) },
 			{ type = "crate_pile", pos = Vector3.new(-70, 0, 30) },
 			{ type = "crate_pile", pos = Vector3.new(70, 0, -30) },
+			-- MASSIVE container yard density
+			{ type = "container", pos = Vector3.new(-40, 0, 80), color = Color3.fromRGB(180, 100, 50) },
+			{ type = "container", pos = Vector3.new(40, 0, 80), color = Color3.fromRGB(80, 100, 140) },
+			{ type = "container", pos = Vector3.new(-40, 0, -80), color = Color3.fromRGB(60, 60, 90) },
+			{ type = "container", pos = Vector3.new(40, 0, -80), color = Color3.fromRGB(160, 80, 40) },
+			{ type = "container", pos = Vector3.new(-110, 0, 90), color = Color3.fromRGB(80, 160, 80) },
+			{ type = "container", pos = Vector3.new(110, 0, -90), color = Color3.fromRGB(160, 60, 60) },
+			-- Stacked containers (2-tier)
+			{ type = "container_stack", pos = Vector3.new(0, 0, 100) },
+			{ type = "container_stack", pos = Vector3.new(0, 0, -100) },
+			-- Parked military trucks
+			{ type = "parked_car", pos = Vector3.new(-50, 0, 30), color = Color3.fromRGB(120, 130, 90) },
+			{ type = "parked_car", pos = Vector3.new(50, 0, -30), color = Color3.fromRGB(120, 130, 90) },
+			{ type = "parked_car", pos = Vector3.new(-80, 0, -60), color = Color3.fromRGB(140, 100, 60) },
+			{ type = "parked_car", pos = Vector3.new(80, 0, 60), color = Color3.fromRGB(140, 100, 60) },
+			-- Jersey barriers (concrete dividers)
+			{ type = "jersey_barrier", pos = Vector3.new(-30, 0, -50), length = 18 },
+			{ type = "jersey_barrier", pos = Vector3.new(30, 0, 50), length = 18 },
+			{ type = "jersey_barrier", pos = Vector3.new(0, 0, 0), length = 14 },
+			-- More fuel barrels
+			{ type = "fuel_barrel", pos = Vector3.new(-60, 0, 30) },
+			{ type = "fuel_barrel", pos = Vector3.new(-55, 0, 30) },
+			{ type = "fuel_barrel", pos = Vector3.new(60, 0, -30) },
+			{ type = "fuel_barrel", pos = Vector3.new(55, 0, -30) },
+			-- Many more sandbag walls
+			{ type = "sandbag_wall", pos = Vector3.new(-50, 0, 0), length = 12 },
+			{ type = "sandbag_wall", pos = Vector3.new(50, 0, 0), length = 12 },
+			{ type = "sandbag_wall", pos = Vector3.new(0, 0, 80), length = 14 },
+			{ type = "sandbag_wall", pos = Vector3.new(0, 0, -80), length = 14 },
+			-- Forklifts (cargo equipment)
+			{ type = "forklift", pos = Vector3.new(-100, 0, 30) },
+			{ type = "forklift", pos = Vector3.new(100, 0, -30) },
+			-- More floodlights
+			{ type = "floodlight", pos = Vector3.new(-90, 0, -90) },
+			{ type = "floodlight", pos = Vector3.new(90, 0, 90) },
+			{ type = "floodlight", pos = Vector3.new(-30, 0, 80) },
+			{ type = "floodlight", pos = Vector3.new(30, 0, -80) },
+			-- Dumpsters
+			{ type = "dumpster", pos = Vector3.new(-90, 0, 0), color = Color3.fromRGB(80, 50, 30) },
+			{ type = "dumpster", pos = Vector3.new(90, 0, 0), color = Color3.fromRGB(80, 50, 30) },
+			-- Warning signs spam
+			{ type = "warning_sign", pos = Vector3.new(-60, 0, 60) },
+			{ type = "warning_sign", pos = Vector3.new(60, 0, 60) },
+			{ type = "warning_sign", pos = Vector3.new(-60, 0, -60) },
+			{ type = "warning_sign", pos = Vector3.new(60, 0, -60) },
+			{ type = "warning_sign", pos = Vector3.new(0, 0, -100) },
+			{ type = "warning_sign", pos = Vector3.new(0, 0, 100) },
+			-- More antennas
+			{ type = "antenna", pos = Vector3.new(0, 0, 130) },
+			{ type = "antenna", pos = Vector3.new(0, 0, -130) },
+			-- Interior walls
+			{ type = "interior_wall", pos = Vector3.new(-40, 0, 0), size = Vector3.new(0.5, 8, 20), color = Color3.fromRGB(140, 120, 90) },
+			{ type = "interior_wall", pos = Vector3.new(40, 0, 0), size = Vector3.new(0.5, 8, 20), color = Color3.fromRGB(140, 120, 90) },
+			-- More wire fences
+			{ type = "wire_fence", from = Vector3.new(-80, 0, -100), to = Vector3.new(80, 0, -100) },
+			{ type = "wire_fence", from = Vector3.new(-80, 0, 100), to = Vector3.new(80, 0, 100) },
+			-- Crates everywhere
+			{ type = "crate_pile", pos = Vector3.new(-70, 0, -30) },
+			{ type = "crate_pile", pos = Vector3.new(70, 0, 30) },
+			{ type = "crate_pile", pos = Vector3.new(0, 0, 50) },
+			{ type = "crate_pile", pos = Vector3.new(0, 0, -50) },
+			-- Industrial pipes (criss-crossing)
+			{ type = "industrial_pipe", from = Vector3.new(-100, 1, 50), to = Vector3.new(-50, 1, 50) },
+			{ type = "industrial_pipe", from = Vector3.new(50, 1, -50), to = Vector3.new(100, 1, -50) },
 		},
 		Particles = { type = "smoke", color = Color3.fromRGB(180, 120, 80), rate = 10 },
 	},
@@ -608,6 +987,22 @@ MapTheme.Themes = {
 			-- East/west smaller temples
 			{ pos = Vector3.new(155, 0, 0), size = Vector3.new(30, 32, 60), color = Color3.fromRGB(215, 205, 185), roofColor = Color3.fromRGB(180, 140, 80), windows = 8, accentColor = Color3.fromRGB(255, 200, 80), isTemple = true },
 			{ pos = Vector3.new(-155, 0, 0), size = Vector3.new(30, 32, 60), color = Color3.fromRGB(215, 205, 185), roofColor = Color3.fromRGB(180, 140, 80), windows = 8, accentColor = Color3.fromRGB(255, 200, 80), isTemple = true },
+			-- INTERIOR temple halls (A/B/C site temples)
+			{ pos = Vector3.new(-100, 0, 60), size = Vector3.new(28, 22, 24), color = Color3.fromRGB(220, 210, 190), roofColor = Color3.fromRGB(180, 140, 80), windows = 5, accentColor = Color3.fromRGB(255, 200, 80), isTemple = true },
+			{ pos = Vector3.new(0, 0, 80), size = Vector3.new(28, 22, 22), color = Color3.fromRGB(225, 215, 195), roofColor = Color3.fromRGB(190, 150, 90), windows = 5, accentColor = Color3.fromRGB(255, 200, 80), isTemple = true },
+			{ pos = Vector3.new(100, 0, 60), size = Vector3.new(28, 22, 24), color = Color3.fromRGB(220, 210, 190), roofColor = Color3.fromRGB(180, 140, 80), windows = 5, accentColor = Color3.fromRGB(255, 200, 80), isTemple = true },
+			-- Smaller shrines
+			{ pos = Vector3.new(-50, 0, 30), size = Vector3.new(15, 12, 14), color = Color3.fromRGB(220, 210, 190), roofColor = Color3.fromRGB(180, 140, 80), windows = 2, accentColor = Color3.fromRGB(255, 200, 80), isTemple = true },
+			{ pos = Vector3.new(50, 0, 30), size = Vector3.new(15, 12, 14), color = Color3.fromRGB(220, 210, 190), roofColor = Color3.fromRGB(180, 140, 80), windows = 2, accentColor = Color3.fromRGB(255, 200, 80), isTemple = true },
+			{ pos = Vector3.new(-50, 0, -30), size = Vector3.new(15, 12, 14), color = Color3.fromRGB(220, 210, 190), roofColor = Color3.fromRGB(180, 140, 80), windows = 2, accentColor = Color3.fromRGB(255, 200, 80), isTemple = true },
+			{ pos = Vector3.new(50, 0, -30), size = Vector3.new(15, 12, 14), color = Color3.fromRGB(220, 210, 190), roofColor = Color3.fromRGB(180, 140, 80), windows = 2, accentColor = Color3.fromRGB(255, 200, 80), isTemple = true },
+			{ pos = Vector3.new(0, 0, -60), size = Vector3.new(20, 16, 18), color = Color3.fromRGB(225, 215, 195), roofColor = Color3.fromRGB(180, 140, 80), windows = 3, accentColor = Color3.fromRGB(255, 200, 80), isTemple = true },
+		},
+
+		Awnings = {
+			{ pos = Vector3.new(-100, 9, 47), size = Vector3.new(14, 0.5, 6), color = Color3.fromRGB(180, 140, 80) },
+			{ pos = Vector3.new(0, 9, 68), size = Vector3.new(14, 0.5, 6), color = Color3.fromRGB(180, 140, 80) },
+			{ pos = Vector3.new(100, 9, 47), size = Vector3.new(14, 0.5, 6), color = Color3.fromRGB(180, 140, 80) },
 		},
 
 		FloorPatches = {
@@ -695,6 +1090,85 @@ MapTheme.Themes = {
 			{ type = "lotus_flower", pos = Vector3.new(40, 0, -40) },
 			-- Stupa
 			{ type = "stupa", pos = Vector3.new(0, 0, 100), size = 0.8 },
+			-- MASSIVE pillar density (Indian temple corridors)
+			{ type = "pillar", pos = Vector3.new(-30, 0, 50) },
+			{ type = "pillar", pos = Vector3.new(0, 0, 50) },
+			{ type = "pillar", pos = Vector3.new(30, 0, 50) },
+			{ type = "pillar", pos = Vector3.new(-30, 0, -50) },
+			{ type = "pillar", pos = Vector3.new(0, 0, -50) },
+			{ type = "pillar", pos = Vector3.new(30, 0, -50) },
+			{ type = "pillar", pos = Vector3.new(-30, 0, 0) },
+			{ type = "pillar", pos = Vector3.new(30, 0, 0) },
+			{ type = "pillar", pos = Vector3.new(-30, 0, 20) },
+			{ type = "pillar", pos = Vector3.new(30, 0, 20) },
+			{ type = "pillar", pos = Vector3.new(-30, 0, -20) },
+			{ type = "pillar", pos = Vector3.new(30, 0, -20) },
+			-- Interior walls forming corridors
+			{ type = "interior_wall", pos = Vector3.new(-40, 0, 70), size = Vector3.new(20, 8, 0.5), color = Color3.fromRGB(220, 210, 190) },
+			{ type = "interior_wall", pos = Vector3.new(40, 0, 70), size = Vector3.new(20, 8, 0.5), color = Color3.fromRGB(220, 210, 190) },
+			{ type = "interior_wall", pos = Vector3.new(-40, 0, -70), size = Vector3.new(20, 8, 0.5), color = Color3.fromRGB(220, 210, 190) },
+			{ type = "interior_wall", pos = Vector3.new(40, 0, -70), size = Vector3.new(20, 8, 0.5), color = Color3.fromRGB(220, 210, 190) },
+			-- Column rows lining mid path
+			{ type = "column_row", pos = Vector3.new(0, 0, 40), length = 100, count = 9, color = Color3.fromRGB(220, 210, 190) },
+			{ type = "column_row", pos = Vector3.new(0, 0, -40), length = 100, count = 9, color = Color3.fromRGB(220, 210, 190) },
+			-- More lotus flowers (carpeting paths)
+			{ type = "lotus_flower", pos = Vector3.new(-15, 0, 80) },
+			{ type = "lotus_flower", pos = Vector3.new(15, 0, 80) },
+			{ type = "lotus_flower", pos = Vector3.new(-15, 0, -80) },
+			{ type = "lotus_flower", pos = Vector3.new(15, 0, -80) },
+			{ type = "lotus_flower", pos = Vector3.new(0, 0, 80) },
+			{ type = "lotus_flower", pos = Vector3.new(0, 0, -80) },
+			-- More banyan trees
+			{ type = "banyan", pos = Vector3.new(-130, 0, 0) },
+			{ type = "banyan", pos = Vector3.new(130, 0, 0) },
+			-- Stone benches everywhere
+			{ type = "stone_bench", pos = Vector3.new(-50, 0, 60) },
+			{ type = "stone_bench", pos = Vector3.new(50, 0, 60) },
+			{ type = "stone_bench", pos = Vector3.new(-50, 0, -60) },
+			{ type = "stone_bench", pos = Vector3.new(50, 0, -60) },
+			{ type = "stone_bench", pos = Vector3.new(-100, 0, 0) },
+			{ type = "stone_bench", pos = Vector3.new(100, 0, 0) },
+			-- Mandalas on floor
+			{ type = "mandala", pos = Vector3.new(-50, 0, 0) },
+			{ type = "mandala", pos = Vector3.new(50, 0, 0) },
+			{ type = "mandala", pos = Vector3.new(0, 0, 60) },
+			{ type = "mandala", pos = Vector3.new(0, 0, -60) },
+			-- More elephant statues guarding
+			{ type = "elephant_statue", pos = Vector3.new(-50, 0, 70) },
+			{ type = "elephant_statue", pos = Vector3.new(50, 0, 70) },
+			-- More incense throughout
+			{ type = "incense_holder", pos = Vector3.new(-15, 0, 0) },
+			{ type = "incense_holder", pos = Vector3.new(15, 0, 0) },
+			{ type = "incense_holder", pos = Vector3.new(-15, 0, 60) },
+			{ type = "incense_holder", pos = Vector3.new(15, 0, 60) },
+			-- More cobra statues
+			{ type = "cobra_statue", pos = Vector3.new(-90, 0, 0) },
+			{ type = "cobra_statue", pos = Vector3.new(90, 0, 0) },
+			{ type = "cobra_statue", pos = Vector3.new(0, 0, 30) },
+			{ type = "cobra_statue", pos = Vector3.new(0, 0, -30) },
+			-- More stupas
+			{ type = "stupa", pos = Vector3.new(-60, 0, 130), size = 0.7 },
+			{ type = "stupa", pos = Vector3.new(60, 0, 130), size = 0.7 },
+			-- More buddha statues
+			{ type = "buddha", pos = Vector3.new(-50, 0, -90), small = true },
+			{ type = "buddha", pos = Vector3.new(50, 0, -90), small = true },
+			{ type = "buddha", pos = Vector3.new(-100, 0, 30), small = true },
+			{ type = "buddha", pos = Vector3.new(100, 0, 30), small = true },
+			-- More lotus ponds
+			{ type = "lotus_pond", pos = Vector3.new(-100, 0, 30), size = 6 },
+			{ type = "lotus_pond", pos = Vector3.new(100, 0, 30), size = 6 },
+			-- Stone stairs to platforms
+			{ type = "stone_steps", pos = Vector3.new(-100, 0, 50) },
+			{ type = "stone_steps", pos = Vector3.new(0, 0, 70) },
+			{ type = "stone_steps", pos = Vector3.new(100, 0, 50) },
+			-- Low walls (cover)
+			{ type = "low_wall", pos = Vector3.new(-40, 0, 30), size = Vector3.new(15, 2.5, 0.6) },
+			{ type = "low_wall", pos = Vector3.new(40, 0, 30), size = Vector3.new(15, 2.5, 0.6) },
+			{ type = "low_wall", pos = Vector3.new(-40, 0, -30), size = Vector3.new(15, 2.5, 0.6) },
+			{ type = "low_wall", pos = Vector3.new(40, 0, -30), size = Vector3.new(15, 2.5, 0.6) },
+			-- Banners
+			{ type = "street_banner", from = Vector3.new(-120, 25, 0), to = Vector3.new(-60, 25, 0), text = "LOTUS", color = Color3.fromRGB(255, 200, 80) },
+			{ type = "street_banner", from = Vector3.new(60, 25, 0), to = Vector3.new(120, 25, 0), text = "LOTUS", color = Color3.fromRGB(255, 200, 80) },
 		},
 		Particles = { type = "pollen", color = Color3.fromRGB(255, 220, 150), rate = 6 },
 	},

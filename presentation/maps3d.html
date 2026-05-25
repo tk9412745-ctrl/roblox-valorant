@@ -1586,6 +1586,358 @@ PROP_BUILDERS.banyan = (p) => {
   return g;
 };
 
+// ===== PROCEDURAL WALL TEXTURES (per-architectural-style via canvas) =====
+const wallTextureCache = {};
+function makeWallTexture(style, baseColor) {
+  const cacheKey = style + '_' + baseColor.getHexString();
+  if (wallTextureCache[cacheKey]) return wallTextureCache[cacheKey];
+
+  const c = document.createElement('canvas');
+  c.width = 512; c.height = 512;
+  const ctx = c.getContext('2d');
+  const hex = '#' + baseColor.getHexString();
+  ctx.fillStyle = hex;
+  ctx.fillRect(0, 0, 512, 512);
+
+  const darker = (factor) => {
+    const r = Math.floor(baseColor.r * 255 * factor);
+    const g = Math.floor(baseColor.g * 255 * factor);
+    const b = Math.floor(baseColor.b * 255 * factor);
+    return `rgb(${Math.min(255,r)}, ${Math.min(255,g)}, ${Math.min(255,b)})`;
+  };
+
+  if (style === 'plaster') {
+    // ASCENT: weathered plaster with exposed brick patches (chipped corners)
+    // Add subtle noise to plaster
+    for (let i = 0; i < 4000; i++) {
+      ctx.fillStyle = darker(0.85 + Math.random() * 0.3);
+      ctx.fillRect(Math.random() * 512, Math.random() * 512, 1, 1);
+    }
+    // Brick patches (where plaster has chipped off) — 6-10 irregular shapes
+    for (let p = 0; p < 8; p++) {
+      const px = Math.random() * 512;
+      const py = Math.random() * 512;
+      const pw = 30 + Math.random() * 60;
+      const ph = 25 + Math.random() * 50;
+      // Brick pattern inside patch
+      ctx.save();
+      ctx.beginPath();
+      // Irregular polygon
+      ctx.moveTo(px, py);
+      for (let v = 0; v < 6; v++) {
+        const ang = (v / 6) * Math.PI * 2;
+        ctx.lineTo(px + Math.cos(ang) * (pw / 2 + (Math.random() - 0.5) * 10), py + Math.sin(ang) * (ph / 2 + (Math.random() - 0.5) * 8));
+      }
+      ctx.closePath();
+      ctx.clip();
+      // Brick base
+      ctx.fillStyle = '#8b3a2e';
+      ctx.fillRect(px - pw, py - ph, pw * 2, ph * 2);
+      // Brick rows
+      for (let by = -ph; by < ph; by += 8) {
+        const offset = (by / 8) % 2 === 0 ? 0 : 16;
+        for (let bx = -pw; bx < pw; bx += 32) {
+          ctx.fillStyle = `rgb(${139 - Math.random() * 20}, ${58 - Math.random() * 10}, ${46 - Math.random() * 10})`;
+          ctx.fillRect(px + bx + offset, py + by, 30, 7);
+        }
+      }
+      ctx.restore();
+    }
+    // Water staining streaks from windows
+    for (let s = 0; s < 5; s++) {
+      const sx = Math.random() * 512;
+      ctx.strokeStyle = darker(0.7);
+      ctx.lineWidth = 8;
+      ctx.globalAlpha = 0.2;
+      ctx.beginPath();
+      ctx.moveTo(sx, 0);
+      ctx.bezierCurveTo(sx + 10, 100, sx - 10, 250, sx + 5, 512);
+      ctx.stroke();
+      ctx.globalAlpha = 1.0;
+    }
+  } else if (style === 'sandstone_block') {
+    // BIND: sandstone block pattern with mortar lines
+    const blockW = 60, blockH = 30;
+    for (let y = 0; y < 512; y += blockH) {
+      const offset = ((y / blockH) % 2) === 0 ? 0 : blockW / 2;
+      for (let x = -blockW; x < 512; x += blockW) {
+        // Vary block color slightly
+        ctx.fillStyle = darker(0.85 + Math.random() * 0.3);
+        ctx.fillRect(x + offset + 2, y + 2, blockW - 4, blockH - 4);
+      }
+    }
+    // Dark mortar lines already showing through gaps
+    // Add some sand texture noise
+    for (let i = 0; i < 3000; i++) {
+      ctx.fillStyle = darker(0.9 + Math.random() * 0.2);
+      ctx.fillRect(Math.random() * 512, Math.random() * 512, 1, 1);
+    }
+  } else if (style === 'glass_facade') {
+    // SPLIT: dark glass facade with reflective stripes + window frames
+    ctx.fillStyle = darker(0.5);
+    ctx.fillRect(0, 0, 512, 512);
+    // Horizontal floor lines (lighter)
+    for (let y = 0; y < 512; y += 32) {
+      ctx.fillStyle = darker(0.7);
+      ctx.fillRect(0, y, 512, 1.5);
+    }
+    // Vertical mullion lines
+    for (let x = 0; x < 512; x += 28) {
+      ctx.fillStyle = darker(0.6);
+      ctx.fillRect(x, 0, 1.5, 512);
+    }
+    // Random lit windows (warm or cool)
+    for (let y = 4; y < 512; y += 32) {
+      for (let x = 4; x < 512; x += 28) {
+        if (Math.random() < 0.35) {
+          const litColor = Math.random() < 0.5 ? '#ffe064' : '#88e0ff';
+          ctx.fillStyle = litColor;
+          ctx.globalAlpha = 0.7;
+          ctx.fillRect(x, y, 24, 28);
+          ctx.globalAlpha = 1.0;
+        }
+      }
+    }
+  } else if (style === 'monastery_brick') {
+    // HAVEN: red brick + Kemar red ochre band at top + gold discs
+    // Base wall: red ochre with subtle vertical streaks
+    ctx.fillStyle = hex;
+    ctx.fillRect(0, 0, 512, 512);
+    // Vertical streaking (weathering)
+    for (let x = 0; x < 512; x += 12) {
+      ctx.fillStyle = darker(0.85 + Math.random() * 0.25);
+      ctx.fillRect(x, 0, 4, 512);
+    }
+    // Kemar red stripe across top 60-90px (signature Bhutanese feature)
+    ctx.fillStyle = '#7a2828';
+    ctx.fillRect(0, 60, 512, 30);
+    // Gold disc circles on Kemar stripe (5 across)
+    for (let d = 0; d < 5; d++) {
+      ctx.beginPath();
+      ctx.arc(50 + d * 100, 75, 10, 0, Math.PI * 2);
+      ctx.fillStyle = '#dcb43c';
+      ctx.fill();
+      ctx.strokeStyle = '#8c5a14';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+  } else if (style === 'corrugated_metal') {
+    // FRACTURE: corrugated metal with rust + bolts
+    ctx.fillStyle = hex;
+    ctx.fillRect(0, 0, 512, 512);
+    // Vertical corrugation strips
+    for (let x = 0; x < 512; x += 24) {
+      // Highlight strip
+      ctx.fillStyle = darker(1.1);
+      ctx.fillRect(x, 0, 3, 512);
+      // Shadow strip
+      ctx.fillStyle = darker(0.7);
+      ctx.fillRect(x + 12, 0, 3, 512);
+    }
+    // Rust patches
+    for (let r = 0; r < 12; r++) {
+      const rx = Math.random() * 512;
+      const ry = Math.random() * 512;
+      const rr = 10 + Math.random() * 30;
+      const grad = ctx.createRadialGradient(rx, ry, 0, rx, ry, rr);
+      grad.addColorStop(0, 'rgba(180, 60, 30, 0.6)');
+      grad.addColorStop(1, 'rgba(180, 60, 30, 0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(rx - rr, ry - rr, rr * 2, rr * 2);
+    }
+    // Bolts at regular intervals
+    for (let y = 30; y < 512; y += 80) {
+      for (let x = 30; x < 512; x += 80) {
+        ctx.beginPath();
+        ctx.arc(x, y, 3, 0, Math.PI * 2);
+        ctx.fillStyle = '#3c3228';
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(x - 0.5, y - 0.5, 1.2, 0, Math.PI * 2);
+        ctx.fillStyle = '#787068';
+        ctx.fill();
+      }
+    }
+  } else if (style === 'marble_relief') {
+    // LOTUS: marble with carved relief panels
+    ctx.fillStyle = hex;
+    ctx.fillRect(0, 0, 512, 512);
+    // Marble veins (lighter, curved)
+    ctx.globalAlpha = 0.2;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1;
+    for (let v = 0; v < 18; v++) {
+      ctx.beginPath();
+      let x = Math.random() * 512, y = Math.random() * 512;
+      ctx.moveTo(x, y);
+      for (let s = 0; s < 30; s++) {
+        x += (Math.random() - 0.5) * 25;
+        y += (Math.random() - 0.5) * 25;
+        ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1.0;
+    // Carved relief borders (vertical stepped panels with darker recess)
+    const panelW = 80;
+    for (let x = 0; x < 512; x += panelW) {
+      // Recess (darker stripe between panels)
+      ctx.fillStyle = darker(0.7);
+      ctx.fillRect(x - 4, 60, 8, 392);
+      // Top decoration band (carved geometric pattern)
+      ctx.fillStyle = darker(0.85);
+      ctx.fillRect(x, 60, panelW - 8, 8);
+      // Bottom decoration band
+      ctx.fillStyle = darker(0.85);
+      ctx.fillRect(x, 452, panelW - 8, 8);
+      // Lotus carving in middle of panel
+      const cx = x + (panelW - 8) / 2;
+      const cy = 256;
+      ctx.fillStyle = darker(0.6);
+      ctx.beginPath();
+      for (let p = 0; p < 8; p++) {
+        const ang = (p / 8) * Math.PI * 2;
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + Math.cos(ang) * 15, cy + Math.sin(ang) * 15);
+        ctx.lineTo(cx + Math.cos(ang + 0.3) * 8, cy + Math.sin(ang + 0.3) * 8);
+        ctx.closePath();
+      }
+      ctx.fill();
+    }
+  }
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  wallTextureCache[cacheKey] = tex;
+  return tex;
+}
+
+// Apply textured wall material with tile repeats matched to building size
+function texturedWallMat(style, color, w, h) {
+  const tex = makeWallTexture(style, color);
+  tex.repeat.set(Math.max(1, w / 20), Math.max(1, h / 20));
+  tex.needsUpdate = true;
+  return new THREE.MeshStandardMaterial({
+    map: tex,
+    color: color,
+    roughness: 0.85,
+    metalness: style === 'glass_facade' ? 0.4 : (style === 'corrugated_metal' ? 0.3 : 0.05),
+  });
+}
+
+// Build a recessed window (depth + frame + glass + optional shutters)
+function buildDetailedWindow(g, x, y, z, w, h, isLit, frameColor, shutterColor, hasFlowerBox) {
+  // Recess (dark hole)
+  const recess = makeBox(w * 1.1, h * 1.1, 0.4, 0x0a0a14, { roughness: 0.95 });
+  recess.position.set(x, y, z - 0.2);
+  g.add(recess);
+  // Glass pane
+  const glassColor = isLit ? 0xfff0a0 : 0x506a8c;
+  const glass = makeBox(w, h, 0.1, glassColor, {
+    transparent: true, opacity: isLit ? 0.95 : 0.7,
+    metalness: 0.4, roughness: 0.05,
+    emissive: isLit ? glassColor : 0x000000, emissiveIntensity: isLit ? 0.6 : 0,
+  });
+  glass.position.set(x, y, z + 0.05);
+  g.add(glass);
+  // Cross mullion (horizontal + vertical thin bars)
+  const mulH = makeBox(w, 0.15, 0.2, frameColor);
+  mulH.position.set(x, y, z + 0.1);
+  g.add(mulH);
+  const mulV = makeBox(0.15, h, 0.2, frameColor);
+  mulV.position.set(x, y, z + 0.1);
+  g.add(mulV);
+  // Stone frame around recess
+  const ft = makeBox(w * 1.3, 0.3, 0.5, frameColor);
+  ft.position.set(x, y + h / 2 + 0.1, z + 0.15);
+  g.add(ft);
+  const fb = makeBox(w * 1.3, 0.3, 0.5, frameColor);
+  fb.position.set(x, y - h / 2 - 0.1, z + 0.15);
+  g.add(fb);
+  const fl = makeBox(0.3, h * 1.2, 0.5, frameColor);
+  fl.position.set(x - w / 2 - 0.1, y, z + 0.15);
+  g.add(fl);
+  const fr = makeBox(0.3, h * 1.2, 0.5, frameColor);
+  fr.position.set(x + w / 2 + 0.1, y, z + 0.15);
+  g.add(fr);
+  // Shutters (open, 90° to wall)
+  if (shutterColor !== null) {
+    const shL = makeBox(w * 0.4, h * 1.1, 0.15, shutterColor, { roughness: 0.9 });
+    shL.position.set(x - w / 2 - w * 0.2 - 0.2, y, z + w * 0.2);
+    shL.rotation.y = Math.PI / 2.2;
+    g.add(shL);
+    // Shutter slats (visible lines)
+    for (let s = 0; s < 4; s++) {
+      const slat = makeBox(w * 0.38, 0.05, 0.16, 0x000000, { transparent: true, opacity: 0.4 });
+      slat.position.set(x - w / 2 - w * 0.2 - 0.2, y - h * 0.4 + s * (h * 0.25), z + w * 0.2);
+      slat.rotation.y = Math.PI / 2.2;
+      g.add(slat);
+    }
+    const shR = makeBox(w * 0.4, h * 1.1, 0.15, shutterColor, { roughness: 0.9 });
+    shR.position.set(x + w / 2 + w * 0.2 + 0.2, y, z + w * 0.2);
+    shR.rotation.y = -Math.PI / 2.2;
+    g.add(shR);
+    for (let s = 0; s < 4; s++) {
+      const slat = makeBox(w * 0.38, 0.05, 0.16, 0x000000, { transparent: true, opacity: 0.4 });
+      slat.position.set(x + w / 2 + w * 0.2 + 0.2, y - h * 0.4 + s * (h * 0.25), z + w * 0.2);
+      slat.rotation.y = -Math.PI / 2.2;
+      g.add(slat);
+    }
+  }
+  // Flower box (only for ground/first floor)
+  if (hasFlowerBox) {
+    const fbox = makeBox(w * 1.2, 0.5, 0.4, 0x6e4828, { roughness: 0.9 });
+    fbox.position.set(x, y - h / 2 - 0.35, z + 0.4);
+    g.add(fbox);
+    // Flowers (red/yellow/pink small spheres in a row)
+    const fColors = [0xff4040, 0xffc040, 0xff80c0, 0xff5050];
+    for (let f = 0; f < 5; f++) {
+      const flower = makeSphere(0.2, fColors[f % 4], { emissive: fColors[f % 4], emissiveIntensity: 0.15 });
+      flower.position.set(x - w * 0.45 + f * (w * 0.22), y - h / 2 - 0.05, z + 0.55);
+      g.add(flower);
+    }
+    // Green foliage
+    const foliage = makeSphere(0.5, 0x508c3c);
+    foliage.position.set(x, y - h / 2 - 0.15, z + 0.5);
+    foliage.scale.set(2, 0.6, 0.8);
+    g.add(foliage);
+  }
+}
+
+// Build terracotta tile pattern on a pyramid roof (visible rows of curved tiles)
+function buildTileRoof(g, baseX, baseY, baseZ, w, d, height, color) {
+  // Roof base (slightly visible underneath tiles)
+  const eave = makeBox(w + 2.5, 0.5, d + 2.5, color, { roughness: 0.85 });
+  eave.position.set(baseX, baseY + 0.25, baseZ);
+  g.add(eave);
+  // Pyramid roof body
+  const roof = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.1, Math.max(w, d) * 0.72, height, 4, 4),
+    new THREE.MeshStandardMaterial({ color: color, roughness: 0.85 })
+  );
+  roof.position.set(baseX, baseY + height / 2 + 0.5, baseZ);
+  roof.rotation.y = Math.PI / 4;
+  roof.scale.set((w + 2) / (Math.max(w, d) * 1.414), 1, (d + 2) / (Math.max(w, d) * 1.414));
+  roof.castShadow = true;
+  roof.receiveShadow = true;
+  g.add(roof);
+  // Tile rows (small darker stripes across each face — visible from afar)
+  const rowCount = Math.floor(height / 0.7);
+  for (let i = 1; i < rowCount; i++) {
+    const t = i / rowCount;
+    const ringScale = 1 - t;
+    const ringY = baseY + 0.5 + t * height;
+    const ringRing = new THREE.Mesh(
+      new THREE.TorusGeometry(Math.max(w, d) * 0.36 * ringScale, 0.08, 4, 16),
+      new THREE.MeshStandardMaterial({ color: new THREE.Color(color).multiplyScalar(0.75).getHex(), roughness: 0.9 })
+    );
+    ringRing.rotation.x = Math.PI / 2;
+    ringRing.position.set(baseX, ringY, baseZ);
+    g.add(ringRing);
+  }
+}
+
 // ===== PROCEDURAL FLOOR TEXTURE (per-map pattern via canvas) =====
 function makeFloorTexture(mapName, baseColor) {
   const c = document.createElement('canvas');
@@ -1811,117 +2163,64 @@ function addWindowsToBody(g, b, w, h, d, winColor, winEmissive, lit) {
   }
 }
 
-// VILLA — Italian Renaissance style, pyramid roof
+// VILLA — Italian Renaissance: textured plaster, recessed windows w/ shutters + flower boxes, tile roof
 function buildVilla(b) {
   const g = new THREE.Group();
   const [w, h, d] = b.size;
-  // Optional L-shape: add wing 30% chance
-  const hasWing = Math.random() < 0.35;
-  // Main body
-  const body = makeBox(w, h, d, b.color, { roughness: 0.85 });
-  body.position.set(b.pos[0], h / 2, b.pos[2]);
-  g.add(body);
-  // Eave + pyramid roof
-  const eave = makeBox(w + 2, 0.5, d + 2, b.roofColor || 0x644632, { roughness: 0.9 });
-  eave.position.set(b.pos[0], h + 0.25, b.pos[2]);
-  g.add(eave);
-  const roofHeight = Math.min(w, d) * 0.28;
-  const roof = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.1, Math.max(w, d) * 0.72, roofHeight, 4, 1),
-    new THREE.MeshStandardMaterial({ color: b.roofColor || 0x644632, roughness: 0.85 })
-  );
-  roof.position.set(b.pos[0], h + roofHeight / 2 + 0.5, b.pos[2]);
-  roof.rotation.y = Math.PI / 4;
-  roof.scale.set((w + 2) / (Math.max(w, d) * 1.414), 1, (d + 2) / (Math.max(w, d) * 1.414));
-  roof.castShadow = true; roof.receiveShadow = true;
-  g.add(roof);
-  // Chimney
-  if (Math.random() < 0.5) {
-    const chimney = makeBox(1.5, 4, 1.5, 0x404040, { roughness: 0.95 });
-    chimney.position.set(b.pos[0] + (Math.random() - 0.5) * w * 0.4, h + roofHeight - 1, b.pos[2] + (Math.random() - 0.5) * d * 0.4);
-    g.add(chimney);
-  }
-  // Windows (arched look — use slightly taller frames around small windows)
-  addWindowsToBody(g, b, w, h, d, 0x282838, 0x141420, false);
-  // Door
-  const door = makeBox(3, 5, 0.4, 0x3c2818, { roughness: 0.9 });
-  door.position.set(b.pos[0], 2.5, b.pos[2] + d/2 + 0.2); g.add(door);
-  const frame = makeBox(4, 6, 0.6, b.accentColor || 0x886a32);
-  frame.position.set(b.pos[0], 3, b.pos[2] + d/2 + 0.05); g.add(frame);
-  // Balcony
-  if (b.hasBalcony) {
-    const balcony = makeBox(w * 0.6, 0.6, 3, 0x806a50, { roughness: 0.8 });
-    balcony.position.set(b.pos[0], h * 0.55, b.pos[2] + d/2 + 1.5); g.add(balcony);
-    for (let bx = 0; bx < 4; bx++) {
-      const rail = makeBox(0.2, 2, 0.2, 0x504030);
-      rail.position.set(b.pos[0] - w * 0.3 + (bx / 3) * w * 0.6, h * 0.55 + 1, b.pos[2] + d/2 + 2.8);
-      g.add(rail);
-    }
-  }
-  // Optional L-wing
-  if (hasWing) {
-    const wingW = w * 0.5;
-    const wingD = d * 0.5;
-    const wingH = h * 0.7;
-    const wingSide = Math.random() < 0.5 ? -1 : 1;
-    const wingX = b.pos[0] + wingSide * (w / 2 + wingW / 2);
-    const wingZ = b.pos[2] - d / 4;
-    const wing = makeBox(wingW, wingH, wingD, b.color, { roughness: 0.85 });
-    wing.position.set(wingX, wingH / 2, wingZ); g.add(wing);
-    // Wing roof
-    const wingRoofH = Math.min(wingW, wingD) * 0.28;
-    const wingRoof = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.1, Math.max(wingW, wingD) * 0.72, wingRoofH, 4, 1),
-      new THREE.MeshStandardMaterial({ color: b.roofColor || 0x644632, roughness: 0.85 })
-    );
-    wingRoof.position.set(wingX, wingH + wingRoofH / 2, wingZ);
-    wingRoof.rotation.y = Math.PI / 4;
-    wingRoof.scale.set((wingW + 2) / (Math.max(wingW, wingD) * 1.414), 1, (wingD + 2) / (Math.max(wingW, wingD) * 1.414));
-    g.add(wingRoof);
-  }
-  return g;
-}
+  const baseColor = new THREE.Color(b.color);
+  const accentStone = 0xc8b496;
 
-// KASBAH — Moroccan, FLAT roof with parapet, blue door, small recessed windows
-function buildKasbah(b) {
-  const g = new THREE.Group();
-  const [w, h, d] = b.size;
-  const body = makeBox(w, h, d, b.color, { roughness: 0.95 });
+  // Main body with TEXTURED plaster walls (chipped brick patches)
+  const wallMat = texturedWallMat('plaster', baseColor, w, h);
+  const body = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), wallMat);
   body.position.set(b.pos[0], h / 2, b.pos[2]);
+  body.castShadow = true;
+  body.receiveShadow = true;
   g.add(body);
-  // Crenellated parapet (notched top)
-  const parapetH = 2;
-  const parapet = makeBox(w + 1.5, parapetH, d + 1.5, b.color, { roughness: 0.95 });
-  parapet.position.set(b.pos[0], h + parapetH / 2, b.pos[2]);
-  g.add(parapet);
-  // Crenellation merlons (notches on top)
-  const merCount = Math.floor(w / 3);
-  for (let i = 0; i < merCount; i++) {
-    if (i % 2 === 0) continue;
-    const merlon = makeBox(1.2, 1, 1.2, b.color, { roughness: 0.95 });
-    merlon.position.set(b.pos[0] - w/2 + (i + 0.5) * (w / merCount), h + parapetH + 0.5, b.pos[2] - d/2);
-    g.add(merlon);
-    const merlon2 = merlon.clone();
-    merlon2.position.set(b.pos[0] - w/2 + (i + 0.5) * (w / merCount), h + parapetH + 0.5, b.pos[2] + d/2);
-    g.add(merlon2);
+
+  // Plinth base (slightly wider, lighter stone)
+  const plinth = makeBox(w + 0.6, 1.2, d + 0.6, accentStone, { roughness: 0.75 });
+  plinth.position.set(b.pos[0], 0.6, b.pos[2]);
+  g.add(plinth);
+  // Cornice band (top decoration)
+  const cornice = makeBox(w + 0.8, 0.8, d + 0.8, accentStone, { roughness: 0.7 });
+  cornice.position.set(b.pos[0], h - 0.4, b.pos[2]);
+  g.add(cornice);
+  // Sub-cornice (thinner band below cornice)
+  const subCornice = makeBox(w + 0.4, 0.3, d + 0.4, new THREE.Color(accentStone).multiplyScalar(0.85).getHex());
+  subCornice.position.set(b.pos[0], h - 1.1, b.pos[2]);
+  g.add(subCornice);
+  // Quoin pilasters at 4 corners (vertical projecting stone strips)
+  for (const [cx, cz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+    const pil = makeBox(0.6, h - 0.5, 0.6, accentStone, { roughness: 0.75 });
+    pil.position.set(b.pos[0] + cx * (w / 2 - 0.3), h / 2 - 0.25, b.pos[2] + cz * (d / 2 - 0.3));
+    g.add(pil);
   }
-  // Small recessed windows (smaller than villa)
+
+  // TILE ROOF with visible tile rows (rings indicating tile courses)
+  const roofHeight = Math.min(w, d) * 0.32;
+  buildTileRoof(g, b.pos[0], h, b.pos[2], w, d, roofHeight, b.roofColor || 0xb45032);
+  // Chimney (always for villas — Italian style)
+  const chimney = makeBox(1.6, 5, 1.6, 0xa68068, { roughness: 0.95 });
+  chimney.position.set(b.pos[0] + (Math.random() - 0.5) * w * 0.5, h + roofHeight + 1.5, b.pos[2] + (Math.random() - 0.5) * d * 0.5);
+  g.add(chimney);
+  // Chimney cap
+  const chimCap = makeBox(2, 0.4, 2, 0x808080, { roughness: 0.7 });
+  chimCap.position.set(chimney.position.x, chimney.position.y + 2.5, chimney.position.z);
+  g.add(chimCap);
+
+  // DETAILED WINDOWS (recessed, framed, with green shutters + flower boxes on ground floor)
   const winRows = Math.max(2, Math.floor(h / 7));
   const winCols = Math.max(2, Math.floor(w / 6));
   for (let r = 0; r < winRows; r++) {
     for (let c = 0; c < winCols; c++) {
       const sx = (c + 0.5) / winCols;
       const sy = (r + 0.5) / winRows;
-      const win = makeBox(1.4, 1.8, 0.3, 0x1e1428, { emissive: 0x1e1428 });
-      win.position.set(b.pos[0] - w/2 + sx * w, sy * h, b.pos[2] + d/2 + 0.1);
-      g.add(win);
-      // Blue tile frame around windows (Moroccan accent)
-      const winFrame = makeBox(1.7, 0.2, 0.5, b.accentColor || 0x506ea0);
-      winFrame.position.set(b.pos[0] - w/2 + sx * w, sy * h + 1.0, b.pos[2] + d/2 + 0.05);
-      g.add(winFrame);
-      const winFrame2 = makeBox(1.7, 0.2, 0.5, b.accentColor || 0x506ea0);
-      winFrame2.position.set(b.pos[0] - w/2 + sx * w, sy * h - 1.0, b.pos[2] + d/2 + 0.05);
-      g.add(winFrame2);
+      const wy = sy * h;
+      // Front face
+      buildDetailedWindow(g, b.pos[0] - w/2 + sx * w, wy, b.pos[2] + d/2, 1.8, 2.4, false, accentStone, 0x5a7a4a, r === 0);
+      // Back face
+      buildDetailedWindow(g, b.pos[0] - w/2 + sx * w, wy, b.pos[2] - d/2, 1.8, 2.4, false, accentStone, 0x5a7a4a, false);
     }
   }
   // Side windows
@@ -1930,321 +2229,1193 @@ function buildKasbah(b) {
     for (let c = 0; c < sideCols; c++) {
       const sx = (c + 0.5) / sideCols;
       const sy = (r + 0.5) / winRows;
-      const winL = makeBox(0.3, 1.8, 1.4, 0x1e1428, { emissive: 0x1e1428 });
-      winL.position.set(b.pos[0] - w/2 - 0.1, sy * h, b.pos[2] - d/2 + sx * d);
-      g.add(winL);
-      const winR = makeBox(0.3, 1.8, 1.4, 0x1e1428, { emissive: 0x1e1428 });
-      winR.position.set(b.pos[0] + w/2 + 0.1, sy * h, b.pos[2] - d/2 + sx * d);
-      g.add(winR);
+      const wy = sy * h;
+      // Left side (rotate window 90°)
+      const recL = makeBox(0.4, 2.4 * 1.1, 1.8 * 1.1, 0x0a0a14, { roughness: 0.95 });
+      recL.position.set(b.pos[0] - w/2 - 0.2, wy, b.pos[2] - d/2 + sx * d);
+      g.add(recL);
+      const glassL = makeBox(0.1, 2.4, 1.8, 0x506a8c, { transparent: true, opacity: 0.7 });
+      glassL.position.set(b.pos[0] - w/2 - 0.05, wy, b.pos[2] - d/2 + sx * d);
+      g.add(glassL);
+      // Frame
+      const flT = makeBox(0.5, 0.3, 1.8 * 1.3, accentStone);
+      flT.position.set(b.pos[0] - w/2 - 0.15, wy + 1.3, b.pos[2] - d/2 + sx * d);
+      g.add(flT);
+      const flB = makeBox(0.5, 0.3, 1.8 * 1.3, accentStone);
+      flB.position.set(b.pos[0] - w/2 - 0.15, wy - 1.3, b.pos[2] - d/2 + sx * d);
+      g.add(flB);
+      // Right side
+      const recR = makeBox(0.4, 2.4 * 1.1, 1.8 * 1.1, 0x0a0a14, { roughness: 0.95 });
+      recR.position.set(b.pos[0] + w/2 + 0.2, wy, b.pos[2] - d/2 + sx * d);
+      g.add(recR);
+      const glassR = makeBox(0.1, 2.4, 1.8, 0x506a8c, { transparent: true, opacity: 0.7 });
+      glassR.position.set(b.pos[0] + w/2 + 0.05, wy, b.pos[2] - d/2 + sx * d);
+      g.add(glassR);
+      const frT = makeBox(0.5, 0.3, 1.8 * 1.3, accentStone);
+      frT.position.set(b.pos[0] + w/2 + 0.15, wy + 1.3, b.pos[2] - d/2 + sx * d);
+      g.add(frT);
+      const frB = makeBox(0.5, 0.3, 1.8 * 1.3, accentStone);
+      frB.position.set(b.pos[0] + w/2 + 0.15, wy - 1.3, b.pos[2] - d/2 + sx * d);
+      g.add(frB);
     }
   }
-  // Blue arched door (horseshoe)
-  const door = makeBox(3, 5, 0.4, 0x14283c, { roughness: 0.9 });
-  door.position.set(b.pos[0], 2.5, b.pos[2] + d/2 + 0.2); g.add(door);
-  const archFrame = makeBox(4, 0.5, 0.6, b.accentColor || 0x506ea0);
-  archFrame.position.set(b.pos[0], 5.2, b.pos[2] + d/2 + 0.1); g.add(archFrame);
-  // Optional tower (kasbah corner tower)
-  if (Math.random() < 0.4) {
-    const towerSide = Math.random() < 0.5 ? -1 : 1;
-    const towerEnd = Math.random() < 0.5 ? -1 : 1;
-    const towerW = 8;
-    const tower = makeBox(towerW, h + 8, towerW, b.color, { roughness: 0.95 });
-    tower.position.set(b.pos[0] + towerSide * (w/2 - towerW/2), (h + 8)/2, b.pos[2] + towerEnd * (d/2 - towerW/2));
-    g.add(tower);
-    const towerCap = makeBox(towerW + 1, parapetH, towerW + 1, b.color);
-    towerCap.position.set(b.pos[0] + towerSide * (w/2 - towerW/2), h + 8 + parapetH/2, b.pos[2] + towerEnd * (d/2 - towerW/2));
-    g.add(towerCap);
+
+  // Detailed wooden double door with iron strap details
+  const doorBg = makeBox(3.2, 5.4, 0.3, 0x2a1810, { roughness: 0.95 });
+  doorBg.position.set(b.pos[0], 2.7, b.pos[2] + d/2 + 0.15);
+  g.add(doorBg);
+  // Door split line (two leaves)
+  const doorSplit = makeBox(0.1, 5.4, 0.5, 0x1a0e08);
+  doorSplit.position.set(b.pos[0], 2.7, b.pos[2] + d/2 + 0.3);
+  g.add(doorSplit);
+  // Iron straps (3 horizontal)
+  for (let s = 0; s < 3; s++) {
+    const strap = makeBox(3, 0.2, 0.15, 0x141414, { metalness: 0.6 });
+    strap.position.set(b.pos[0], 0.6 + s * 1.8, b.pos[2] + d/2 + 0.35);
+    g.add(strap);
   }
+  // Stone arched frame above door
+  const archCap = new THREE.Mesh(
+    new THREE.CylinderGeometry(1.8, 1.8, 0.5, 12, 1, false, 0, Math.PI),
+    new THREE.MeshStandardMaterial({ color: accentStone, roughness: 0.7 })
+  );
+  archCap.rotation.set(Math.PI / 2, 0, Math.PI / 2);
+  archCap.position.set(b.pos[0], 5.7, b.pos[2] + d/2 + 0.15);
+  g.add(archCap);
+  // Door pediment (decorative cap stone)
+  const pediment = makeBox(4.5, 0.4, 0.7, accentStone, { roughness: 0.7 });
+  pediment.position.set(b.pos[0], 6.3, b.pos[2] + d/2 + 0.15);
+  g.add(pediment);
+
+  // Detailed balcony with iron railing
+  if (b.hasBalcony) {
+    // Stone balcony floor
+    const balcony = makeBox(w * 0.7, 0.5, 3, accentStone, { roughness: 0.75 });
+    balcony.position.set(b.pos[0], h * 0.55, b.pos[2] + d/2 + 1.5);
+    g.add(balcony);
+    // Support brackets underneath (corbels)
+    for (let k = 0; k < 3; k++) {
+      const corbel = makeBox(0.5, 0.6, 1, accentStone, { roughness: 0.75 });
+      corbel.position.set(b.pos[0] - w * 0.3 + k * (w * 0.3), h * 0.55 - 0.55, b.pos[2] + d/2 + 0.5);
+      g.add(corbel);
+    }
+    // Iron railing posts (10 of them, ornate)
+    const railCount = 10;
+    for (let bx = 0; bx <= railCount; bx++) {
+      const rail = makeBox(0.12, 2, 0.12, 0x1a1410, { metalness: 0.5, roughness: 0.5 });
+      rail.position.set(b.pos[0] - w * 0.34 + (bx / railCount) * w * 0.68, h * 0.55 + 1.25, b.pos[2] + d/2 + 2.8);
+      g.add(rail);
+      // Ornament ball on each post
+      const ball = makeSphere(0.1, 0x1a1410, { metalness: 0.5 });
+      ball.position.set(rail.position.x, rail.position.y + 1.1, rail.position.z);
+      g.add(ball);
+    }
+    // Top rail
+    const railTop = makeBox(w * 0.7, 0.15, 0.15, 0x1a1410, { metalness: 0.5 });
+    railTop.position.set(b.pos[0], h * 0.55 + 2.4, b.pos[2] + d/2 + 2.8);
+    g.add(railTop);
+    // Bottom rail
+    const railBot = makeBox(w * 0.7, 0.1, 0.1, 0x1a1410, { metalness: 0.5 });
+    railBot.position.set(b.pos[0], h * 0.55 + 0.3, b.pos[2] + d/2 + 2.8);
+    g.add(railBot);
+  }
+
+  // L-wing extension (40% chance) with own roof
+  if (Math.random() < 0.4) {
+    const wingW = w * 0.55;
+    const wingD = d * 0.45;
+    const wingH = h * 0.75;
+    const wingSide = Math.random() < 0.5 ? -1 : 1;
+    const wingX = b.pos[0] + wingSide * (w / 2 + wingW / 2);
+    const wingZ = b.pos[2] - d / 4 + (Math.random() - 0.5) * 4;
+    const wingMat = texturedWallMat('plaster', baseColor, wingW, wingH);
+    const wing = new THREE.Mesh(new THREE.BoxGeometry(wingW, wingH, wingD), wingMat);
+    wing.position.set(wingX, wingH / 2, wingZ);
+    g.add(wing);
+    // Plinth + cornice for wing
+    const wPlinth = makeBox(wingW + 0.4, 0.8, wingD + 0.4, accentStone);
+    wPlinth.position.set(wingX, 0.4, wingZ);
+    g.add(wPlinth);
+    const wCornice = makeBox(wingW + 0.6, 0.5, wingD + 0.6, accentStone);
+    wCornice.position.set(wingX, wingH - 0.25, wingZ);
+    g.add(wCornice);
+    // Wing roof
+    const wingRoofH = Math.min(wingW, wingD) * 0.3;
+    buildTileRoof(g, wingX, wingH, wingZ, wingW, wingD, wingRoofH, b.roofColor || 0xb45032);
+  }
+
   return g;
 }
 
-// SKYSCRAPER — Tokyo cyberpunk, FLAT roof with rooftop equipment
-function buildSkyscraper(b) {
+// KASBAH — Moroccan: sandstone blocks, flat roof + crenellation, blue zellige tile, mashrabiya screens
+function buildKasbah(b) {
   const g = new THREE.Group();
   const [w, h, d] = b.size;
-  const body = makeBox(w, h, d, b.color, { roughness: 0.5, metalness: 0.3 });
+  const baseColor = new THREE.Color(b.color);
+  const tileBlue = b.accentColor || 0x506ea0;
+  const stoneAccent = new THREE.Color(b.color).multiplyScalar(0.85).getHex();
+
+  // Body with TEXTURED sandstone block walls
+  const wallMat = texturedWallMat('sandstone_block', baseColor, w, h);
+  const body = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), wallMat);
   body.position.set(b.pos[0], h / 2, b.pos[2]);
+  body.castShadow = true;
+  body.receiveShadow = true;
   g.add(body);
-  // Flat slab roof (slightly larger lip)
-  const roofSlab = makeBox(w + 1, 0.6, d + 1, b.roofColor || 0x1e1e28, { roughness: 0.7 });
-  roofSlab.position.set(b.pos[0], h + 0.3, b.pos[2]);
-  g.add(roofSlab);
-  // Rooftop equipment cluster
-  const eqCount = 2 + Math.floor(Math.random() * 3);
-  for (let i = 0; i < eqCount; i++) {
-    const eqW = 2 + Math.random() * 3;
-    const eqH = 1.5 + Math.random() * 2;
-    const eq = makeBox(eqW, eqH, eqW, 0x282832, { metalness: 0.4 });
-    eq.position.set(b.pos[0] + (Math.random() - 0.5) * (w - eqW), h + 0.6 + eqH/2, b.pos[2] + (Math.random() - 0.5) * (d - eqW));
-    g.add(eq);
+
+  // Plinth (slightly darker stone band at base)
+  const plinth = makeBox(w + 0.5, 0.8, d + 0.5, stoneAccent, { roughness: 0.95 });
+  plinth.position.set(b.pos[0], 0.4, b.pos[2]);
+  g.add(plinth);
+
+  // Wide overhanging parapet with crenellation
+  const parapetH = 2.5;
+  const parapet = makeBox(w + 1.8, parapetH, d + 1.8, baseColor.getHex(), { roughness: 0.95 });
+  parapet.position.set(b.pos[0], h + parapetH / 2, b.pos[2]);
+  g.add(parapet);
+  // Crenellation merlons on ALL FOUR sides (proper kasbah look)
+  const merlonsPerSide = Math.floor(w / 2.5);
+  for (let i = 0; i < merlonsPerSide; i++) {
+    const t = (i + 0.5) / merlonsPerSide;
+    if (i % 2 !== 0) continue;
+    // North + South
+    const mN = makeBox(1.2, 1.4, 0.8, baseColor.getHex(), { roughness: 0.95 });
+    mN.position.set(b.pos[0] - w/2 - 0.4 + t * (w + 0.8), h + parapetH + 0.7, b.pos[2] - d/2 - 0.4);
+    g.add(mN);
+    const mS = mN.clone();
+    mS.position.set(b.pos[0] - w/2 - 0.4 + t * (w + 0.8), h + parapetH + 0.7, b.pos[2] + d/2 + 0.4);
+    g.add(mS);
   }
-  // Water tank (cylinder) on some buildings
-  if (Math.random() < 0.5) {
-    const tank = makeCylinder(2, 2, 4, 0x504640, { segments: 14 });
-    tank.position.set(b.pos[0] + (Math.random() - 0.5) * w * 0.3, h + 2.6, b.pos[2] + (Math.random() - 0.5) * d * 0.3);
-    g.add(tank);
+  const merlonsZ = Math.floor(d / 2.5);
+  for (let i = 0; i < merlonsZ; i++) {
+    const t = (i + 0.5) / merlonsZ;
+    if (i % 2 !== 0) continue;
+    const mW = makeBox(0.8, 1.4, 1.2, baseColor.getHex(), { roughness: 0.95 });
+    mW.position.set(b.pos[0] - w/2 - 0.4, h + parapetH + 0.7, b.pos[2] - d/2 - 0.4 + t * (d + 0.8));
+    g.add(mW);
+    const mE = mW.clone();
+    mE.position.set(b.pos[0] + w/2 + 0.4, h + parapetH + 0.7, b.pos[2] - d/2 - 0.4 + t * (d + 0.8));
+    g.add(mE);
   }
-  // Tall antenna mast
-  if (Math.random() < 0.6) {
-    const mast = makeBox(0.3, 8 + Math.random() * 12, 0.3, 0x141420);
-    mast.position.set(b.pos[0] + (Math.random() - 0.5) * w * 0.4, h + 5, b.pos[2] + (Math.random() - 0.5) * d * 0.4);
-    g.add(mast);
-    // Red blinking light at top
-    const tip = makeSphere(0.4, 0xff3232, { emissive: 0xff3232, emissiveIntensity: 1 });
-    tip.position.set(mast.position.x, mast.position.y + (mast.geometry.parameters.height || 10) / 2 + 0.3, mast.position.z);
-    g.add(tip);
-  }
-  // Setback at top floor — stepped silhouette on 40%
-  if (Math.random() < 0.4) {
-    const setbackH = 6;
-    const setbackW = w * 0.65;
-    const setbackD = d * 0.65;
-    const setback = makeBox(setbackW, setbackH, setbackD, b.color, { roughness: 0.5, metalness: 0.3 });
-    setback.position.set(b.pos[0], h + 0.6 + setbackH / 2, b.pos[2]);
-    g.add(setback);
-    // Lit windows on setback
-    const sbWinRows = Math.floor(setbackH / 4);
-    const sbWinCols = Math.floor(setbackW / 4);
-    for (let r = 0; r < sbWinRows; r++) {
-      for (let c = 0; c < sbWinCols; c++) {
-        if (Math.random() < 0.4) continue;
-        const w2 = makeBox(2, 1.5, 0.3, b.neonColor || 0xffe064, { emissive: b.neonColor || 0xffe064, emissiveIntensity: 0.8 });
-        w2.position.set(b.pos[0] - setbackW/2 + (c + 0.5) * setbackW / sbWinCols, h + 0.6 + (r + 0.5) * setbackH / sbWinRows, b.pos[2] + setbackD/2 + 0.1);
-        g.add(w2);
+
+  // Decorative zellige blue tile band BELOW parapet (Moroccan signature)
+  const tileBand = makeBox(w + 0.4, 0.6, d + 0.4, tileBlue, { roughness: 0.4, metalness: 0.2, emissive: tileBlue, emissiveIntensity: 0.08 });
+  tileBand.position.set(b.pos[0], h - 0.3, b.pos[2]);
+  g.add(tileBand);
+  // Second decorative band lower (white)
+  const whiteBand = makeBox(w + 0.3, 0.3, d + 0.3, 0xefe6d6, { roughness: 0.6 });
+  whiteBand.position.set(b.pos[0], h - 1.0, b.pos[2]);
+  g.add(whiteBand);
+
+  // KEYHOLE/HORSESHOE arched windows — narrow + tall (Moroccan signature)
+  const winRows = Math.max(2, Math.floor(h / 7));
+  const winCols = Math.max(2, Math.floor(w / 6));
+  for (let r = 0; r < winRows; r++) {
+    for (let c = 0; c < winCols; c++) {
+      const sx = (c + 0.5) / winCols;
+      const sy = (r + 0.5) / winRows;
+      const wx = b.pos[0] - w/2 + sx * w;
+      const wy = sy * h;
+      // Recess (deep)
+      const recess = makeBox(1.5, 2.2, 0.4, 0x0a0a14);
+      recess.position.set(wx, wy, b.pos[2] + d/2 - 0.2);
+      g.add(recess);
+      // Glass (dark amber — Moroccan stained glass)
+      const glass = makeBox(1.3, 1.8, 0.1, 0x6e3a14, { transparent: true, opacity: 0.85, emissive: 0x6e3a14, emissiveIntensity: 0.3 });
+      glass.position.set(wx, wy, b.pos[2] + d/2 + 0.02);
+      g.add(glass);
+      // Horseshoe arch top (semicircular cap above window)
+      const archTop = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.85, 0.85, 0.4, 14, 1, false, 0, Math.PI),
+        new THREE.MeshStandardMaterial({ color: tileBlue, roughness: 0.4, metalness: 0.2 })
+      );
+      archTop.rotation.set(Math.PI / 2, 0, Math.PI / 2);
+      archTop.position.set(wx, wy + 1.2, b.pos[2] + d/2 + 0.1);
+      g.add(archTop);
+      // Blue tile frame around window
+      const fL = makeBox(0.25, 2.5, 0.5, tileBlue, { roughness: 0.4 });
+      fL.position.set(wx - 0.75, wy - 0.1, b.pos[2] + d/2 + 0.15);
+      g.add(fL);
+      const fR = makeBox(0.25, 2.5, 0.5, tileBlue, { roughness: 0.4 });
+      fR.position.set(wx + 0.75, wy - 0.1, b.pos[2] + d/2 + 0.15);
+      g.add(fR);
+      const fB = makeBox(1.75, 0.25, 0.5, tileBlue, { roughness: 0.4 });
+      fB.position.set(wx, wy - 1.2, b.pos[2] + d/2 + 0.15);
+      g.add(fB);
+      // Window sill (slight projection below)
+      const sill = makeBox(2, 0.2, 0.6, stoneAccent);
+      sill.position.set(wx, wy - 1.5, b.pos[2] + d/2 + 0.2);
+      g.add(sill);
+      // Optional mashrabiya wood lattice screen (above first floor)
+      if (r > 0 && Math.random() < 0.4) {
+        const screen = makeBox(1.4, 1.7, 0.1, 0x3e2818, { transparent: true, opacity: 0.85 });
+        screen.position.set(wx, wy, b.pos[2] + d/2 + 0.3);
+        g.add(screen);
+        // Lattice pattern (3x4 grid of small holes via colored boxes)
+        for (let lx = 0; lx < 3; lx++) {
+          for (let ly = 0; ly < 4; ly++) {
+            const hole = makeBox(0.25, 0.25, 0.08, 0xff8c3c, { emissive: 0xff8c3c, emissiveIntensity: 0.4 });
+            hole.position.set(wx - 0.5 + lx * 0.5, wy - 0.65 + ly * 0.42, b.pos[2] + d/2 + 0.35);
+            g.add(hole);
+          }
+        }
       }
     }
   }
-  // Many lit windows on body (dense, in vertical strips)
-  const stripCols = Math.max(3, Math.floor(w / 3));
-  const winRows = Math.floor(h / 3);
-  for (let c = 0; c < stripCols; c++) {
-    // Maybe whole strip dark
-    const stripDark = Math.random() < 0.15;
-    if (stripDark) continue;
-    for (let r = 0; r < winRows; r++) {
-      const sx = (c + 0.5) / stripCols;
+
+  // BACK FACE windows (simpler)
+  for (let r = 0; r < winRows; r++) {
+    for (let c = 0; c < winCols; c++) {
+      const sx = (c + 0.5) / winCols;
       const sy = (r + 0.5) / winRows;
-      if (Math.random() < 0.3) continue;
-      const winColor = Math.random() < 0.15 ? 0x141420 : (b.neonColor || 0xffe064);
-      const intensity = winColor === 0x141420 ? 0 : 0.8;
-      const win = makeBox(1.6, 1.5, 0.3, winColor, { emissive: winColor, emissiveIntensity: intensity });
-      win.position.set(b.pos[0] - w/2 + sx * w, sy * h, b.pos[2] + d/2 + 0.1);
-      g.add(win);
-      const winB = win.clone();
-      winB.position.set(b.pos[0] - w/2 + sx * w, sy * h, b.pos[2] - d/2 - 0.1);
-      g.add(winB);
+      const wx = b.pos[0] - w/2 + sx * w;
+      const wy = sy * h;
+      const recess = makeBox(1.5, 2.2, 0.4, 0x0a0a14);
+      recess.position.set(wx, wy, b.pos[2] - d/2 + 0.2);
+      g.add(recess);
+      const glass = makeBox(1.3, 1.8, 0.1, 0x6e3a14, { transparent: true, opacity: 0.85 });
+      glass.position.set(wx, wy, b.pos[2] - d/2 - 0.02);
+      g.add(glass);
     }
   }
-  // Side strip windows
-  const sideCols = Math.max(2, Math.floor(d / 3));
-  for (let c = 0; c < sideCols; c++) {
-    const stripDark = Math.random() < 0.2;
-    if (stripDark) continue;
-    for (let r = 0; r < winRows; r++) {
-      const sx = (c + 0.5) / sideCols;
-      const sy = (r + 0.5) / winRows;
-      if (Math.random() < 0.35) continue;
-      const winColor = b.neonColor || 0xffe064;
-      const winL = makeBox(0.3, 1.5, 1.6, winColor, { emissive: winColor, emissiveIntensity: 0.8 });
-      winL.position.set(b.pos[0] - w/2 - 0.1, sy * h, b.pos[2] - d/2 + sx * d);
-      g.add(winL);
-      const winR = winL.clone();
-      winR.position.set(b.pos[0] + w/2 + 0.1, sy * h, b.pos[2] - d/2 + sx * d);
-      g.add(winR);
+
+  // CARVED CEDAR WOOD DOOR with brass studs (Moroccan signature)
+  const doorMain = makeBox(3.4, 5.8, 0.4, 0x4a2a14, { roughness: 0.95 });
+  doorMain.position.set(b.pos[0], 2.9, b.pos[2] + d/2 + 0.2);
+  g.add(doorMain);
+  // Door split (two leaves)
+  const dSplit = makeBox(0.08, 5.8, 0.5, 0x2a1408);
+  dSplit.position.set(b.pos[0], 2.9, b.pos[2] + d/2 + 0.4);
+  g.add(dSplit);
+  // Brass studs in grid pattern (5x7)
+  for (let dx = -2; dx <= 2; dx++) {
+    for (let dy = 0; dy < 7; dy++) {
+      if (dx === 0) continue;  // skip middle column
+      const stud = makeSphere(0.12, 0xb4895a, { metalness: 0.7, roughness: 0.4 });
+      stud.position.set(b.pos[0] + dx * 0.55, 0.5 + dy * 0.8, b.pos[2] + d/2 + 0.42);
+      g.add(stud);
     }
   }
-  // Ground-floor neon entrance sign
-  const sign = makeBox(w * 0.5, 1.2, 0.3, b.neonColor || 0xff64c8, { emissive: b.neonColor || 0xff64c8, emissiveIntensity: 1.5 });
-  sign.position.set(b.pos[0], 4, b.pos[2] + d/2 + 0.2);
-  g.add(sign);
-  // Glow
-  const lit = new THREE.PointLight(b.neonColor || 0xffe064, 0.8, 40);
-  lit.position.set(b.pos[0], h * 0.5, b.pos[2] + d/2 + 5);
-  g.add(lit);
+  // Horseshoe arch above door
+  const doorArch = new THREE.Mesh(
+    new THREE.CylinderGeometry(2.2, 2.2, 0.6, 18, 1, false, 0, Math.PI),
+    new THREE.MeshStandardMaterial({ color: tileBlue, roughness: 0.4, metalness: 0.2 })
+  );
+  doorArch.rotation.set(Math.PI / 2, 0, Math.PI / 2);
+  doorArch.position.set(b.pos[0], 6.5, b.pos[2] + d/2 + 0.2);
+  g.add(doorArch);
+  // Decorative spandrel (carved area above arch)
+  const spandrel = makeBox(5, 1, 0.5, stoneAccent, { roughness: 0.7 });
+  spandrel.position.set(b.pos[0], 8.2, b.pos[2] + d/2 + 0.1);
+  g.add(spandrel);
+  // Geometric zellige pattern on spandrel (small colored squares)
+  for (let s = 0; s < 7; s++) {
+    const tile = makeBox(0.4, 0.4, 0.55, [tileBlue, 0xefe6d6, tileBlue, 0xb4895a, tileBlue, 0xefe6d6, tileBlue][s], { roughness: 0.3 });
+    tile.position.set(b.pos[0] - 2.4 + s * 0.8, 8.2, b.pos[2] + d/2 + 0.15);
+    g.add(tile);
+  }
+
+  // CORNER TOWER (60% — much more frequent, kasbah signature)
+  if (Math.random() < 0.6) {
+    const towerSide = Math.random() < 0.5 ? -1 : 1;
+    const towerEnd = Math.random() < 0.5 ? -1 : 1;
+    const towerW = 10;
+    const towerH = h + 12;
+    const towerMat = texturedWallMat('sandstone_block', baseColor, towerW, towerH);
+    const tower = new THREE.Mesh(new THREE.BoxGeometry(towerW, towerH, towerW), towerMat);
+    tower.position.set(b.pos[0] + towerSide * (w/2 - towerW/2), towerH / 2, b.pos[2] + towerEnd * (d/2 - towerW/2));
+    g.add(tower);
+    // Tower parapet + crenellation
+    const tParapet = makeBox(towerW + 1, 2, towerW + 1, baseColor.getHex());
+    tParapet.position.set(tower.position.x, towerH + 1, tower.position.z);
+    g.add(tParapet);
+    // Tower merlons
+    for (let m = 0; m < 4; m++) {
+      const ts = m % 2;
+      if (ts) continue;
+      for (let face = 0; face < 4; face++) {
+        const merlon = makeBox(0.8, 1.2, 0.8, baseColor.getHex());
+        const angle = face * Math.PI / 2;
+        const offsetX = face === 1 ? (towerW/2 + 0.4) : (face === 3 ? -(towerW/2 + 0.4) : (m === 0 ? -towerW/3 : towerW/3));
+        const offsetZ = face === 0 ? -(towerW/2 + 0.4) : (face === 2 ? (towerW/2 + 0.4) : (m === 0 ? -towerW/3 : towerW/3));
+        merlon.position.set(tower.position.x + offsetX, towerH + 2.6, tower.position.z + offsetZ);
+        g.add(merlon);
+      }
+    }
+    // Tower zellige band
+    const tBand = makeBox(towerW + 0.4, 0.6, towerW + 0.4, tileBlue, { roughness: 0.4, emissive: tileBlue, emissiveIntensity: 0.08 });
+    tBand.position.set(tower.position.x, towerH - 0.3, tower.position.z);
+    g.add(tBand);
+  }
+
   return g;
 }
 
-// PAGODA — Haven monastery, stepped tiered roof
+// SKYSCRAPER — Tokyo cyberpunk: textured glass facade, rooftop equipment, antennas, signage, ground-floor entrance
+function buildSkyscraper(b) {
+  const g = new THREE.Group();
+  const [w, h, d] = b.size;
+  const baseColor = new THREE.Color(b.color);
+  const neon = b.neonColor || 0xffe064;
+
+  // Body with TEXTURED glass facade (procedural lit window pattern + mullions)
+  const wallMat = texturedWallMat('glass_facade', baseColor, w, h);
+  const body = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), wallMat);
+  body.position.set(b.pos[0], h / 2, b.pos[2]);
+  body.castShadow = true;
+  body.receiveShadow = true;
+  g.add(body);
+  // Add slight emissive accent (city glow on facade)
+  const accentMat = new THREE.MeshStandardMaterial({ color: neon, emissive: neon, emissiveIntensity: 0.1, transparent: true, opacity: 0.15 });
+  const accent = new THREE.Mesh(new THREE.BoxGeometry(w + 0.05, h, d + 0.05), accentMat);
+  accent.position.set(b.pos[0], h / 2, b.pos[2]);
+  g.add(accent);
+
+  // Concrete column base (ground floor wraps in concrete)
+  const groundFloorH = 8;
+  const groundFloor = makeBox(w + 0.6, groundFloorH, d + 0.6, 0x282832, { roughness: 0.8 });
+  groundFloor.position.set(b.pos[0], groundFloorH / 2, b.pos[2]);
+  g.add(groundFloor);
+  // Vertical concrete columns at corners (4 thick pillars)
+  for (const [cx, cz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+    const col = makeBox(1.2, h, 1.2, 0x1a1a23, { roughness: 0.85 });
+    col.position.set(b.pos[0] + cx * (w / 2 - 0.6), h / 2, b.pos[2] + cz * (d / 2 - 0.6));
+    g.add(col);
+  }
+
+  // SLAB ROOF with multi-layered lip
+  const roofSlab = makeBox(w + 2, 1, d + 2, b.roofColor || 0x1e1e28, { roughness: 0.7, metalness: 0.2 });
+  roofSlab.position.set(b.pos[0], h + 0.5, b.pos[2]);
+  g.add(roofSlab);
+  // Inner roof platform
+  const roofInner = makeBox(w - 1, 0.4, d - 1, 0x14141a, { roughness: 0.8 });
+  roofInner.position.set(b.pos[0], h + 1.2, b.pos[2]);
+  g.add(roofInner);
+  // Roof parapet rail (safety perimeter)
+  const railH = 1.2;
+  for (let face = 0; face < 4; face++) {
+    const isX = face % 2 === 0;
+    const length = isX ? w + 1 : d + 1;
+    const px = face === 1 ? w / 2 + 0.5 : (face === 3 ? -w / 2 - 0.5 : 0);
+    const pz = face === 0 ? -d / 2 - 0.5 : (face === 2 ? d / 2 + 0.5 : 0);
+    const rail = makeBox(isX ? length : 0.2, railH, isX ? 0.2 : length, 0x14141a, { metalness: 0.5 });
+    rail.position.set(b.pos[0] + px, h + 1.7, b.pos[2] + pz);
+    g.add(rail);
+  }
+
+  // ROOFTOP EQUIPMENT cluster (proper variety)
+  // HVAC unit (large box with grille)
+  const hvac = makeBox(5, 2.5, 3, 0x32323c, { metalness: 0.4 });
+  hvac.position.set(b.pos[0] - w / 4, h + 2.5, b.pos[2] - d / 4);
+  g.add(hvac);
+  // HVAC grille (dark slits)
+  for (let s = 0; s < 6; s++) {
+    const slit = makeBox(0.05, 1.6, 3.1, 0x141420);
+    slit.position.set(b.pos[0] - w / 4 - 2.4 + s * 0.95, h + 2.5, b.pos[2] - d / 4);
+    g.add(slit);
+  }
+
+  // WATER TANK (cylindrical, common Tokyo)
+  if (Math.random() < 0.7) {
+    const tankR = 2;
+    const tank = makeCylinder(tankR, tankR, 5, 0x504a40, { segments: 16, roughness: 0.8 });
+    tank.position.set(b.pos[0] + w / 4, h + 3.5, b.pos[2] + d / 4);
+    g.add(tank);
+    // Tank lid
+    const tankLid = makeCylinder(tankR + 0.3, tankR + 0.3, 0.4, 0x3c3830, { segments: 16 });
+    tankLid.position.set(b.pos[0] + w / 4, h + 6.2, b.pos[2] + d / 4);
+    g.add(tankLid);
+    // Support legs (4 thin cylinders below tank)
+    for (const [lx, lz] of [[-1.3, -1.3], [1.3, -1.3], [-1.3, 1.3], [1.3, 1.3]]) {
+      const leg = makeBox(0.25, 2, 0.25, 0x3c3830);
+      leg.position.set(b.pos[0] + w / 4 + lx, h + 2, b.pos[2] + d / 4 + lz);
+      g.add(leg);
+    }
+  }
+
+  // ANTENNA TOWER (proper truss-style)
+  if (Math.random() < 0.7) {
+    const antennaH = 10 + Math.random() * 14;
+    const aX = b.pos[0] + (Math.random() - 0.5) * w * 0.3;
+    const aZ = b.pos[2] + (Math.random() - 0.5) * d * 0.3;
+    // 4 vertical struts
+    for (const [vx, vz] of [[-0.6, -0.6], [0.6, -0.6], [-0.6, 0.6], [0.6, 0.6]]) {
+      const strut = makeBox(0.15, antennaH, 0.15, 0x282838, { metalness: 0.5 });
+      strut.position.set(aX + vx, h + 1 + antennaH / 2, aZ + vz);
+      g.add(strut);
+    }
+    // Cross braces every 2 studs
+    for (let by = 0; by < antennaH; by += 2.5) {
+      const cb1 = makeBox(1.5, 0.1, 0.1, 0x282838);
+      cb1.position.set(aX, h + 1 + by, aZ - 0.6);
+      g.add(cb1);
+      const cb2 = makeBox(1.5, 0.1, 0.1, 0x282838);
+      cb2.position.set(aX, h + 1 + by, aZ + 0.6);
+      g.add(cb2);
+      const cb3 = makeBox(0.1, 0.1, 1.5, 0x282838);
+      cb3.position.set(aX - 0.6, h + 1 + by, aZ);
+      g.add(cb3);
+    }
+    // Red blinking tip
+    const tip = makeSphere(0.4, 0xff3232, { emissive: 0xff3232, emissiveIntensity: 2.0 });
+    tip.position.set(aX, h + 1 + antennaH + 0.3, aZ);
+    g.add(tip);
+    // Antenna dish on top
+    if (Math.random() < 0.5) {
+      const dish = makeSphere(1.2, 0xc8c8c8, { metalness: 0.5 });
+      dish.position.set(aX, h + 1 + antennaH * 0.7, aZ);
+      dish.scale.set(1, 0.3, 1);
+      g.add(dish);
+    }
+  }
+
+  // STEPPED SETBACK at top (40% — stepped Manhattan-style)
+  if (Math.random() < 0.4) {
+    const sbW = w * 0.7;
+    const sbD = d * 0.7;
+    const sbH = 8;
+    const sbMat = texturedWallMat('glass_facade', baseColor, sbW, sbH);
+    const sb = new THREE.Mesh(new THREE.BoxGeometry(sbW, sbH, sbD), sbMat);
+    sb.position.set(b.pos[0], h + sbH / 2, b.pos[2]);
+    g.add(sb);
+    // Lip around setback
+    const sbLip = makeBox(sbW + 1, 0.3, sbD + 1, 0x14141a);
+    sbLip.position.set(b.pos[0], h + sbH + 0.15, b.pos[2]);
+    g.add(sbLip);
+  }
+
+  // VERTICAL NEON SIGN on facade (Kingdom-style vertical kanji band)
+  const signH = h * 0.4;
+  const signSide = Math.random() < 0.5 ? -1 : 1;
+  const neonSign = makeBox(1.5, signH, 0.2, neon, { emissive: neon, emissiveIntensity: 1.4 });
+  neonSign.position.set(b.pos[0] + signSide * (w / 2 - 1), h * 0.5, b.pos[2] + d / 2 + 0.2);
+  g.add(neonSign);
+  // Frame for sign
+  const signFrame = makeBox(2, signH + 0.5, 0.25, 0x14141a);
+  signFrame.position.set(b.pos[0] + signSide * (w / 2 - 1), h * 0.5, b.pos[2] + d / 2 + 0.15);
+  g.add(signFrame);
+
+  // GROUND-FLOOR ENTRANCE — illuminated lobby with awning
+  // Entrance glass
+  const entrance = makeBox(w * 0.4, 5, 0.3, 0x88e0ff, { transparent: true, opacity: 0.8, emissive: 0x88e0ff, emissiveIntensity: 0.7 });
+  entrance.position.set(b.pos[0], 2.5, b.pos[2] + d / 2 + 0.2);
+  g.add(entrance);
+  // Awning over entrance
+  const awning = makeBox(w * 0.5, 0.3, 3, 0x14141a, { metalness: 0.5 });
+  awning.position.set(b.pos[0], 5.5, b.pos[2] + d / 2 + 1.5);
+  g.add(awning);
+  // Neon strip under awning
+  const awningGlow = makeBox(w * 0.45, 0.15, 2.8, neon, { emissive: neon, emissiveIntensity: 1.8 });
+  awningGlow.position.set(b.pos[0], 5.35, b.pos[2] + d / 2 + 1.5);
+  g.add(awningGlow);
+  // Awning support brackets
+  for (const tx of [-1, 1]) {
+    const bracket = makeBox(0.2, 0.6, 3, 0x14141a);
+    bracket.position.set(b.pos[0] + tx * w * 0.22, 5.5 + 0.3, b.pos[2] + d / 2 + 1.5);
+    bracket.rotation.x = -0.2;
+    g.add(bracket);
+  }
+
+  // PointLight for street-side glow
+  const lit = new THREE.PointLight(neon, 1.2, 50);
+  lit.position.set(b.pos[0], h * 0.4, b.pos[2] + d / 2 + 5);
+  g.add(lit);
+
+  return g;
+}
+
+// PAGODA — Haven Bhutanese dzong: INWARD-SLOPING walls, Kemar red stripe with gold discs, tiered curved-eave roof
 function buildPagoda(b) {
   const g = new THREE.Group();
   const [w, h, d] = b.size;
-  const body = makeBox(w, h, d, b.color, { roughness: 0.85 });
-  body.position.set(b.pos[0], h / 2, b.pos[2]);
-  g.add(body);
-  // Tier 1 roof — wide overhanging eave
-  const tier1 = makeBox(w + 6, 1, d + 6, b.roofColor || 0xdcb43c, { roughness: 0.8 });
-  tier1.position.set(b.pos[0], h + 0.5, b.pos[2]);
+  const baseColor = new THREE.Color(b.color);
+  const goldAccent = b.accentColor || 0xffc850;
+
+  // INWARD-SLOPING (BATTERED) WALLS — Bhutanese signature (use trapezoidal via scaled levels)
+  // Build wall as stack of slightly shrinking boxes
+  const wallLevels = 6;
+  for (let i = 0; i < wallLevels; i++) {
+    const t = i / wallLevels;
+    const lwW = w - t * w * 0.12;  // taper to 88% at top
+    const lwD = d - t * d * 0.12;
+    const lvlH = h / wallLevels;
+    const lvlMat = i === 0 ? texturedWallMat('monastery_brick', baseColor, lwW, lvlH) :
+                   new THREE.MeshStandardMaterial({ color: baseColor.clone().multiplyScalar(0.95 + Math.random() * 0.1).getHex(), roughness: 0.85 });
+    const lvl = new THREE.Mesh(new THREE.BoxGeometry(lwW, lvlH, lwD), lvlMat);
+    lvl.position.set(b.pos[0], i * lvlH + lvlH / 2, b.pos[2]);
+    lvl.castShadow = true;
+    lvl.receiveShadow = true;
+    g.add(lvl);
+  }
+  // Top wall dimensions (for roof placement)
+  const topW = w * 0.88;
+  const topD = d * 0.88;
+
+  // KEMAR RED OCHRE STRIPE near top (Bhutanese signature, ~1.2m tall)
+  const kemarH = 1.5;
+  const kemar = makeBox(topW + 0.3, kemarH, topD + 0.3, 0x7a2828, { roughness: 0.85 });
+  kemar.position.set(b.pos[0], h - kemarH / 2 - 0.5, b.pos[2]);
+  g.add(kemar);
+  // GOLD CIRCULAR DISCS punctuating the Kemar band (5 per long side)
+  const discsPerSide = Math.max(3, Math.floor(w / 6));
+  for (let s = 0; s < discsPerSide; s++) {
+    const t = (s + 0.5) / discsPerSide;
+    const dx = b.pos[0] - topW / 2 + t * topW;
+    // Front + back
+    const discF = makeCylinder(0.4, 0.4, 0.2, goldAccent, { segments: 16, metalness: 0.7, emissive: goldAccent, emissiveIntensity: 0.3 });
+    discF.rotation.x = Math.PI / 2;
+    discF.position.set(dx, h - kemarH / 2 - 0.5, b.pos[2] + topD / 2 + 0.18);
+    g.add(discF);
+    const discB = discF.clone();
+    discB.position.set(dx, h - kemarH / 2 - 0.5, b.pos[2] - topD / 2 - 0.18);
+    g.add(discB);
+  }
+  // Side discs
+  const discsZ = Math.max(2, Math.floor(d / 6));
+  for (let s = 0; s < discsZ; s++) {
+    const t = (s + 0.5) / discsZ;
+    const dz = b.pos[2] - topD / 2 + t * topD;
+    const discL = makeCylinder(0.4, 0.4, 0.2, goldAccent, { segments: 16, metalness: 0.7, emissive: goldAccent, emissiveIntensity: 0.3 });
+    discL.rotation.z = Math.PI / 2;
+    discL.position.set(b.pos[0] - topW / 2 - 0.18, h - kemarH / 2 - 0.5, dz);
+    g.add(discL);
+    const discR = discL.clone();
+    discR.position.set(b.pos[0] + topW / 2 + 0.18, h - kemarH / 2 - 0.5, dz);
+    g.add(discR);
+  }
+
+  // TIERED ROOF with curved upturned eaves (Jabzhi style)
+  // Tier 1: wide overhanging eave with slight curve
+  const tier1H = 1;
+  const tier1 = makeBox(topW + 6, tier1H, topD + 6, b.roofColor || 0xb45032, { roughness: 0.85 });
+  tier1.position.set(b.pos[0], h + tier1H / 2, b.pos[2]);
   g.add(tier1);
-  // Sloped detail on tier1 (downward angle on edges via skewed plane)
-  const tier1Sides = [
-    { x: 0, z: (d + 6) / 2, rot: [Math.PI/6, 0, 0], w: w + 6, d: 4 },
-    { x: 0, z: -(d + 6) / 2, rot: [-Math.PI/6, 0, 0], w: w + 6, d: 4 },
-    { x: (w + 6) / 2, z: 0, rot: [0, 0, -Math.PI/6], w: 4, d: d + 6 },
-    { x: -(w + 6) / 2, z: 0, rot: [0, 0, Math.PI/6], w: 4, d: d + 6 },
+  // Sloped roof surfaces on tier 1 (4 angled planes)
+  const slope1H = 2;
+  const tier1Slopes = [
+    { x: 0, z: (topD + 6) / 2 + 1.5, rotX: Math.PI/4, w: topW + 6, d: 5 },
+    { x: 0, z: -(topD + 6) / 2 - 1.5, rotX: -Math.PI/4, w: topW + 6, d: 5 },
+    { x: (topW + 6) / 2 + 1.5, z: 0, rotZ: -Math.PI/4, w: 5, d: topD + 6 },
+    { x: -(topW + 6) / 2 - 1.5, z: 0, rotZ: Math.PI/4, w: 5, d: topD + 6 },
   ];
-  for (const s of tier1Sides) {
-    const slope = makeBox(s.w, 0.3, s.d, b.roofColor || 0xdcb43c, { roughness: 0.8 });
-    slope.position.set(b.pos[0] + s.x, h + 0.5 + 1.5, b.pos[2] + s.z);
-    slope.rotation.set(...s.rot);
+  for (const s of tier1Slopes) {
+    const slope = makeBox(s.w, 0.5, s.d, b.roofColor || 0xb45032, { roughness: 0.8 });
+    slope.position.set(b.pos[0] + s.x, h + tier1H + slope1H / 2 - 0.5, b.pos[2] + s.z);
+    if (s.rotX) slope.rotation.x = s.rotX;
+    if (s.rotZ) slope.rotation.z = s.rotZ;
     g.add(slope);
   }
-  // Tier 2 — smaller roof on top
-  const t2H = h * 0.4;
-  const t2W = w * 0.6;
-  const t2D = d * 0.6;
-  const tier2body = makeBox(t2W, t2H, t2D, b.color, { roughness: 0.85 });
-  tier2body.position.set(b.pos[0], h + 1 + t2H / 2, b.pos[2]);
+  // Golden ornamental finials (gyaltsen) at each tier1 corner (4 corners)
+  for (const [cx, cz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+    // Upturn point at corner edge (curved eave tip)
+    const tipBase = makeBox(1.2, 1, 1.2, b.roofColor || 0xb45032);
+    tipBase.position.set(b.pos[0] + cx * ((topW + 6) / 2 + 1), h + tier1H + 1.5, b.pos[2] + cz * ((topD + 6) / 2 + 1));
+    g.add(tipBase);
+    const gyaltsen = makeCylinder(0.05, 0.3, 2.5, goldAccent, { segments: 8, metalness: 0.7, emissive: goldAccent, emissiveIntensity: 0.3 });
+    gyaltsen.position.set(b.pos[0] + cx * ((topW + 6) / 2 + 1), h + tier1H + 2.5 + 1.25, b.pos[2] + cz * ((topD + 6) / 2 + 1));
+    g.add(gyaltsen);
+  }
+
+  // TIER 2: smaller roof on top (centered, smaller box + own roof)
+  const t2H = h * 0.35;
+  const t2W = topW * 0.55;
+  const t2D = topD * 0.55;
+  // Tier 2 walls (also red ochre)
+  const tier2body = makeBox(t2W, t2H, t2D, 0x9b3c30, { roughness: 0.85 });
+  tier2body.position.set(b.pos[0], h + 2.5 + t2H / 2, b.pos[2]);
   g.add(tier2body);
-  const tier2eave = makeBox(t2W + 4, 0.8, t2D + 4, b.roofColor || 0xdcb43c, { roughness: 0.8 });
-  tier2eave.position.set(b.pos[0], h + 1 + t2H + 0.4, b.pos[2]);
+  // Tier 2 eave
+  const tier2eave = makeBox(t2W + 5, 0.8, t2D + 5, b.roofColor || 0xb45032, { roughness: 0.8 });
+  tier2eave.position.set(b.pos[0], h + 2.5 + t2H + 0.4, b.pos[2]);
   g.add(tier2eave);
-  // Golden trim along main roof
-  const trim = makeBox(w + 4, 0.3, d + 4, b.accentColor || 0xffc850, { metalness: 0.6, emissive: b.accentColor || 0xffc850, emissiveIntensity: 0.25 });
-  trim.position.set(b.pos[0], h - 0.5, b.pos[2]);
-  g.add(trim);
-  // Spire/finial on top
-  const finialBase = makeBox(0.8, 1, 0.8, b.accentColor || 0xffc850);
-  finialBase.position.set(b.pos[0], h + 1 + t2H + 1.3, b.pos[2]);
-  g.add(finialBase);
-  const finial = makeCylinder(0.1, 0.4, 3, b.accentColor || 0xffc850, { segments: 8, metalness: 0.7 });
-  finial.position.set(b.pos[0], h + 1 + t2H + 2.5 + 1.5, b.pos[2]);
-  g.add(finial);
-  // Windows
-  addWindowsToBody(g, b, w, h, d, 0x281414, 0x141420, false);
-  // Red door with golden frame
-  const door = makeBox(3, 5, 0.4, 0x6e1414, { roughness: 0.85 });
-  door.position.set(b.pos[0], 2.5, b.pos[2] + d/2 + 0.2);
-  g.add(door);
-  const frame = makeBox(4, 6, 0.6, b.accentColor || 0xffc850, { metalness: 0.4 });
-  frame.position.set(b.pos[0], 3, b.pos[2] + d/2 + 0.05);
-  g.add(frame);
+  // Tier 2 sloped sides
+  for (const s of [
+    { x: 0, z: (t2D + 5) / 2 + 1, rotX: Math.PI / 4, w: t2W + 5, d: 4 },
+    { x: 0, z: -(t2D + 5) / 2 - 1, rotX: -Math.PI / 4, w: t2W + 5, d: 4 },
+    { x: (t2W + 5) / 2 + 1, z: 0, rotZ: -Math.PI / 4, w: 4, d: t2D + 5 },
+    { x: -(t2W + 5) / 2 - 1, z: 0, rotZ: Math.PI / 4, w: 4, d: t2D + 5 },
+  ]) {
+    const slope = makeBox(s.w, 0.4, s.d, b.roofColor || 0xb45032, { roughness: 0.8 });
+    slope.position.set(b.pos[0] + s.x, h + 2.5 + t2H + 1.5, b.pos[2] + s.z);
+    if (s.rotX) slope.rotation.x = s.rotX;
+    if (s.rotZ) slope.rotation.z = s.rotZ;
+    g.add(slope);
+  }
+  // Tier 2 corner finials
+  for (const [cx, cz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+    const gyaltsen = makeCylinder(0.05, 0.25, 2, goldAccent, { segments: 8, metalness: 0.7, emissive: goldAccent, emissiveIntensity: 0.3 });
+    gyaltsen.position.set(b.pos[0] + cx * ((t2W + 5) / 2 + 0.5), h + 2.5 + t2H + 2.5, b.pos[2] + cz * ((t2D + 5) / 2 + 0.5));
+    g.add(gyaltsen);
+  }
+
+  // CENTRAL GILDED ROOFTOP CROWNING (sertog) — golden spire at very top
+  const sertogBase = makeBox(1.5, 1, 1.5, goldAccent, { metalness: 0.7, emissive: goldAccent, emissiveIntensity: 0.4 });
+  sertogBase.position.set(b.pos[0], h + 2.5 + t2H + 2, b.pos[2]);
+  g.add(sertogBase);
+  // Multi-tiered spire
+  for (let i = 0; i < 5; i++) {
+    const r = 0.4 - i * 0.06;
+    const disc = makeCylinder(r, r, 0.25, goldAccent, { segments: 12, metalness: 0.7, emissive: goldAccent, emissiveIntensity: 0.5 });
+    disc.position.set(b.pos[0], h + 2.5 + t2H + 2.7 + i * 0.4, b.pos[2]);
+    g.add(disc);
+  }
+  // Spike at top
+  const sertogTip = makeCylinder(0.04, 0.15, 2, goldAccent, { segments: 8, metalness: 0.8, emissive: goldAccent, emissiveIntensity: 0.6 });
+  sertogTip.position.set(b.pos[0], h + 2.5 + t2H + 5.7, b.pos[2]);
+  g.add(sertogTip);
+
+  // TREFOIL ARCHED WINDOWS (cusped 3-lobed — Bhutanese signature)
+  const winRows = Math.max(2, Math.floor(h / 7));
+  const winCols = Math.max(2, Math.floor(w / 6));
+  for (let r = 0; r < winRows; r++) {
+    for (let c = 0; c < winCols; c++) {
+      // Skip windows that would go through the Kemar band
+      const sy = (r + 0.5) / winRows;
+      if (sy * h > h - kemarH - 1) continue;
+      const sx = (c + 0.5) / winCols;
+      const wx = b.pos[0] - w/2 + sx * w;
+      const wy = sy * h;
+      // Recess
+      const recess = makeBox(1.4, 2, 0.3, 0x0a0a14);
+      recess.position.set(wx, wy, b.pos[2] + d/2 - 0.15);
+      g.add(recess);
+      // Window pane (warm amber — interior lamp)
+      const glass = makeBox(1.2, 1.6, 0.1, 0xffa050, { transparent: true, opacity: 0.85, emissive: 0xffa050, emissiveIntensity: 0.4 });
+      glass.position.set(wx, wy, b.pos[2] + d/2 + 0.02);
+      g.add(glass);
+      // Painted lintel (red base with gold geometric)
+      const lintel = makeBox(1.8, 0.5, 0.5, 0x7a2828, { roughness: 0.85 });
+      lintel.position.set(wx, wy + 1.1, b.pos[2] + d/2 + 0.15);
+      g.add(lintel);
+      // Gold trim on lintel
+      const lintelGold = makeBox(1.6, 0.15, 0.55, goldAccent, { metalness: 0.6, emissive: goldAccent, emissiveIntensity: 0.3 });
+      lintelGold.position.set(wx, wy + 1.05, b.pos[2] + d/2 + 0.18);
+      g.add(lintelGold);
+      // Window frame
+      const fL = makeBox(0.2, 2, 0.4, 0x4a2818);
+      fL.position.set(wx - 0.7, wy, b.pos[2] + d/2 + 0.18);
+      g.add(fL);
+      const fR = makeBox(0.2, 2, 0.4, 0x4a2818);
+      fR.position.set(wx + 0.7, wy, b.pos[2] + d/2 + 0.18);
+      g.add(fR);
+      const fB = makeBox(1.8, 0.2, 0.5, 0x4a2818);
+      fB.position.set(wx, wy - 1, b.pos[2] + d/2 + 0.18);
+      g.add(fB);
+      // Cusped trefoil top (3-lobed arch via 3 spheres)
+      for (let lobe = 0; lobe < 3; lobe++) {
+        const lobeOff = (lobe - 1) * 0.45;
+        const cusp = makeSphere(0.3, 0x7a2828, { roughness: 0.85 });
+        cusp.position.set(wx + lobeOff, wy + 1.3, b.pos[2] + d/2 + 0.15);
+        cusp.scale.set(1, 1, 0.3);
+        g.add(cusp);
+      }
+    }
+  }
+
+  // HEAVY DOUBLE DOOR with brass studs + painted surround
+  const doorBg = makeBox(3.4, 5.5, 0.4, 0x3a1818, { roughness: 0.95 });
+  doorBg.position.set(b.pos[0], 2.75, b.pos[2] + d/2 + 0.2);
+  g.add(doorBg);
+  // Split center
+  const doorSplit = makeBox(0.1, 5.5, 0.5, 0x1e0a08);
+  doorSplit.position.set(b.pos[0], 2.75, b.pos[2] + d/2 + 0.4);
+  g.add(doorSplit);
+  // Brass studs in 4x6 grid
+  for (let dx = -1; dx <= 1; dx++) {
+    if (dx === 0) continue;
+    for (let dy = 0; dy < 6; dy++) {
+      const stud = makeSphere(0.12, 0xb4895a, { metalness: 0.7 });
+      stud.position.set(b.pos[0] + dx * 0.8, 0.6 + dy * 0.8, b.pos[2] + d/2 + 0.42);
+      g.add(stud);
+    }
+  }
+  // Painted door surround (red with gold)
+  const surroundT = makeBox(4.6, 0.6, 0.5, 0x7a2828);
+  surroundT.position.set(b.pos[0], 5.8, b.pos[2] + d/2 + 0.15);
+  g.add(surroundT);
+  const surroundTGold = makeBox(4.2, 0.2, 0.55, goldAccent, { metalness: 0.6, emissive: goldAccent, emissiveIntensity: 0.3 });
+  surroundTGold.position.set(b.pos[0], 5.75, b.pos[2] + d/2 + 0.18);
+  g.add(surroundTGold);
+  const surroundL = makeBox(0.4, 6, 0.5, 0x7a2828);
+  surroundL.position.set(b.pos[0] - 1.9, 3, b.pos[2] + d/2 + 0.15);
+  g.add(surroundL);
+  const surroundR = makeBox(0.4, 6, 0.5, 0x7a2828);
+  surroundR.position.set(b.pos[0] + 1.9, 3, b.pos[2] + d/2 + 0.15);
+  g.add(surroundR);
+
   return g;
 }
 
-// TEMPLE — Lotus Indian-style, multi-tiered with deep overhangs
+// TEMPLE — Lotus Dravidian Hindu: stepped VIMANA pyramid, carved relief panels, mandapa columns, yali lions, oculus
 function buildTempleStyle(b) {
   const g = new THREE.Group();
   const [w, h, d] = b.size;
-  // Stepped pyramid silhouette (3 tiers shrinking up)
-  const tiers = [
-    { w: w, h: h * 0.5, d: d, y: h * 0.25 },
-    { w: w * 0.8, h: h * 0.3, d: d * 0.8, y: h * 0.5 + h * 0.15 },
-    { w: w * 0.55, h: h * 0.2, d: d * 0.55, y: h * 0.8 + h * 0.1 },
+  const baseColor = new THREE.Color(b.color);
+  const goldAccent = b.accentColor || 0xffc850;
+  const stoneAccent = 0xc8b496;
+
+  // Body with TEXTURED MARBLE walls (carved relief pattern via canvas)
+  const wallMat = texturedWallMat('marble_relief', baseColor, w, h);
+  const body = new THREE.Mesh(new THREE.BoxGeometry(w, h * 0.5, d), wallMat);
+  body.position.set(b.pos[0], h * 0.25, b.pos[2]);
+  body.castShadow = true;
+  body.receiveShadow = true;
+  g.add(body);
+
+  // Plinth base (lighter stone)
+  const plinth = makeBox(w + 1, 1.5, d + 1, stoneAccent, { roughness: 0.7 });
+  plinth.position.set(b.pos[0], 0.75, b.pos[2]);
+  g.add(plinth);
+  // Cornice/horizontal molding at top of body
+  const cornice = makeBox(w + 0.6, 0.5, d + 0.6, stoneAccent, { roughness: 0.7 });
+  cornice.position.set(b.pos[0], h * 0.5 - 0.25, b.pos[2]);
+  g.add(cornice);
+  // Golden trim at body top
+  const goldTrim1 = makeBox(w + 0.8, 0.25, d + 0.8, goldAccent, { metalness: 0.7, emissive: goldAccent, emissiveIntensity: 0.3 });
+  goldTrim1.position.set(b.pos[0], h * 0.5 + 0.15, b.pos[2]);
+  g.add(goldTrim1);
+
+  // VIMANA STEPPED PYRAMID ROOF — 4 tiers shrinking with miniature shrines per tier
+  const vimanaTiers = [
+    { w: w * 0.9, h: h * 0.15, d: d * 0.9, y: h * 0.5 + h * 0.075 },
+    { w: w * 0.75, h: h * 0.13, d: d * 0.75, y: h * 0.65 + h * 0.065 },
+    { w: w * 0.6, h: h * 0.11, d: d * 0.6, y: h * 0.78 + h * 0.055 },
+    { w: w * 0.42, h: h * 0.09, d: d * 0.42, y: h * 0.89 + h * 0.045 },
   ];
-  for (const t of tiers) {
-    const tBody = makeBox(t.w, t.h, t.d, b.color, { roughness: 0.7 });
+  for (let i = 0; i < vimanaTiers.length; i++) {
+    const t = vimanaTiers[i];
+    const tBody = makeBox(t.w, t.h, t.d, baseColor.clone().multiplyScalar(0.92 + i * 0.02).getHex(), { roughness: 0.7 });
     tBody.position.set(b.pos[0], t.y, b.pos[2]);
     g.add(tBody);
-    // Golden trim at each tier edge
-    const tTrim = makeBox(t.w + 1, 0.4, t.d + 1, b.accentColor || 0xffc850, { metalness: 0.6, emissive: b.accentColor || 0xffc850, emissiveIntensity: 0.2 });
-    tTrim.position.set(b.pos[0], t.y + t.h / 2 + 0.2, b.pos[2]);
+    // Tier base lip (slightly wider)
+    const tLip = makeBox(t.w + 0.6, 0.2, t.d + 0.6, stoneAccent, { roughness: 0.65 });
+    tLip.position.set(b.pos[0], t.y - t.h / 2 + 0.1, b.pos[2]);
+    g.add(tLip);
+    // Golden trim band at top of each tier
+    const tTrim = makeBox(t.w + 0.4, 0.2, t.d + 0.4, goldAccent, { metalness: 0.6, emissive: goldAccent, emissiveIntensity: 0.25 });
+    tTrim.position.set(b.pos[0], t.y + t.h / 2 + 0.1, b.pos[2]);
     g.add(tTrim);
+    // Miniature shrines around each tier (smaller boxes with own little tops)
+    const shrinesPerSide = Math.max(2, Math.floor(t.w / 4));
+    for (let face = 0; face < 4; face++) {
+      const isFront = face === 0 || face === 2;
+      const lenSide = isFront ? t.w : t.d;
+      for (let s = 0; s < shrinesPerSide; s++) {
+        const ts = (s + 0.5) / shrinesPerSide;
+        const ox = isFront ? -lenSide/2 + ts * lenSide : (face === 1 ? t.w/2 + 0.3 : -t.w/2 - 0.3);
+        const oz = isFront ? (face === 0 ? -t.d/2 - 0.3 : t.d/2 + 0.3) : -lenSide/2 + ts * lenSide;
+        const miniH = t.h * 1.2;
+        const mini = makeBox(0.8, miniH, 0.8, stoneAccent, { roughness: 0.6 });
+        mini.position.set(b.pos[0] + ox, t.y, b.pos[2] + oz);
+        g.add(mini);
+        // Tiny gold finial on top
+        const miniGold = makeBox(0.3, 0.2, 0.3, goldAccent, { metalness: 0.7 });
+        miniGold.position.set(b.pos[0] + ox, t.y + miniH / 2 + 0.1, b.pos[2] + oz);
+        g.add(miniGold);
+      }
+    }
   }
-  // Curved dome cap on top
-  const dome = makeSphere(w * 0.2, b.color, { segments: 14, roughness: 0.5 });
-  dome.position.set(b.pos[0], h + 1, b.pos[2]);
+
+  // DOME CAP (Stupi) on top
+  const dome = makeSphere(w * 0.18, baseColor.clone().multiplyScalar(1.02).getHex(), { segments: 16, roughness: 0.4 });
+  dome.position.set(b.pos[0], h * 0.97, b.pos[2]);
   g.add(dome);
-  // Golden spire
-  const spire = makeCylinder(0.1, 0.3, 4, 0xffc850, { segments: 8, metalness: 0.7, emissive: 0xffc850, emissiveIntensity: 0.3 });
-  spire.position.set(b.pos[0], h + w * 0.2 + 2.5, b.pos[2]);
-  g.add(spire);
-  // Decorative columns at front
-  const colCount = Math.max(3, Math.floor(w / 8));
-  for (let i = 0; i < colCount; i++) {
-    const col = makeCylinder(0.7, 0.7, h * 0.55, 0xdcd2be, { segments: 10, roughness: 0.4 });
-    col.position.set(b.pos[0] - w/2 + 2 + (i / (colCount - 1)) * (w - 4), h * 0.275, b.pos[2] + d/2 + 0.5);
-    g.add(col);
+  // Lotus-petal decoration around dome base
+  for (let i = 0; i < 8; i++) {
+    const ang = (i / 8) * Math.PI * 2;
+    const petal = makeBox(0.3, 0.15, 0.6, goldAccent, { metalness: 0.7, emissive: goldAccent, emissiveIntensity: 0.4 });
+    petal.position.set(b.pos[0] + Math.cos(ang) * (w * 0.18 + 0.3), h * 0.95, b.pos[2] + Math.sin(ang) * (w * 0.18 + 0.3));
+    petal.rotation.y = ang;
+    petal.rotation.z = 0.4;
+    g.add(petal);
   }
-  // Windows (small high)
+  // Golden Kalasha spire (multi-tiered, signature Dravidian)
+  const kalashaBase = makeCylinder(0.5, 0.6, 0.4, goldAccent, { segments: 12, metalness: 0.7, emissive: goldAccent, emissiveIntensity: 0.4 });
+  kalashaBase.position.set(b.pos[0], h * 1.02 + w * 0.18, b.pos[2]);
+  g.add(kalashaBase);
+  for (let i = 0; i < 4; i++) {
+    const r = 0.35 - i * 0.07;
+    const disc = makeCylinder(r, r, 0.2, goldAccent, { segments: 12, metalness: 0.8, emissive: goldAccent, emissiveIntensity: 0.5 });
+    disc.position.set(b.pos[0], h * 1.02 + w * 0.18 + 0.5 + i * 0.3, b.pos[2]);
+    g.add(disc);
+  }
+  // Top spike
+  const spike = makeCylinder(0.04, 0.15, 2, goldAccent, { segments: 8, metalness: 0.8, emissive: goldAccent, emissiveIntensity: 0.6 });
+  spike.position.set(b.pos[0], h * 1.02 + w * 0.18 + 2.3, b.pos[2]);
+  g.add(spike);
+
+  // MANDAPA — pillared portico at front with detailed CARVED COLUMNS (yali style)
+  const colCount = Math.max(3, Math.floor(w / 6));
+  for (let i = 0; i < colCount; i++) {
+    const colX = b.pos[0] - w/2 + 1.5 + (i / (colCount - 1)) * (w - 3);
+    // Square plinth base
+    const plinthBase = makeBox(1.5, 0.8, 1.5, stoneAccent, { roughness: 0.6 });
+    plinthBase.position.set(colX, 0.4, b.pos[2] + d/2 + 1.5);
+    g.add(plinthBase);
+    // Yali lion base sculpture (rectangular block representing rampant lion)
+    const yali = makeBox(1.3, 1.5, 1.3, stoneAccent, { roughness: 0.6 });
+    yali.position.set(colX, 1.55, b.pos[2] + d/2 + 1.5);
+    g.add(yali);
+    // Eye dots (gold)
+    const eye = makeBox(0.15, 0.15, 0.1, goldAccent, { emissive: goldAccent, emissiveIntensity: 0.3 });
+    eye.position.set(colX - 0.2, 1.9, b.pos[2] + d/2 + 2.15);
+    g.add(eye);
+    const eye2 = eye.clone();
+    eye2.position.set(colX + 0.2, 1.9, b.pos[2] + d/2 + 2.15);
+    g.add(eye2);
+    // Column shaft (with horizontal carved rings)
+    const colH = h * 0.4;
+    const shaft = makeCylinder(0.55, 0.65, colH, 0xdcd2be, { segments: 12, roughness: 0.4 });
+    shaft.position.set(colX, 2.3 + colH / 2, b.pos[2] + d/2 + 1.5);
+    g.add(shaft);
+    // 3 ring carvings on shaft
+    for (let r = 0; r < 3; r++) {
+      const ring = makeCylinder(0.65, 0.65, 0.15, stoneAccent, { segments: 12, roughness: 0.55 });
+      ring.position.set(colX, 2.5 + (r + 0.5) * colH / 3, b.pos[2] + d/2 + 1.5);
+      g.add(ring);
+    }
+    // Capital (broader top)
+    const cap = makeBox(1.8, 0.8, 1.8, stoneAccent, { roughness: 0.55 });
+    cap.position.set(colX, 2.3 + colH + 0.4, b.pos[2] + d/2 + 1.5);
+    g.add(cap);
+    // Bracket above capital (corbel)
+    const bracket = makeBox(2.4, 0.4, 0.8, stoneAccent, { roughness: 0.55 });
+    bracket.position.set(colX, 2.3 + colH + 0.95, b.pos[2] + d/2 + 1.5);
+    g.add(bracket);
+  }
+  // Roof slab over mandapa (extending from main building)
+  const mandapaRoof = makeBox(w, 0.5, 3.5, baseColor.clone().multiplyScalar(0.95).getHex(), { roughness: 0.7 });
+  mandapaRoof.position.set(b.pos[0], 2.3 + h * 0.4 + 1.5, b.pos[2] + d/2 + 1.5);
+  g.add(mandapaRoof);
+  // Golden trim on mandapa roof
+  const mandapaTrim = makeBox(w + 0.4, 0.2, 3.7, goldAccent, { metalness: 0.6, emissive: goldAccent, emissiveIntensity: 0.3 });
+  mandapaTrim.position.set(b.pos[0], 2.3 + h * 0.4 + 1.8, b.pos[2] + d/2 + 1.5);
+  g.add(mandapaTrim);
+
+  // CARVED RELIEF PANELS on side walls (every 4 studs, geometric Hindu pattern)
+  const reliefSpacing = 5;
+  for (let face of [-1, 1]) {  // -1 = left side, 1 = right side
+    const reliefCount = Math.floor(d / reliefSpacing);
+    for (let i = 0; i < reliefCount; i++) {
+      const z = b.pos[2] - d/2 + (i + 0.5) * (d / reliefCount);
+      // Recessed panel
+      const panelBg = makeBox(0.3, h * 0.35, 2.5, baseColor.clone().multiplyScalar(0.85).getHex(), { roughness: 0.6 });
+      panelBg.position.set(b.pos[0] + face * (w/2 + 0.1), h * 0.25, z);
+      g.add(panelBg);
+      // Stone frame around panel
+      const panelFrame = makeBox(0.3, h * 0.4, 2.8, stoneAccent, { roughness: 0.55 });
+      panelFrame.position.set(b.pos[0] + face * (w/2 + 0.05), h * 0.25, z);
+      g.add(panelFrame);
+      // Carved figure in middle (dancer apsara — represented as small relief)
+      const figure = makeBox(0.4, h * 0.25, 0.8, stoneAccent, { roughness: 0.55 });
+      figure.position.set(b.pos[0] + face * (w/2 + 0.15), h * 0.25, z);
+      g.add(figure);
+    }
+  }
+
+  // WINDOWS with carved frames (high, smaller)
   const winRows = 2;
   const winCols = Math.max(3, Math.floor(w / 5));
   for (let r = 0; r < winRows; r++) {
     for (let c = 0; c < winCols; c++) {
       const sx = (c + 0.5) / winCols;
-      const sy = (r + 0.5) / winRows * 0.4 + 0.5;  // upper half
-      const win = makeBox(1.2, 1.8, 0.3, 0x281428);
-      win.position.set(b.pos[0] - w/2 + sx * w, sy * h, b.pos[2] + d/2 + 0.1);
-      g.add(win);
+      const sy = (r + 0.5) / winRows * 0.25 + 0.32;
+      const wx = b.pos[0] - w/2 + sx * w;
+      const wy = sy * h;
+      // Skip middle column (would clash with door)
+      if (sx > 0.4 && sx < 0.6 && r === 0) continue;
+      // Recess
+      const recess = makeBox(1.2, 1.6, 0.3, 0x0a0a14);
+      recess.position.set(wx, wy, b.pos[2] + d/2 - 0.15);
+      g.add(recess);
+      // Glass (warm amber from interior lamp)
+      const glass = makeBox(1.0, 1.3, 0.1, 0xc8643c, { transparent: true, opacity: 0.85, emissive: 0xc8643c, emissiveIntensity: 0.3 });
+      glass.position.set(wx, wy, b.pos[2] + d/2 + 0.02);
+      g.add(glass);
+      // Carved stone frame (top with mini corbel)
+      const ft = makeBox(1.5, 0.4, 0.5, stoneAccent, { roughness: 0.55 });
+      ft.position.set(wx, wy + 0.9, b.pos[2] + d/2 + 0.18);
+      g.add(ft);
+      const fb = makeBox(1.5, 0.3, 0.5, stoneAccent);
+      fb.position.set(wx, wy - 0.85, b.pos[2] + d/2 + 0.18);
+      g.add(fb);
+      const fl = makeBox(0.2, 1.8, 0.5, stoneAccent);
+      fl.position.set(wx - 0.65, wy, b.pos[2] + d/2 + 0.18);
+      g.add(fl);
+      const fr = makeBox(0.2, 1.8, 0.5, stoneAccent);
+      fr.position.set(wx + 0.65, wy, b.pos[2] + d/2 + 0.18);
+      g.add(fr);
+      // Mini decorative tower above (mini vimana)
+      const miniTower = makeBox(1, 0.6, 0.4, stoneAccent, { roughness: 0.55 });
+      miniTower.position.set(wx, wy + 1.45, b.pos[2] + d/2 + 0.2);
+      g.add(miniTower);
+      const miniGold = makeBox(0.3, 0.15, 0.5, goldAccent, { metalness: 0.6 });
+      miniGold.position.set(wx, wy + 1.8, b.pos[2] + d/2 + 0.2);
+      g.add(miniGold);
     }
   }
-  // Arched entrance
-  const door = makeBox(4, 6, 0.4, 0x281408, { roughness: 0.9 });
-  door.position.set(b.pos[0], 3, b.pos[2] + d/2 + 0.2);
-  g.add(door);
+
+  // ARCHED ENTRANCE with elaborate stone carving
+  const doorBg = makeBox(4, 6, 0.4, 0x281408, { roughness: 0.95 });
+  doorBg.position.set(b.pos[0], 3, b.pos[2] + d/2 + 0.2);
+  g.add(doorBg);
+  // Door panels (with vertical lines)
+  for (let p = 0; p < 4; p++) {
+    const panel = makeBox(0.06, 5.5, 0.45, 0x14080a);
+    panel.position.set(b.pos[0] - 1.5 + p * 1, 3, b.pos[2] + d/2 + 0.42);
+    g.add(panel);
+  }
+  // Brass studs in grid
+  for (let dx = -1; dx <= 1; dx++) {
+    for (let dy = 0; dy < 5; dy++) {
+      if (dx === 0) continue;
+      const stud = makeSphere(0.15, 0xb4895a, { metalness: 0.7 });
+      stud.position.set(b.pos[0] + dx * 1.2, 0.8 + dy * 0.95, b.pos[2] + d/2 + 0.43);
+      g.add(stud);
+    }
+  }
+  // Arched stone cap with carving
   const archCap = new THREE.Mesh(
-    new THREE.CylinderGeometry(2, 2, 0.4, 16, 1, false, 0, Math.PI),
-    new THREE.MeshStandardMaterial({ color: b.accentColor || 0xffc850, metalness: 0.5, roughness: 0.4 })
+    new THREE.CylinderGeometry(2.2, 2.2, 0.5, 18, 1, false, 0, Math.PI),
+    new THREE.MeshStandardMaterial({ color: stoneAccent, roughness: 0.5 })
   );
   archCap.rotation.set(Math.PI / 2, 0, Math.PI / 2);
-  archCap.position.set(b.pos[0], 6.2, b.pos[2] + d/2 + 0.2);
+  archCap.position.set(b.pos[0], 6.3, b.pos[2] + d/2 + 0.2);
   g.add(archCap);
+  // Gold accent on arch
+  const archGold = new THREE.Mesh(
+    new THREE.CylinderGeometry(1.9, 1.9, 0.6, 18, 1, false, 0, Math.PI),
+    new THREE.MeshStandardMaterial({ color: goldAccent, metalness: 0.7, emissive: goldAccent, emissiveIntensity: 0.4 })
+  );
+  archGold.rotation.set(Math.PI / 2, 0, Math.PI / 2);
+  archGold.position.set(b.pos[0], 6.3, b.pos[2] + d/2 + 0.25);
+  g.add(archGold);
+  // Carved figures flanking door (small statues)
+  for (const side of [-1, 1]) {
+    const statueBase = makeBox(1, 0.5, 1, stoneAccent, { roughness: 0.55 });
+    statueBase.position.set(b.pos[0] + side * 3, 0.25, b.pos[2] + d/2 + 0.5);
+    g.add(statueBase);
+    const statueBody = makeBox(0.8, 3.5, 0.8, stoneAccent, { roughness: 0.55 });
+    statueBody.position.set(b.pos[0] + side * 3, 2.25, b.pos[2] + d/2 + 0.5);
+    g.add(statueBody);
+    const statueHead = makeSphere(0.5, stoneAccent, { roughness: 0.55 });
+    statueHead.position.set(b.pos[0] + side * 3, 4.3, b.pos[2] + d/2 + 0.5);
+    g.add(statueHead);
+    // Gold trim
+    const goldBelt = makeBox(0.85, 0.3, 0.85, goldAccent, { metalness: 0.6, emissive: goldAccent, emissiveIntensity: 0.3 });
+    goldBelt.position.set(b.pos[0] + side * 3, 2.5, b.pos[2] + d/2 + 0.5);
+    g.add(goldBelt);
+  }
+
+  // OPTIONAL VINES (radianite-infused, glowing blue) on side walls — 30% chance
+  if (Math.random() < 0.3) {
+    for (let vine = 0; vine < 6; vine++) {
+      const vineY = Math.random() * h * 0.7;
+      const vineX = b.pos[0] + (Math.random() - 0.5) * w * 0.8;
+      const v = makeBox(0.15, 2 + Math.random() * 3, 0.15, 0x32a0ff, { emissive: 0x32a0ff, emissiveIntensity: 1.0 });
+      v.position.set(vineX, vineY, b.pos[2] - d/2 - 0.1);
+      v.rotation.z = (Math.random() - 0.5) * 0.4;
+      g.add(v);
+    }
+  }
+
   return g;
 }
 
-// BUNKER — Fracture industrial, FLAT corrugated roof + sandbags + railings
+// BUNKER — Fracture industrial: CORRUGATED METAL textured + bolts + rust + Kingdom signage + railings
 function buildBunker(b) {
   const g = new THREE.Group();
   const [w, h, d] = b.size;
-  const body = makeBox(w, h, d, b.color, { roughness: 1.0 });
+  const baseColor = new THREE.Color(b.color);
+
+  // Body with TEXTURED corrugated metal walls (procedural rust + bolts + vertical ribs)
+  const wallMat = texturedWallMat('corrugated_metal', baseColor, w, h);
+  const body = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), wallMat);
   body.position.set(b.pos[0], h / 2, b.pos[2]);
+  body.castShadow = true;
+  body.receiveShadow = true;
   g.add(body);
-  // Corrugated flat roof
-  const roofSlab = makeBox(w + 1.5, 0.4, d + 1.5, b.roofColor || 0x645a46, { roughness: 0.95 });
-  roofSlab.position.set(b.pos[0], h + 0.2, b.pos[2]);
-  g.add(roofSlab);
-  // Corrugated ridges (visible from afar)
-  const ridges = Math.floor(w / 2);
+
+  // Concrete plinth base (rust streaks running down to it)
+  const plinth = makeBox(w + 0.4, 1.2, d + 0.4, 0x504638, { roughness: 0.95 });
+  plinth.position.set(b.pos[0], 0.6, b.pos[2]);
+  g.add(plinth);
+  // Hazard yellow/black diagonal stripes on plinth (Kingdom safety)
+  const hazardBand = makeBox(w + 0.5, 0.4, d + 0.5, 0xdcc832, { roughness: 0.7, emissive: 0xdcc832, emissiveIntensity: 0.15 });
+  hazardBand.position.set(b.pos[0], 1.0, b.pos[2]);
+  g.add(hazardBand);
+
+  // KINGDOM LOGO PLAQUE on front wall (gold band)
+  const kingdomBand = makeBox(w * 0.4, 1.2, 0.3, 0xd4af37, { metalness: 0.7, emissive: 0xd4af37, emissiveIntensity: 0.4 });
+  kingdomBand.position.set(b.pos[0], h * 0.65, b.pos[2] + d/2 + 0.18);
+  g.add(kingdomBand);
+  // K-Corp text panel (small dark)
+  const kingdomText = makeBox(w * 0.36, 0.9, 0.32, 0x14141a, { metalness: 0.3 });
+  kingdomText.position.set(b.pos[0], h * 0.65, b.pos[2] + d/2 + 0.2);
+  g.add(kingdomText);
+  // 3 gold stripes on Kingdom band
+  for (let s = 0; s < 3; s++) {
+    const stripe = makeBox(0.4, 0.8, 0.34, 0xd4af37, { metalness: 0.7, emissive: 0xd4af37, emissiveIntensity: 0.5 });
+    stripe.position.set(b.pos[0] - w * 0.06 + s * 0.06, h * 0.65, b.pos[2] + d/2 + 0.22);
+    g.add(stripe);
+  }
+
+  // CORRUGATED RIDGES on body (vertical) — visible from afar
+  const ridges = Math.floor(w / 1.5);
   for (let i = 0; i < ridges; i++) {
-    const ridge = makeBox(0.3, 0.3, d + 1, (b.roofColor || 0x645a46) * 1.1, { roughness: 0.95 });
-    ridge.position.set(b.pos[0] - w/2 + (i + 0.5) * (w / ridges), h + 0.5, b.pos[2]);
+    const ridge = makeBox(0.2, h, 0.15, baseColor.clone().multiplyScalar(0.7).getHex(), { roughness: 0.9 });
+    ridge.position.set(b.pos[0] - w/2 + (i + 0.5) * (w / ridges), h / 2, b.pos[2] + d/2 + 0.05);
     g.add(ridge);
   }
-  // Rooftop vents (3-4)
+
+  // FLAT ROOF SLAB with corrugated ridges on top
+  const roofSlab = makeBox(w + 1.5, 0.5, d + 1.5, b.roofColor || 0x645a46, { roughness: 0.95 });
+  roofSlab.position.set(b.pos[0], h + 0.25, b.pos[2]);
+  g.add(roofSlab);
+  // Roof corrugation ridges
+  const roofRidges = Math.floor(w / 1.5);
+  for (let i = 0; i < roofRidges; i++) {
+    const ridge = makeBox(0.2, 0.2, d + 1, new THREE.Color(b.roofColor || 0x645a46).multiplyScalar(0.8).getHex(), { roughness: 0.95 });
+    ridge.position.set(b.pos[0] - w/2 + (i + 0.5) * (w / roofRidges), h + 0.6, b.pos[2]);
+    g.add(ridge);
+  }
+
+  // Roof PARAPET WALL with yellow safety stripe (industrial railing)
+  const parapetH = 1.5;
+  for (let face = 0; face < 4; face++) {
+    const isX = face % 2 === 0;
+    const len = isX ? w + 1 : d + 1;
+    const px = face === 1 ? w / 2 + 0.5 : (face === 3 ? -w / 2 - 0.5 : 0);
+    const pz = face === 0 ? -d / 2 - 0.5 : (face === 2 ? d / 2 + 0.5 : 0);
+    const wall = makeBox(isX ? len : 0.4, parapetH, isX ? 0.4 : len, baseColor.clone().multiplyScalar(0.8).getHex(), { roughness: 0.9 });
+    wall.position.set(b.pos[0] + px, h + 0.5 + parapetH / 2, b.pos[2] + pz);
+    g.add(wall);
+    // Yellow stripe on parapet top
+    const stripe = makeBox(isX ? len : 0.45, 0.15, isX ? 0.45 : len, 0xdcc832, { emissive: 0xdcc832, emissiveIntensity: 0.2 });
+    stripe.position.set(b.pos[0] + px, h + 0.5 + parapetH + 0.08, b.pos[2] + pz);
+    g.add(stripe);
+  }
+
+  // ROOFTOP VENTS (proper boxy industrial)
   for (let v = 0; v < 3; v++) {
-    const vent = makeBox(2.5, 2, 2.5, 0x282828, { metalness: 0.4 });
-    vent.position.set(b.pos[0] - w/3 + v * (w/3), h + 1.4, b.pos[2] + (Math.random() - 0.5) * d * 0.5);
+    const vent = makeBox(2.5, 2.5, 2, 0x282828, { metalness: 0.4 });
+    vent.position.set(b.pos[0] - w/3 + v * (w/3), h + 1.75, b.pos[2] + (Math.random() - 0.5) * d * 0.5);
     g.add(vent);
+    // Vent grille (3 horizontal slits)
+    for (let s = 0; s < 3; s++) {
+      const slit = makeBox(2.2, 0.15, 0.1, 0x141414);
+      slit.position.set(vent.position.x, vent.position.y - 0.7 + s * 0.6, vent.position.z + 1.05);
+      g.add(slit);
+    }
   }
-  // Rooftop pipes
+
+  // ROOFTOP PIPES (curved L-shape)
   for (let p = 0; p < 2; p++) {
-    const pipe = makeCylinder(0.4, 0.4, 3, 0x504640, { segments: 8 });
-    pipe.position.set(b.pos[0] + (Math.random() - 0.5) * w * 0.5, h + 2, b.pos[2] + (Math.random() - 0.5) * d * 0.5);
-    g.add(pipe);
+    const pipeY = h + 2;
+    const pipeX = b.pos[0] + (p === 0 ? -w * 0.3 : w * 0.3);
+    const pipeZ = b.pos[2] + (Math.random() - 0.5) * d * 0.5;
+    const vert = makeCylinder(0.4, 0.4, 4, 0x504640, { segments: 10 });
+    vert.position.set(pipeX, pipeY, pipeZ);
+    g.add(vert);
+    const horiz = makeCylinder(0.4, 0.4, 3, 0x504640, { segments: 10 });
+    horiz.rotation.z = Math.PI / 2;
+    horiz.position.set(pipeX + 1.5, pipeY + 1.9, pipeZ);
+    g.add(horiz);
+    // Joint flange
+    const flange = makeCylinder(0.55, 0.55, 0.2, 0x282828, { segments: 12 });
+    flange.position.set(pipeX, pipeY + 2, pipeZ);
+    g.add(flange);
   }
-  // Industrial side ladder (vertical)
-  const ladder = makeBox(0.3, h - 2, 1.2, 0x282828);
-  ladder.position.set(b.pos[0] + w/2 + 0.2, h/2, b.pos[2] + d/4);
-  g.add(ladder);
-  // Small slit-style windows (military)
+
+  // SIDE LADDER (vertical access to roof, with rungs)
+  const ladderRailL = makeBox(0.15, h, 0.15, 0x282828, { metalness: 0.4 });
+  ladderRailL.position.set(b.pos[0] + w/2 + 0.5, h/2, b.pos[2] + d/4 - 0.4);
+  g.add(ladderRailL);
+  const ladderRailR = makeBox(0.15, h, 0.15, 0x282828, { metalness: 0.4 });
+  ladderRailR.position.set(b.pos[0] + w/2 + 0.5, h/2, b.pos[2] + d/4 + 0.4);
+  g.add(ladderRailR);
+  // Rungs
+  for (let r = 0; r < Math.floor(h - 1); r++) {
+    const rung = makeBox(0.1, 0.1, 0.9, 0x282828, { metalness: 0.4 });
+    rung.position.set(b.pos[0] + w/2 + 0.5, 1 + r, b.pos[2] + d/4);
+    g.add(rung);
+  }
+
+  // SLIT WINDOWS (horizontal, military style)
   const winRows = Math.max(1, Math.floor(h / 8));
-  const winCols = Math.max(2, Math.floor(w / 6));
+  const winCols = Math.max(2, Math.floor(w / 5));
   for (let r = 0; r < winRows; r++) {
     for (let c = 0; c < winCols; c++) {
       const sx = (c + 0.5) / winCols;
       const sy = (r + 0.5) / winRows * 0.7 + 0.15;
-      const win = makeBox(2.5, 0.8, 0.3, 0x141420);
-      win.position.set(b.pos[0] - w/2 + sx * w, sy * h, b.pos[2] + d/2 + 0.1);
-      g.add(win);
-      const winB = win.clone();
-      winB.position.set(b.pos[0] - w/2 + sx * w, sy * h, b.pos[2] - d/2 - 0.1);
-      g.add(winB);
+      const wx = b.pos[0] - w/2 + sx * w;
+      const wy = sy * h;
+      // Recess
+      const recess = makeBox(2.8, 1.0, 0.3, 0x0a0a14);
+      recess.position.set(wx, wy, b.pos[2] + d/2 - 0.1);
+      g.add(recess);
+      // Glass slit (greenish — bulletproof glass tint)
+      const glass = makeBox(2.6, 0.85, 0.1, 0x325040, { transparent: true, opacity: 0.8, emissive: 0x325040, emissiveIntensity: 0.2 });
+      glass.position.set(wx, wy, b.pos[2] + d/2 + 0.02);
+      g.add(glass);
+      // Steel frame
+      const frT = makeBox(3.2, 0.2, 0.45, 0x141414, { metalness: 0.5 });
+      frT.position.set(wx, wy + 0.55, b.pos[2] + d/2 + 0.18);
+      g.add(frT);
+      const frB = makeBox(3.2, 0.2, 0.45, 0x141414, { metalness: 0.5 });
+      frB.position.set(wx, wy - 0.55, b.pos[2] + d/2 + 0.18);
+      g.add(frB);
+      // Side frames
+      const frL = makeBox(0.2, 1.4, 0.45, 0x141414);
+      frL.position.set(wx - 1.55, wy, b.pos[2] + d/2 + 0.18);
+      g.add(frL);
+      const frR = makeBox(0.2, 1.4, 0.45, 0x141414);
+      frR.position.set(wx + 1.55, wy, b.pos[2] + d/2 + 0.18);
+      g.add(frR);
     }
   }
-  // Metal door
-  const door = makeBox(3, 5, 0.4, 0x3c3c46, { metalness: 0.5, roughness: 0.7 });
-  door.position.set(b.pos[0], 2.5, b.pos[2] + d/2 + 0.2);
-  g.add(door);
-  // Hazard stripe over door
-  const stripe = makeBox(4, 0.4, 0.5, 0xdcc832);
-  stripe.position.set(b.pos[0], 5.2, b.pos[2] + d/2 + 0.05);
-  g.add(stripe);
-  // Sandbags along front base
-  for (let i = 0; i < Math.floor(w / 1.5); i++) {
-    if (Math.abs(i - winCols / 2) < 2) continue;  // skip door area
-    const bag = makeBox(1.4, 0.7, 1.5, 0xa08c64, { roughness: 1.0 });
-    bag.position.set(b.pos[0] - w/2 + (i + 0.5) * 1.5, 0.35, b.pos[2] + d/2 + 1);
-    g.add(bag);
+
+  // METAL BLAST DOOR with yellow hazard stripes and bolts
+  const doorBg = makeBox(3.4, 5.5, 0.4, 0x3c3c46, { metalness: 0.5, roughness: 0.7 });
+  doorBg.position.set(b.pos[0], 2.75, b.pos[2] + d/2 + 0.2);
+  g.add(doorBg);
+  // 4 corner bolts on door
+  for (const [dx, dy] of [[-1.4, -2.3], [1.4, -2.3], [-1.4, 2.3], [1.4, 2.3]]) {
+    const bolt = makeSphere(0.18, 0x787068, { metalness: 0.6 });
+    bolt.position.set(b.pos[0] + dx, 2.75 + dy, b.pos[2] + d/2 + 0.42);
+    g.add(bolt);
   }
+  // Door handle (large industrial)
+  const handle = makeBox(0.7, 0.2, 0.3, 0x504640, { metalness: 0.6 });
+  handle.position.set(b.pos[0] + 1, 2.5, b.pos[2] + d/2 + 0.45);
+  g.add(handle);
+  // Hazard stripe ABOVE door (diagonal yellow/black)
+  for (let s = 0; s < 5; s++) {
+    const stripe = makeBox(0.8, 0.5, 0.4, s % 2 === 0 ? 0xdcc832 : 0x14141a, { emissive: s % 2 === 0 ? 0xdcc832 : 0x000000, emissiveIntensity: 0.2 });
+    stripe.position.set(b.pos[0] - 1.6 + s * 0.85, 5.85, b.pos[2] + d/2 + 0.2);
+    stripe.rotation.z = Math.PI / 5;
+    g.add(stripe);
+  }
+  // CAUTION text plate
+  const cautionPlate = makeBox(2, 0.5, 0.3, 0xdcc832, { emissive: 0xdcc832, emissiveIntensity: 0.4 });
+  cautionPlate.position.set(b.pos[0], 6.6, b.pos[2] + d/2 + 0.2);
+  g.add(cautionPlate);
+
+  // SANDBAGS along front base (skip door area)
+  const bagCount = Math.floor(w / 1.5);
+  for (let i = 0; i < bagCount; i++) {
+    if (Math.abs(i - bagCount / 2) < 2) continue;
+    // Stack 2 bags
+    const bag1 = makeBox(1.4, 0.6, 1.5, 0xa08c64, { roughness: 1.0 });
+    bag1.position.set(b.pos[0] - w/2 + (i + 0.5) * 1.5, 0.3, b.pos[2] + d/2 + 1);
+    g.add(bag1);
+    if (Math.random() < 0.6) {
+      const bag2 = makeBox(1.4, 0.6, 1.5, 0xa08c64, { roughness: 1.0 });
+      bag2.position.set(b.pos[0] - w/2 + (i + 0.5) * 1.5 + 0.3, 0.9, b.pos[2] + d/2 + 1.2);
+      g.add(bag2);
+    }
+  }
+
   return g;
 }
 

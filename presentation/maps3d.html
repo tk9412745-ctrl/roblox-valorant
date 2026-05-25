@@ -108,6 +108,11 @@ header .links a:hover { background: #2a2a3a; }
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 // ===== MAP DATA (z MapData.lua, konwertowane do JS) =====
 const MAPS = {
@@ -1121,6 +1126,22 @@ scene.add(sun);
 const rim = new THREE.DirectionalLight(0xb4c8ff, 0.5);
 rim.position.set(-150, 100, -100);
 scene.add(rim);
+
+// PMREM environment map for PBR (makes metallic/glass materials look real)
+const pmremGenerator = new THREE.PMREMGenerator(renderer);
+scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
+
+// ===== POST-PROCESSING (cinematic) =====
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloomPass = new UnrealBloomPass(
+  new THREE.Vector2(window.innerWidth, window.innerHeight - 110),
+  0.55,  // strength
+  0.5,   // radius
+  0.85   // threshold — only HDR-bright pixels glow
+);
+composer.addPass(bloomPass);
+composer.addPass(new OutputPass());
 
 // ===== TEXT LABEL via CanvasTexture =====
 function makeLabel(text, color = '#ffffff', size = 40) {
@@ -3162,6 +3183,374 @@ function buildAwning(a) {
   return g;
 }
 
+// ===== ICONIC LANDMARKS — one signature feature per map (from real Valorant research) =====
+function addIconicLandmarks(group, name, map) {
+  if (name === 'Ascent') {
+    // CAMPANILE (Central Tower) — tall reddish-brown brick bell tower
+    const towerH = 70;
+    const tower = makeBox(14, towerH, 14, 0xa64a3a, { roughness: 0.85 });
+    tower.position.set(0, towerH / 2, -85);
+    group.add(tower);
+    // Bell chamber (open arches at top)
+    const bell = makeBox(16, 8, 16, 0xb45c40, { roughness: 0.85 });
+    bell.position.set(0, towerH + 4, -85);
+    group.add(bell);
+    // Pyramid green roof on bell tower
+    const towerRoof = new THREE.Mesh(
+      new THREE.ConeGeometry(11, 12, 4),
+      new THREE.MeshStandardMaterial({ color: 0x4a6e3c, roughness: 0.7 })
+    );
+    towerRoof.rotation.y = Math.PI / 4;
+    towerRoof.position.set(0, towerH + 14, -85);
+    group.add(towerRoof);
+    // Clock face (gold disk with cross marks)
+    const clock = makeSphere(2.5, 0xf4e6a4, { emissive: 0xf4e6a4, emissiveIntensity: 0.4 });
+    clock.position.set(0, towerH + 4, -76.8);
+    clock.scale.set(1, 1, 0.1);
+    group.add(clock);
+
+    // BASILICA DOME with BROKEN OPENING at A site
+    const domeBase = makeCylinder(12, 14, 4, 0xefe6d6, { segments: 24, roughness: 0.5 });
+    domeBase.position.set(-90, 38, 60);
+    group.add(domeBase);
+    const dome = new THREE.Mesh(
+      new THREE.SphereGeometry(12, 24, 16, 0, Math.PI * 2, 0, Math.PI / 2),
+      new THREE.MeshStandardMaterial({ color: 0xefe6d6, roughness: 0.5 })
+    );
+    dome.position.set(-90, 40, 60);
+    group.add(dome);
+    // Cross fragment on top (broken)
+    const cross1 = makeBox(0.6, 4, 0.6, 0xc8a050, { metalness: 0.5 });
+    cross1.position.set(-90, 54, 60);
+    cross1.rotation.z = 0.3;  // tilted (broken)
+    group.add(cross1);
+
+    // FLOATING ISLANDS in background (smaller chunks of Venice in sky)
+    for (let i = 0; i < 4; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 350 + Math.random() * 150;
+      const islandY = 30 + Math.random() * 100;
+      // Island chunk (irregular cone bottom, flat top)
+      const isle = makeBox(30 + Math.random() * 20, 8, 30 + Math.random() * 20, 0x8c785a, { roughness: 0.9 });
+      isle.position.set(Math.cos(angle) * dist, islandY, Math.sin(angle) * dist);
+      group.add(isle);
+      // Bottom cone (rocks/earth)
+      const rocks = new THREE.Mesh(
+        new THREE.ConeGeometry(15, 25, 6),
+        new THREE.MeshBasicMaterial({ color: 0x645a4b })
+      );
+      rocks.rotation.x = Math.PI;
+      rocks.position.set(Math.cos(angle) * dist, islandY - 15, Math.sin(angle) * dist);
+      group.add(rocks);
+      // 1-2 buildings on each island
+      for (let j = 0; j < 2; j++) {
+        const bH = 8 + Math.random() * 12;
+        const b = makeBox(8, bH, 8, 0xe1b987, { roughness: 0.85 });
+        b.position.set(Math.cos(angle) * dist + (j === 0 ? -6 : 6), islandY + 4 + bH/2, Math.sin(angle) * dist + (Math.random() - 0.5) * 8);
+        group.add(b);
+        // Red pyramid roof
+        const r = new THREE.Mesh(
+          new THREE.ConeGeometry(6.5, 5, 4),
+          new THREE.MeshBasicMaterial({ color: 0xb45032 })
+        );
+        r.rotation.y = Math.PI / 4;
+        r.position.set(b.position.x, islandY + 4 + bH + 2.5, b.position.z);
+        group.add(r);
+      }
+    }
+  }
+
+  if (name === 'Bind') {
+    // INDUSTRIAL KINGDOM TOWERS with SMOKE PLUMES (defender side, north)
+    for (let i = 0; i < 3; i++) {
+      const tx = -60 + i * 60;
+      const tz = 145;
+      const tower = makeBox(12, 50, 12, 0x4a4e54, { metalness: 0.4, roughness: 0.6 });
+      tower.position.set(tx, 25, tz);
+      group.add(tower);
+      // Gold Kingdom logo strip
+      const logo = makeBox(13, 3, 0.4, 0xd4af37, { metalness: 0.7, emissive: 0xd4af37, emissiveIntensity: 0.3 });
+      logo.position.set(tx, 40, tz - 6.2);
+      group.add(logo);
+      // Smoke plume (vertical cylinder, dark, gradually thinner)
+      for (let s = 0; s < 5; s++) {
+        const smoke = makeSphere(4 + s * 0.8, 0x1a1a1a, { transparent: true, opacity: 0.35 - s * 0.05 });
+        smoke.position.set(tx + (Math.random() - 0.5) * 2, 55 + s * 6, tz);
+        group.add(smoke);
+      }
+    }
+    // ATLAS MOUNTAINS silhouette behind defender spawn (taller, snow-capped tips)
+    for (let i = 0; i < 6; i++) {
+      const mx = -160 + i * 60;
+      const mH = 80 + Math.random() * 60;
+      const m = new THREE.Mesh(
+        new THREE.ConeGeometry(40 + Math.random() * 20, mH, 4),
+        new THREE.MeshBasicMaterial({ color: 0x6e5a46, fog: true })
+      );
+      m.position.set(mx, mH / 2 - 5, 320);
+      m.rotation.y = Math.random() * Math.PI;
+      group.add(m);
+      // Snow cap (top 30%)
+      const snow = new THREE.Mesh(
+        new THREE.ConeGeometry((40 + Math.random() * 20) * 0.4, mH * 0.3, 4),
+        new THREE.MeshBasicMaterial({ color: 0xe6e6f0, fog: true })
+      );
+      snow.position.set(mx, mH * 0.85, 320);
+      snow.rotation.y = m.rotation.y;
+      group.add(snow);
+    }
+    // SAND DUNES behind attacker spawn
+    for (let i = 0; i < 5; i++) {
+      const dx = -150 + i * 75;
+      const dH = 12 + Math.random() * 8;
+      const dune = makeSphere(35, 0xe6c896, { segments: 12 });
+      dune.position.set(dx, dH - 30, -280);
+      dune.scale.set(1.4, 0.4, 1);
+      group.add(dune);
+    }
+  }
+
+  if (name === 'Split') {
+    // KINGDOM HQ SKYSCRAPER on horizon (massive black/gold tower north of map)
+    const hqH = 200;
+    const hq = makeBox(45, hqH, 45, 0x1a1a1f, { metalness: 0.4, roughness: 0.4 });
+    hq.position.set(0, hqH / 2 - 5, 320);
+    group.add(hq);
+    // Gold logo band near top
+    const logoBand = makeBox(46, 6, 46, 0xd4af37, { metalness: 0.7, emissive: 0xd4af37, emissiveIntensity: 0.5 });
+    logoBand.position.set(0, hqH - 20, 320);
+    group.add(logoBand);
+    // Tip with red blinking light
+    const tip = makeSphere(2, 0xff3232, { emissive: 0xff3232, emissiveIntensity: 1.5 });
+    tip.position.set(0, hqH + 8, 320);
+    group.add(tip);
+    // Lit windows on HQ (vertical strips)
+    for (let r = 0; r < 30; r++) {
+      for (let c = 0; c < 8; c++) {
+        if (Math.random() < 0.3) continue;
+        const w = makeBox(2, 3, 0.3, 0xfff0a0, { emissive: 0xfff0a0, emissiveIntensity: 0.9 });
+        w.position.set(-20 + c * 6, 10 + r * 6, 297.5);
+        group.add(w);
+      }
+    }
+    // Distant Tokyo skyline silhouettes around HQ
+    for (let i = 0; i < 8; i++) {
+      const sx = -200 + i * 50;
+      const sH = 60 + Math.random() * 80;
+      const s = makeBox(20, sH, 20, 0x14141e, { metalness: 0.2 });
+      s.position.set(sx, sH / 2 - 5, 280 + Math.random() * 40);
+      group.add(s);
+    }
+  }
+
+  if (name === 'Haven') {
+    // SNOW-CAPPED HIMALAYAN PEAKS (very tall, dramatic)
+    for (let i = 0; i < 7; i++) {
+      const mx = -200 + i * 70;
+      const mH = 150 + Math.random() * 100;
+      const m = new THREE.Mesh(
+        new THREE.ConeGeometry(50 + Math.random() * 30, mH, 5),
+        new THREE.MeshBasicMaterial({ color: 0x506478, fog: true })
+      );
+      m.position.set(mx, mH / 2 - 5, 350);
+      m.rotation.y = Math.random() * Math.PI;
+      group.add(m);
+      // Snow cap (top 40%)
+      const snow = new THREE.Mesh(
+        new THREE.ConeGeometry((50 + Math.random() * 30) * 0.5, mH * 0.4, 5),
+        new THREE.MeshBasicMaterial({ color: 0xf0f0fa, fog: true })
+      );
+      snow.position.set(mx, mH * 0.8 - 5, 350);
+      snow.rotation.y = m.rotation.y;
+      group.add(snow);
+    }
+    // CENTRAL CHORTEN/STUPA (giant) at center - white square base, dome, golden spire
+    const cBase = makeBox(14, 5, 14, 0xfaf5f0, { roughness: 0.6 });
+    cBase.position.set(0, 2.5, 0);
+    group.add(cBase);
+    const cBase2 = makeBox(10, 4, 10, 0xfaf5f0, { roughness: 0.6 });
+    cBase2.position.set(0, 7, 0);
+    group.add(cBase2);
+    const cDome = makeSphere(5, 0xfaf5f0, { roughness: 0.6 });
+    cDome.position.set(0, 12, 0);
+    group.add(cDome);
+    // Square harmika
+    const harmika = makeBox(2, 2, 2, 0xd4af37, { metalness: 0.6 });
+    harmika.position.set(0, 17.5, 0);
+    group.add(harmika);
+    // 13-step golden spire
+    for (let s = 0; s < 13; s++) {
+      const step = makeCylinder(0.7 - s * 0.04, 0.7 - s * 0.04, 0.5, 0xffc850, { segments: 12, metalness: 0.7, emissive: 0xffc850, emissiveIntensity: 0.3 });
+      step.position.set(0, 19 + s * 0.6, 0);
+      group.add(step);
+    }
+    // Crescent moon + sun + spike on top
+    const moonSun = makeSphere(0.8, 0xffe064, { emissive: 0xffe064, emissiveIntensity: 0.7, metalness: 0.7 });
+    moonSun.position.set(0, 28, 0);
+    group.add(moonSun);
+  }
+
+  if (name === 'Fracture') {
+    // CENTRAL RADIAN COLLIDER ring (broken atomic ring at center)
+    const ring = new THREE.Mesh(
+      new THREE.TorusGeometry(15, 2, 12, 32),
+      new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.6, roughness: 0.4, emissive: 0xd4af37, emissiveIntensity: 0.4 })
+    );
+    ring.rotation.x = Math.PI / 2;
+    ring.position.set(0, 4, 0);
+    group.add(ring);
+    // Outer broken ring (smaller arc, tilted)
+    const ringBroken = new THREE.Mesh(
+      new THREE.TorusGeometry(12, 1.2, 8, 20, Math.PI * 1.5),  // partial arc
+      new THREE.MeshStandardMaterial({ color: 0xc89050, metalness: 0.7, roughness: 0.5 })
+    );
+    ringBroken.rotation.set(Math.PI / 2 + 0.2, 0.3, 0);
+    ringBroken.position.set(0, 6, 0);
+    group.add(ringBroken);
+    // Center sparking energy core
+    const core = makeSphere(1.5, 0xff8c3c, { emissive: 0xff8c3c, emissiveIntensity: 2.5 });
+    core.position.set(0, 4, 0);
+    group.add(core);
+    // Glow light
+    const coreLight = new THREE.PointLight(0xff8c3c, 3, 40);
+    coreLight.position.set(0, 4, 0);
+    group.add(coreLight);
+
+    // TIPPED SATELLITE DISH half-buried in sand
+    const dishBase = makeCylinder(2, 2, 6, 0x4a4a50, { segments: 12, metalness: 0.4 });
+    dishBase.rotation.z = 1.2;  // tipped
+    dishBase.position.set(80, 3, 110);
+    group.add(dishBase);
+    const dishDish = new THREE.Mesh(
+      new THREE.SphereGeometry(8, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2),
+      new THREE.MeshStandardMaterial({ color: 0xe6e6e6, metalness: 0.3, side: THREE.DoubleSide })
+    );
+    dishDish.rotation.set(0, 0, -1.5);
+    dishDish.position.set(78, 7, 110);
+    group.add(dishDish);
+    // Sand piled on lower edge
+    const sandPile = makeSphere(8, 0xe6c896, { segments: 16 });
+    sandPile.position.set(75, 2, 110);
+    sandPile.scale.set(1.4, 0.3, 1.2);
+    group.add(sandPile);
+
+    // Distant mesa silhouettes (desert flat-topped mountains)
+    for (let i = 0; i < 5; i++) {
+      const mx = -150 + i * 75;
+      const m = makeBox(40, 25, 40, 0x9c6e4a, { roughness: 1.0 });
+      m.position.set(mx, 7, 280);
+      group.add(m);
+      const m2 = makeBox(30, 18, 30, 0xa07850, { roughness: 1.0 });
+      m2.position.set(mx + 10, 23, 280);
+      group.add(m2);
+    }
+  }
+
+  if (name === 'Lotus') {
+    // GIANT BANYAN TREE at A site with massive exposed roots
+    const banyanTrunkPos = [-100, 0, 60];
+    // Massive central trunk (made of multiple cylinders fused)
+    for (let i = 0; i < 5; i++) {
+      const angle = (i / 5) * Math.PI * 2;
+      const trunk = makeCylinder(0.8, 1.2, 18, 0x6e4a32, { segments: 10 });
+      trunk.position.set(banyanTrunkPos[0] + Math.cos(angle) * 1.5, 9, banyanTrunkPos[2] + Math.sin(angle) * 1.5);
+      group.add(trunk);
+    }
+    // Center main trunk (largest)
+    const mainTrunk = makeCylinder(2.5, 3, 18, 0x5a3c28, { segments: 12 });
+    mainTrunk.position.set(banyanTrunkPos[0], 9, banyanTrunkPos[2]);
+    group.add(mainTrunk);
+    // Massive canopy (multiple overlapping spheres)
+    for (let i = 0; i < 12; i++) {
+      const angle = (i / 12) * Math.PI * 2;
+      const r = 8 + Math.random() * 4;
+      const f = makeSphere(r, 0x3c7232, { segments: 12 });
+      f.position.set(banyanTrunkPos[0] + Math.cos(angle) * 6, 18 + Math.random() * 6, banyanTrunkPos[2] + Math.sin(angle) * 6);
+      group.add(f);
+    }
+    // Exposed roots radiating from trunk (low cylinders)
+    for (let i = 0; i < 8; i++) {
+      const angle = (i / 8) * Math.PI * 2;
+      const root = makeCylinder(0.4, 0.6, 8, 0x5a3c28, { segments: 8 });
+      root.rotation.z = Math.PI / 2;
+      root.rotation.y = angle;
+      root.position.set(banyanTrunkPos[0] + Math.cos(angle) * 4, 0.5, banyanTrunkPos[2] + Math.sin(angle) * 4);
+      group.add(root);
+    }
+    // GLOWING BLUE RADIANITE VEINS in walls/floor near banyan
+    for (let i = 0; i < 20; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 10 + Math.random() * 30;
+      const vein = makeBox(0.3, 0.1, 3 + Math.random() * 4, 0x32a0ff, { emissive: 0x32a0ff, emissiveIntensity: 1.5 });
+      vein.position.set(banyanTrunkPos[0] + Math.cos(angle) * dist, 0.3, banyanTrunkPos[2] + Math.sin(angle) * dist);
+      vein.rotation.y = angle;
+      group.add(vein);
+    }
+    // Glowing blue light at banyan base
+    const veinLight = new THREE.PointLight(0x32a0ff, 2, 40);
+    veinLight.position.set(banyanTrunkPos[0], 2, banyanTrunkPos[2]);
+    group.add(veinLight);
+
+    // B SITE OCULUS — sunbeam piercing down at B (sunlight shaft)
+    const oculusBeam = new THREE.Mesh(
+      new THREE.CylinderGeometry(8, 12, 60, 16, 1, true),
+      new THREE.MeshBasicMaterial({ color: 0xfff0c8, transparent: true, opacity: 0.3, side: THREE.DoubleSide, depthWrite: false })
+    );
+    oculusBeam.position.set(0, 30, 80);
+    group.add(oculusBeam);
+    // Inner brighter core
+    const oculusCore = new THREE.Mesh(
+      new THREE.CylinderGeometry(3, 6, 60, 12, 1, true),
+      new THREE.MeshBasicMaterial({ color: 0xfff8e0, transparent: true, opacity: 0.5, side: THREE.DoubleSide, depthWrite: false })
+    );
+    oculusCore.position.set(0, 30, 80);
+    group.add(oculusCore);
+    // Sunlight pointlight at floor
+    const sunFloor = new THREE.PointLight(0xfff0c8, 4, 30);
+    sunFloor.position.set(0, 2, 80);
+    group.add(sunFloor);
+
+    // ROTATING DOORS with GLOWING BLUE RADIANITE VEINS (replace plain rotating doors)
+    [[-50, 30], [50, 30]].forEach(([dx, dz]) => {
+      // Large stone disk
+      const disk = makeCylinder(5, 5, 0.6, 0xc8a878, { segments: 24, roughness: 0.7 });
+      disk.position.set(dx, 5, dz);
+      disk.rotation.x = Math.PI / 2;
+      group.add(disk);
+      // Concentric ring carvings (just colored circles via thin tori)
+      for (let r = 1; r <= 3; r++) {
+        const torus = new THREE.Mesh(
+          new THREE.TorusGeometry(r * 1.2, 0.15, 6, 24),
+          new THREE.MeshStandardMaterial({ color: 0x32a0ff, emissive: 0x32a0ff, emissiveIntensity: 1.2 })
+        );
+        torus.position.set(dx, 5, dz);
+        torus.rotation.x = Math.PI / 2;
+        group.add(torus);
+      }
+      // Lotus center relief
+      for (let i = 0; i < 8; i++) {
+        const angle = (i / 8) * Math.PI * 2;
+        const petal = makeBox(0.3, 0.1, 1.2, 0xffb4dc, { emissive: 0x32a0ff, emissiveIntensity: 0.8 });
+        petal.position.set(dx + Math.cos(angle) * 0.7, 5, dz + Math.sin(angle) * 0.7);
+        petal.rotation.y = angle;
+        group.add(petal);
+      }
+      const doorLight = new THREE.PointLight(0x32a0ff, 1.5, 20);
+      doorLight.position.set(dx, 5, dz);
+      group.add(doorLight);
+    });
+
+    // Jungle canopy in distance (green tropical backdrop)
+    for (let i = 0; i < 20; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 280 + Math.random() * 80;
+      const tree = makeSphere(15 + Math.random() * 10, 0x2c6428, { segments: 8 });
+      tree.position.set(Math.cos(angle) * dist, 15, Math.sin(angle) * dist);
+      group.add(tree);
+    }
+  }
+}
+
 // ===== MAP BUILDER =====
 let currentGroup = null;
 let activeOrbs = []; // for animation
@@ -3283,6 +3672,9 @@ function buildMap(name) {
   }
 
   // (no grid — was toy-like)
+
+  // ICONIC LANDMARKS — signature feature per map (from research)
+  addIconicLandmarks(group, name, map);
 
   // BUILDINGS (perimeter + interior structures)
   if (theme && theme.Buildings) {
@@ -3550,7 +3942,7 @@ function animate() {
     tp.to.rotation.z -= 0.05;
   });
   controls.update();
-  renderer.render(scene, camera);
+  composer.render();
 }
 
 // ===== MAP SELECTOR =====
@@ -3567,6 +3959,7 @@ window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / (window.innerHeight - 110);
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight - 110);
+  composer.setSize(window.innerWidth, window.innerHeight - 110);
 });
 
 // ===== INIT =====

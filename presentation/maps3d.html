@@ -1091,7 +1091,7 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 // Tone mapping for cinematic look
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 0.95;
+renderer.toneMappingExposure = 1.05;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 container.appendChild(renderer.domElement);
 
@@ -1136,9 +1136,9 @@ const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
 const bloomPass = new UnrealBloomPass(
   new THREE.Vector2(window.innerWidth, window.innerHeight - 110),
-  0.55,  // strength
-  0.5,   // radius
-  0.85   // threshold — only HDR-bright pixels glow
+  0.25,  // strength — much subtler now
+  0.4,   // radius
+  1.6    // threshold — only HDR emissive (neon, glowing) blooms, not bright sky
 );
 composer.addPass(bloomPass);
 composer.addPass(new OutputPass());
@@ -3596,7 +3596,7 @@ function buildMap(name) {
   const skyTex = new THREE.CanvasTexture(skyCanvas);
   skyTex.colorSpace = THREE.SRGBColorSpace;
   scene.background = skyTex;
-  scene.fog = new THREE.FogExp2(skyMidColor.getHex(), 0.0018);  // exponential fog (more atmospheric)
+  scene.fog = new THREE.FogExp2(skyMidColor.getHex(), 0.0007);  // lighter exponential fog — landmarks stay visible
   // Update sun color tint based on map theme
   sun.color.copy(skyTopColor).multiplyScalar(1.0).lerp(new THREE.Color(0xffeec8), 0.5);
   ambient.color.copy(skyTopColor).multiplyScalar(0.5);

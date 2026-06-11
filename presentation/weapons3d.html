@@ -451,608 +451,1202 @@ function applySkin(group, skin) {
 // Mark a mesh with a role for skin material application
 function tagRole(mesh, role) { mesh.userData.role = role; return mesh; }
 
-function buildPistol(skin, type) {
-  // type: 'classic', 'shorty', 'frenzy', 'ghost', 'sheriff'
+// ===== ERGONOMIC SHAPE HELPERS (inspired by real weapons) =====
+
+// Banana magazine — curved via 4-5 stacked rotated boxes
+function makeBananaMag(x, y, z, height, color, group) {
+  const segments = 5;
+  for (let i = 0; i < segments; i++) {
+    const t = i / (segments - 1);
+    const segH = height / segments;
+    const curve = Math.sin(t * Math.PI) * 0.25;  // banana curve
+    const seg = makeBox(0.45 + Math.abs(t - 0.5) * 0.1, segH * 1.1, 0.4, getMaterial(color, 'metal'));
+    seg.position.set(x + curve, y - i * segH, z);
+    seg.rotation.z = (t - 0.5) * 0.4;
+    tagRole(seg, 'accent');
+    group.add(seg);
+  }
+}
+
+// Ergonomic grip — wider at base, narrower at trigger guard
+function makeErgGrip(x, y, z, height, mat, group, rotation) {
+  rotation = rotation || 0.2;
+  // Bottom flare
+  const base = makeBox(0.8, 0.25, 0.55, mat);
+  base.position.set(x, y - height/2 + 0.1, z);
+  base.rotation.z = rotation;
+  tagRole(base, 'grip');
+  group.add(base);
+  // Main grip
+  const main = makeBox(0.65, height - 0.3, 0.5, mat);
+  main.position.set(x, y, z);
+  main.rotation.z = rotation;
+  tagRole(main, 'grip');
+  group.add(main);
+  // Beavertail (top hump)
+  const beaver = makeBox(0.6, 0.2, 0.5, mat);
+  beaver.position.set(x - 0.2, y + height/2 - 0.05, z);
+  beaver.rotation.z = rotation;
+  tagRole(beaver, 'grip');
+  group.add(beaver);
+  // Checkering pattern (4 horizontal grooves)
+  for (let i = 0; i < 4; i++) {
+    const groove = makeBox(0.7, 0.04, 0.06, getMaterial(0x000000, 'metal'));
+    groove.position.set(x, y - 0.4 + i * 0.25, z + 0.27);
+    groove.rotation.z = rotation;
+    tagRole(groove, 'accent');
+    group.add(groove);
+  }
+}
+
+// Scope with objective bell — front lens wider than tube
+function makeScope(x, y, z, length, tubeR, bellR, mat, group, options) {
+  options = options || {};
+  // Bell at front
+  const bell = makeCyl(bellR, tubeR, 0.5, 16, mat);
+  bell.rotation.z = Math.PI / 2;
+  bell.position.set(x + length/2 - 0.25, y, z);
+  group.add(bell);
+  // Main tube
+  const tube = makeCyl(tubeR, tubeR, length - 1, 16, mat);
+  tube.rotation.z = Math.PI / 2;
+  tube.position.set(x, y, z);
+  group.add(tube);
+  // Eye piece (rear, wider)
+  const eye = makeCyl(tubeR * 1.2, tubeR, 0.4, 16, mat);
+  eye.rotation.z = Math.PI / 2;
+  eye.position.set(x - length/2 + 0.2, y, z);
+  group.add(eye);
+  // Front lens (blue glow)
+  const frontLens = makeCyl(bellR * 0.85, bellR * 0.85, 0.1, 16, new THREE.MeshStandardMaterial({ color: 0x4080c8, transparent: true, opacity: 0.8, emissive: 0x4080c8, emissiveIntensity: 0.5, metalness: 0.5, roughness: 0.05 }));
+  frontLens.rotation.z = Math.PI / 2;
+  frontLens.position.set(x + length/2 + 0.02, y, z);
+  group.add(frontLens);
+  // Rear lens (black)
+  const rearLens = makeCyl(tubeR * 0.95, tubeR * 0.95, 0.05, 12, getMaterial(0x000000, 'metal'));
+  rearLens.rotation.z = Math.PI / 2;
+  rearLens.position.set(x - length/2 - 0.05, y, z);
+  tagRole(rearLens, 'accent');
+  group.add(rearLens);
+  // Turret knobs
+  const turretTop = makeCyl(0.1, 0.1, 0.3, 12, getMaterial(0x14141a, 'metal'));
+  turretTop.position.set(x, y + tubeR + 0.15, z);
+  tagRole(turretTop, 'accent');
+  group.add(turretTop);
+  const turretSide = makeCyl(0.1, 0.1, 0.3, 12, getMaterial(0x14141a, 'metal'));
+  turretSide.rotation.x = Math.PI / 2;
+  turretSide.position.set(x, y, z + tubeR + 0.15);
+  tagRole(turretSide, 'accent');
+  group.add(turretSide);
+  // Mount rings
+  for (const rx of [-length/3, length/3]) {
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(tubeR + 0.06, 0.08, 8, 16), getMaterial(0x14141a, 'metal'));
+    ring.rotation.y = Math.PI / 2;
+    ring.position.set(x + rx, y, z);
+    tagRole(ring, 'accent');
+    group.add(ring);
+  }
+}
+
+// ===== INDIVIDUAL PISTOL BUILDERS (inspired by real designs) =====
+
+// CLASSIC — Beretta M9 inspired (open-top slide, exposed barrel)
+function buildClassic(skin) {
   const g = new THREE.Group();
   const mat = getMaterial(skin.color, skin.mat);
-  // Body (slide)
-  const body = makeBox(2.5, 0.8, 0.5, mat);
-  body.position.set(0.3, 0.3, 0);
-  g.add(body);
-  // Lower frame
-  const frame = makeBox(2.2, 0.5, 0.5, mat);
-  frame.position.set(0.15, -0.2, 0);
+  // Slide with characteristic Beretta cutout (top half open at front)
+  const slideRear = makeBox(1.3, 0.7, 0.5, mat);
+  slideRear.position.set(-0.2, 0.4, 0);
+  g.add(slideRear);
+  const slideFront = makeBox(0.8, 0.4, 0.5, mat);
+  slideFront.position.set(1.1, 0.55, 0);
+  g.add(slideFront);
+  // Exposed barrel (Beretta signature)
+  const barrel = makeCyl(0.12, 0.12, 1.4, 16, mat);
+  barrel.rotation.z = Math.PI / 2;
+  barrel.position.set(0.7, 0.35, 0);
+  g.add(barrel);
+  // Frame
+  const frame = makeBox(2.0, 0.5, 0.5, mat);
+  frame.position.set(0, -0.1, 0);
   g.add(frame);
-  // Grip
-  const grip = makeBox(0.7, 1.5, 0.5, mat);
-  grip.position.set(-0.65, -0.7, 0);
-  grip.rotation.z = 0.15;
-  tagRole(grip, 'grip');
-  g.add(grip);
-  // Grip checkering (decorative lines)
-  for (let i = 0; i < 6; i++) {
-    const line = makeBox(0.85, 0.05, 0.06, getMaterial(0x000000, 'metal'));
-    line.position.set(-0.65, -0.7 + (i - 2.5) * 0.18, 0.28);
-    line.rotation.z = 0.15;
-    tagRole(line, 'accent');
-    g.add(line);
-  }
-  // Trigger guard
-  const guard = new THREE.Mesh(
-    new THREE.TorusGeometry(0.3, 0.06, 4, 8, Math.PI),
-    getMaterial(0x14141a, 'metal')
-  );
-  guard.rotation.set(0, 0, Math.PI);
-  guard.position.set(-0.1, -0.4, 0);
+  // Ergonomic grip
+  makeErgGrip(-0.7, -0.85, 0, 1.5, mat, g, 0.18);
+  // Magazine (straight, 12-round)
+  const mag = makeBox(0.45, 1, 0.4, getMaterial(0x141414, 'metal'));
+  mag.position.set(-0.7, -1.85, 0);
+  mag.rotation.z = 0.18;
+  tagRole(mag, 'accent');
+  g.add(mag);
+  // Mag base pad
+  const magBase = makeBox(0.5, 0.2, 0.45, getMaterial(0x000000, 'metal'));
+  magBase.position.set(-0.78, -2.3, 0);
+  magBase.rotation.z = 0.18;
+  tagRole(magBase, 'accent');
+  g.add(magBase);
+  // Trigger guard (curved)
+  const guard = new THREE.Mesh(new THREE.TorusGeometry(0.32, 0.05, 4, 10, Math.PI * 0.8), getMaterial(0x14141a, 'metal'));
+  guard.rotation.set(0, 0, Math.PI - 0.3);
+  guard.position.set(-0.15, -0.35, 0);
   tagRole(guard, 'accent');
   g.add(guard);
   // Trigger
-  const trigger = makeBox(0.1, 0.3, 0.06, getMaterial(0x14141a, 'metal'));
-  trigger.position.set(-0.1, -0.4, 0);
+  const trigger = makeBox(0.08, 0.25, 0.05, getMaterial(0x14141a, 'metal'));
+  trigger.position.set(-0.1, -0.35, 0);
+  trigger.rotation.z = 0.2;
   tagRole(trigger, 'accent');
   g.add(trigger);
+  // Front sight blade
+  const fSight = makeBox(0.04, 0.18, 0.1, getMaterial(0x14141a, 'metal'));
+  fSight.position.set(1.4, 0.85, 0);
+  tagRole(fSight, 'accent');
+  g.add(fSight);
+  // Rear sight (notch)
+  const rSightL = makeBox(0.1, 0.12, 0.05, getMaterial(0x14141a, 'metal'));
+  rSightL.position.set(-0.75, 0.82, -0.15);
+  tagRole(rSightL, 'accent');
+  g.add(rSightL);
+  const rSightR = rSightL.clone(); rSightR.position.z = 0.15; g.add(rSightR);
+  // Hammer (single-action)
+  const hammer = makeBox(0.08, 0.25, 0.15, getMaterial(0x14141a, 'metal'));
+  hammer.position.set(-0.9, 0.85, 0);
+  hammer.rotation.z = 0.5;
+  tagRole(hammer, 'accent');
+  g.add(hammer);
+  return g;
+}
 
-  if (type === 'shorty') {
-    // Two short barrels stacked
-    const barrel1 = makeCyl(0.18, 0.18, 1.0, 16, mat);
-    barrel1.rotation.z = Math.PI / 2;
-    barrel1.position.set(1.4, 0.4, 0);
-    g.add(barrel1);
-    const barrel2 = makeCyl(0.18, 0.18, 1.0, 16, mat);
-    barrel2.rotation.z = Math.PI / 2;
-    barrel2.position.set(1.4, 0.05, 0);
-    g.add(barrel2);
-  } else if (type === 'ghost') {
-    // Suppressor
-    const suppressor = makeCyl(0.18, 0.18, 1.2, 16, mat);
-    suppressor.rotation.z = Math.PI / 2;
-    suppressor.position.set(1.95, 0.3, 0);
-    g.add(suppressor);
-    // Suppressor ridges
-    for (let i = 0; i < 5; i++) {
-      const ring = new THREE.Mesh(
-        new THREE.TorusGeometry(0.19, 0.02, 6, 12),
-        getMaterial(0x141414, 'metal')
-      );
-      ring.rotation.y = Math.PI / 2;
-      ring.position.set(1.55 + i * 0.2, 0.3, 0);
-      tagRole(ring, 'accent');
-      g.add(ring);
-    }
-  } else if (type === 'sheriff') {
-    // Revolver: cylinder visible
-    const cyl = makeCyl(0.35, 0.35, 0.6, 12, mat);
-    cyl.rotation.z = Math.PI / 2;
-    cyl.position.set(0.6, 0.15, 0);
-    g.add(cyl);
-    // Cylinder holes (6 chambers visible)
-    for (let i = 0; i < 6; i++) {
-      const ang = (i / 6) * Math.PI * 2;
-      const hole = makeCyl(0.06, 0.06, 0.65, 8, getMaterial(0x000000, 'metal'));
-      hole.rotation.z = Math.PI / 2;
-      hole.position.set(0.6, 0.15 + Math.cos(ang) * 0.22, Math.sin(ang) * 0.22);
-      tagRole(hole, 'accent');
-      g.add(hole);
-    }
-    // Long barrel
-    const barrel = makeCyl(0.14, 0.14, 1.6, 16, mat);
-    barrel.rotation.z = Math.PI / 2;
-    barrel.position.set(1.75, 0.3, 0);
-    g.add(barrel);
-    // Hammer (cocked)
-    const hammer = makeBox(0.12, 0.3, 0.15, getMaterial(0x14141a, 'metal'));
-    hammer.position.set(0.7, 0.75, 0);
-    hammer.rotation.z = 0.4;
-    tagRole(hammer, 'accent');
-    g.add(hammer);
-  } else {
-    // Standard barrel for Classic/Frenzy
-    const barrel = makeCyl(0.14, 0.14, 0.6, 12, mat);
-    barrel.rotation.z = Math.PI / 2;
-    barrel.position.set(1.7, 0.4, 0);
-    g.add(barrel);
-    if (type === 'classic') {
-      // Front sight
-      const sight = makeBox(0.05, 0.15, 0.1, getMaterial(0x14141a, 'metal'));
-      sight.position.set(1.7, 0.7, 0);
-      tagRole(sight, 'accent');
-      g.add(sight);
-    }
+// SHORTY — sawed-off double-barrel shotgun, walnut grip
+function buildShorty(skin) {
+  const g = new THREE.Group();
+  const mat = getMaterial(skin.color, skin.mat);
+  // Two horizontal barrels (side-by-side)
+  const barrel1 = makeCyl(0.22, 0.22, 1.8, 16, mat);
+  barrel1.rotation.z = Math.PI / 2;
+  barrel1.position.set(0.5, 0.3, -0.25);
+  g.add(barrel1);
+  const barrel2 = makeCyl(0.22, 0.22, 1.8, 16, mat);
+  barrel2.rotation.z = Math.PI / 2;
+  barrel2.position.set(0.5, 0.3, 0.25);
+  g.add(barrel2);
+  // Barrel rib (joining bar between barrels)
+  const rib = makeBox(1.8, 0.05, 0.55, getMaterial(0x14141a, 'metal'));
+  rib.position.set(0.5, 0.5, 0);
+  tagRole(rib, 'accent');
+  g.add(rib);
+  // Receiver (action body)
+  const action = makeBox(0.6, 0.7, 0.7, mat);
+  action.position.set(-0.5, 0.25, 0);
+  g.add(action);
+  // Hinge (between barrel and receiver — distinctive shotgun feature)
+  const hinge = makeCyl(0.15, 0.15, 0.7, 12, getMaterial(0x14141a, 'metal'));
+  hinge.rotation.x = Math.PI / 2;
+  hinge.position.set(-0.2, 0.1, 0);
+  tagRole(hinge, 'accent');
+  g.add(hinge);
+  // Wooden grip (Walnut, sawed-off style with finger groove)
+  const gripWood = getMaterial(0x5a3818, 'wood');
+  const grip = makeBox(0.5, 1.4, 0.55, gripWood);
+  grip.position.set(-0.85, -0.5, 0);
+  grip.rotation.z = 0.25;
+  g.add(grip);
+  // Grip cap
+  const gripCap = makeBox(0.55, 0.15, 0.5, getMaterial(0x14141a, 'metal'));
+  gripCap.position.set(-1.18, -1.18, 0);
+  gripCap.rotation.z = 0.25;
+  tagRole(gripCap, 'accent');
+  g.add(gripCap);
+  // Trigger guard (oversized for double barrel)
+  const guard = new THREE.Mesh(new THREE.TorusGeometry(0.32, 0.05, 4, 10, Math.PI * 0.9), getMaterial(0x14141a, 'metal'));
+  guard.rotation.set(0, 0, Math.PI - 0.3);
+  guard.position.set(-0.45, -0.2, 0);
+  tagRole(guard, 'accent');
+  g.add(guard);
+  // Two triggers (one per barrel — classic double)
+  for (const ty of [-0.2, -0.35]) {
+    const trigger = makeBox(0.07, 0.18, 0.05, getMaterial(0x14141a, 'metal'));
+    trigger.position.set(-0.45, ty, 0);
+    tagRole(trigger, 'accent');
+    g.add(trigger);
   }
-  // Magazine
-  const mag = makeBox(0.45, 0.9, 0.4, getMaterial(0x141414, 'metal'));
-  mag.position.set(-0.65, -1.5, 0);
+  // Lever (top release)
+  const lever = makeBox(0.5, 0.08, 0.15, getMaterial(0x14141a, 'metal'));
+  lever.position.set(-0.55, 0.65, 0);
+  tagRole(lever, 'accent');
+  g.add(lever);
+  return g;
+}
+
+// FRENZY — P30-inspired (modern auto pistol with rail, full-auto unique)
+function buildFrenzy(skin) {
+  const g = new THREE.Group();
+  const mat = getMaterial(skin.color, skin.mat);
+  // Aggressive angular slide
+  const slide = makeBox(2.4, 0.75, 0.5, mat);
+  slide.position.set(0.3, 0.4, 0);
+  g.add(slide);
+  // Slide serrations (rear)
+  for (let i = 0; i < 4; i++) {
+    const ser = makeBox(0.05, 0.55, 0.55, getMaterial(0x000000, 'metal'));
+    ser.position.set(-0.7 + i * 0.12, 0.4, 0);
+    tagRole(ser, 'accent');
+    g.add(ser);
+  }
+  // Slide serrations (front)
+  for (let i = 0; i < 3; i++) {
+    const ser = makeBox(0.05, 0.55, 0.55, getMaterial(0x000000, 'metal'));
+    ser.position.set(1.0 + i * 0.12, 0.4, 0);
+    tagRole(ser, 'accent');
+    g.add(ser);
+  }
+  // Frame with picatinny rail bottom
+  const frame = makeBox(2.0, 0.4, 0.5, mat);
+  frame.position.set(0.2, -0.05, 0);
+  g.add(frame);
+  // Accessory rail (visible Picatinny slots)
+  for (let i = 0; i < 4; i++) {
+    const slot = makeBox(0.04, 0.1, 0.4, getMaterial(0x000000, 'metal'));
+    slot.position.set(0.8 + i * 0.18, -0.3, 0);
+    tagRole(slot, 'accent');
+    g.add(slot);
+  }
+  // Ergonomic grip (with finger grooves)
+  makeErgGrip(-0.6, -0.85, 0, 1.6, mat, g, 0.15);
+  // Extended 13-round magazine
+  const mag = makeBox(0.45, 1.1, 0.4, getMaterial(0x141414, 'metal'));
+  mag.position.set(-0.6, -1.95, 0);
   mag.rotation.z = 0.15;
   tagRole(mag, 'accent');
   g.add(mag);
+  // Mag baseplate
+  const magBase = makeBox(0.52, 0.18, 0.45, getMaterial(0x000000, 'metal'));
+  magBase.position.set(-0.7, -2.45, 0);
+  magBase.rotation.z = 0.15;
+  tagRole(magBase, 'accent');
+  g.add(magBase);
+  // Trigger guard
+  const guard = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.05, 4, 10, Math.PI * 0.9), getMaterial(0x14141a, 'metal'));
+  guard.rotation.set(0, 0, Math.PI - 0.3);
+  guard.position.set(-0.05, -0.3, 0);
+  tagRole(guard, 'accent');
+  g.add(guard);
+  // Trigger
+  const trigger = makeBox(0.08, 0.22, 0.05, getMaterial(0x14141a, 'metal'));
+  trigger.position.set(-0.05, -0.3, 0);
+  tagRole(trigger, 'accent');
+  g.add(trigger);
+  // Barrel tip (peeking out)
+  const barrel = makeCyl(0.11, 0.11, 0.25, 12, getMaterial(0x000000, 'metal'));
+  barrel.rotation.z = Math.PI / 2;
+  barrel.position.set(1.55, 0.45, 0);
+  tagRole(barrel, 'accent');
+  g.add(barrel);
+  // Fire selector (visible auto-switch — Frenzy is full-auto)
+  const selector = makeCyl(0.1, 0.1, 0.1, 8, getMaterial(0xdc3232, 'metal'));
+  selector.rotation.x = Math.PI / 2;
+  selector.position.set(-0.5, 0.1, 0.3);
+  tagRole(selector, 'accent');
+  g.add(selector);
+  return g;
+}
+
+// GHOST — Walther/H&K P30 with iconic suppressor
+function buildGhost(skin) {
+  const g = new THREE.Group();
+  const mat = getMaterial(skin.color, skin.mat);
+  // Sleek slim slide
+  const slide = makeBox(2.0, 0.65, 0.45, mat);
+  slide.position.set(0.1, 0.4, 0);
+  g.add(slide);
+  // Frame
+  const frame = makeBox(1.8, 0.4, 0.45, mat);
+  frame.position.set(0, -0.05, 0);
+  g.add(frame);
+  // Long suppressor (iconic Ghost feature — bigger than gun itself)
+  const supp = makeCyl(0.2, 0.2, 1.6, 16, mat);
+  supp.rotation.z = Math.PI / 2;
+  supp.position.set(1.95, 0.4, 0);
+  g.add(supp);
+  // Suppressor end cap (slightly wider)
+  const suppEnd = makeCyl(0.23, 0.23, 0.15, 16, getMaterial(0x000000, 'metal'));
+  suppEnd.rotation.z = Math.PI / 2;
+  suppEnd.position.set(2.82, 0.4, 0);
+  tagRole(suppEnd, 'accent');
+  g.add(suppEnd);
+  // Suppressor baffles (visible texture)
+  for (let i = 0; i < 6; i++) {
+    const baffle = new THREE.Mesh(new THREE.TorusGeometry(0.21, 0.02, 6, 12), getMaterial(0x000000, 'metal'));
+    baffle.rotation.y = Math.PI / 2;
+    baffle.position.set(1.3 + i * 0.22, 0.4, 0);
+    tagRole(baffle, 'accent');
+    g.add(baffle);
+  }
+  // Ergonomic grip (with interchangeable backstrap look)
+  makeErgGrip(-0.7, -0.8, 0, 1.5, mat, g, 0.2);
+  // Magazine (15-round, longer than Classic)
+  const mag = makeBox(0.43, 1.15, 0.4, getMaterial(0x141414, 'metal'));
+  mag.position.set(-0.7, -1.85, 0);
+  mag.rotation.z = 0.2;
+  tagRole(mag, 'accent');
+  g.add(mag);
+  const magBase = makeBox(0.5, 0.15, 0.45, getMaterial(0x000000, 'metal'));
+  magBase.position.set(-0.78, -2.4, 0);
+  magBase.rotation.z = 0.2;
+  tagRole(magBase, 'accent');
+  g.add(magBase);
+  // Trigger guard
+  const guard = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.05, 4, 10, Math.PI * 0.85), getMaterial(0x14141a, 'metal'));
+  guard.rotation.set(0, 0, Math.PI - 0.3);
+  guard.position.set(-0.2, -0.3, 0);
+  tagRole(guard, 'accent');
+  g.add(guard);
+  const trigger = makeBox(0.08, 0.22, 0.05, getMaterial(0x14141a, 'metal'));
+  trigger.position.set(-0.2, -0.3, 0);
+  tagRole(trigger, 'accent');
+  g.add(trigger);
+  // Rail
+  const rail = makeBox(0.7, 0.05, 0.4, getMaterial(0x000000, 'metal'));
+  rail.position.set(0.6, -0.25, 0);
+  tagRole(rail, 'accent');
+  g.add(rail);
+  // Front sight
+  const fSight = makeBox(0.04, 0.15, 0.1, getMaterial(0x14141a, 'metal'));
+  fSight.position.set(1.05, 0.78, 0);
+  tagRole(fSight, 'accent');
+  g.add(fSight);
   // Rear sight
-  const rearSight = makeBox(0.15, 0.1, 0.45, getMaterial(0x14141a, 'metal'));
-  rearSight.position.set(-0.5, 0.75, 0);
-  tagRole(rearSight, 'accent');
-  g.add(rearSight);
+  const rSight = makeBox(0.15, 0.12, 0.4, getMaterial(0x14141a, 'metal'));
+  rSight.position.set(-0.7, 0.78, 0);
+  tagRole(rSight, 'accent');
+  g.add(rSight);
+  return g;
+}
+
+// SHERIFF — Colt Anaconda revolver (long barrel, 6-shot cylinder, wooden grip)
+function buildSheriff(skin) {
+  const g = new THREE.Group();
+  const mat = getMaterial(skin.color, skin.mat);
+  // Frame (top strap visible above cylinder)
+  const topStrap = makeBox(2.4, 0.25, 0.5, mat);
+  topStrap.position.set(0.5, 0.7, 0);
+  g.add(topStrap);
+  // Revolver cylinder (6 chambers, large)
+  const cyl = makeCyl(0.45, 0.45, 0.85, 16, mat);
+  cyl.rotation.z = Math.PI / 2;
+  cyl.position.set(0.3, 0.3, 0);
+  g.add(cyl);
+  // Cylinder flutes (visible 6 longitudinal grooves)
+  for (let i = 0; i < 6; i++) {
+    const ang = (i / 6) * Math.PI * 2;
+    const flute = makeBox(0.78, 0.03, 0.05, getMaterial(0x000000, 'metal'));
+    flute.rotation.z = Math.PI / 2;
+    flute.position.set(0.3, 0.3 + Math.cos(ang) * 0.42, Math.sin(ang) * 0.42);
+    flute.rotation.x = ang;
+    tagRole(flute, 'accent');
+    g.add(flute);
+  }
+  // Cylinder chamber holes (front-facing)
+  for (let i = 0; i < 6; i++) {
+    const ang = (i / 6) * Math.PI * 2;
+    const hole = makeCyl(0.08, 0.08, 0.1, 10, getMaterial(0x000000, 'metal'));
+    hole.rotation.z = Math.PI / 2;
+    hole.position.set(0.75, 0.3 + Math.cos(ang) * 0.28, Math.sin(ang) * 0.28);
+    tagRole(hole, 'accent');
+    g.add(hole);
+  }
+  // Long heavy barrel (Anaconda-style 6")
+  const barrel = makeCyl(0.16, 0.16, 1.8, 16, mat);
+  barrel.rotation.z = Math.PI / 2;
+  barrel.position.set(1.85, 0.4, 0);
+  g.add(barrel);
+  // Barrel rib (top sight rib)
+  const ribTop = makeBox(1.8, 0.08, 0.32, mat);
+  ribTop.position.set(1.85, 0.6, 0);
+  g.add(ribTop);
+  // Front sight (large)
+  const fSight = makeBox(0.06, 0.18, 0.12, getMaterial(0x14141a, 'metal'));
+  fSight.position.set(2.6, 0.78, 0);
+  tagRole(fSight, 'accent');
+  g.add(fSight);
+  // Rear sight (adjustable, square notch)
+  const rSight = makeBox(0.15, 0.15, 0.35, getMaterial(0x14141a, 'metal'));
+  rSight.position.set(-0.6, 0.85, 0);
+  tagRole(rSight, 'accent');
+  g.add(rSight);
+  // Cylinder release latch
+  const release = makeBox(0.2, 0.1, 0.08, getMaterial(0x14141a, 'metal'));
+  release.position.set(-0.1, 0.35, 0.4);
+  tagRole(release, 'accent');
+  g.add(release);
+  // Hammer (cocked back, single-action ready)
+  const hammer = makeBox(0.12, 0.32, 0.18, getMaterial(0x14141a, 'metal'));
+  hammer.position.set(-0.7, 0.95, 0);
+  hammer.rotation.z = 0.5;
+  tagRole(hammer, 'accent');
+  g.add(hammer);
+  // Wooden grip (Sheriff trademark — exposed walnut)
+  const woodMat = getMaterial(0x4a2810, 'wood');
+  const grip = makeBox(0.7, 1.6, 0.55, woodMat);
+  grip.position.set(-0.85, -0.55, 0);
+  grip.rotation.z = 0.18;
+  g.add(grip);
+  // Grip cap (steel)
+  const gripCap = makeBox(0.75, 0.18, 0.5, getMaterial(0x14141a, 'metal'));
+  gripCap.position.set(-1.18, -1.4, 0);
+  gripCap.rotation.z = 0.18;
+  tagRole(gripCap, 'accent');
+  g.add(gripCap);
+  // Lanyard ring (cowboy detail)
+  const lanyard = new THREE.Mesh(new THREE.TorusGeometry(0.08, 0.02, 6, 12), getMaterial(0x14141a, 'metal'));
+  lanyard.rotation.y = Math.PI / 2;
+  lanyard.position.set(-1.15, -1.5, 0);
+  tagRole(lanyard, 'accent');
+  g.add(lanyard);
+  // Trigger guard (large)
+  const guard = new THREE.Mesh(new THREE.TorusGeometry(0.35, 0.05, 4, 10, Math.PI * 0.9), getMaterial(0x14141a, 'metal'));
+  guard.rotation.set(0, 0, Math.PI - 0.3);
+  guard.position.set(-0.3, -0.35, 0);
+  tagRole(guard, 'accent');
+  g.add(guard);
+  // Trigger
+  const trigger = makeBox(0.08, 0.28, 0.05, getMaterial(0x14141a, 'metal'));
+  trigger.position.set(-0.3, -0.35, 0);
+  trigger.rotation.z = -0.2;
+  tagRole(trigger, 'accent');
+  g.add(trigger);
+  // Ejector rod (under barrel — revolver-specific)
+  const ejector = makeCyl(0.07, 0.07, 1.2, 10, getMaterial(0x14141a, 'metal'));
+  ejector.rotation.z = Math.PI / 2;
+  ejector.position.set(1.5, 0.15, 0);
+  tagRole(ejector, 'accent');
+  g.add(ejector);
+  return g;
+}
+
+function buildPistol(skin, type) {
+  // Dispatch to specific builder
+  switch (type) {
+    case 'classic': return buildClassic(skin);
+    case 'shorty': return buildShorty(skin);
+    case 'frenzy': return buildFrenzy(skin);
+    case 'ghost': return buildGhost(skin);
+    case 'sheriff': return buildSheriff(skin);
+    default: return buildClassic(skin);
+  }
+}
+
+// STINGER — Vector-inspired (aggressive angular PDW with drum mag)
+function buildStinger(skin) {
+  const g = new THREE.Group();
+  const mat = getMaterial(skin.color, skin.mat);
+  const upper = makeBox(3.0, 0.5, 0.55, mat); upper.position.set(0.3, 0.5, 0); g.add(upper);
+  const lower = makeBox(3.5, 0.45, 0.55, mat); lower.position.set(0.3, 0.05, 0); g.add(lower);
+  const conn = makeBox(0.3, 0.5, 0.55, getMaterial(0x000000, 'metal'));
+  conn.position.set(0.5, 0.28, 0); conn.rotation.z = 0.4; tagRole(conn, 'accent'); g.add(conn);
+  const barrel = makeCyl(0.13, 0.13, 1.4, 16, mat);
+  barrel.rotation.z = Math.PI / 2; barrel.position.set(2.5, 0.5, 0); g.add(barrel);
+  const muzzle = makeCyl(0.17, 0.17, 0.3, 12, getMaterial(0x14141a, 'metal'));
+  muzzle.rotation.z = Math.PI / 2; muzzle.position.set(3.3, 0.5, 0); tagRole(muzzle, 'accent'); g.add(muzzle);
+  // Drum mag (horizontal cylinder under receiver — Bizon-style)
+  const drum = makeCyl(0.55, 0.55, 0.55, 18, getMaterial(0x141414, 'metal'));
+  drum.rotation.x = Math.PI / 2; drum.position.set(0.2, -0.55, 0); tagRole(drum, 'accent'); g.add(drum);
+  const drumFace = makeCyl(0.35, 0.35, 0.58, 14, mat);
+  drumFace.rotation.x = Math.PI / 2; drumFace.position.set(0.2, -0.55, 0); g.add(drumFace);
+  // Visible cartridges in drum window
+  for (let i = 0; i < 3; i++) {
+    const bullet = makeCyl(0.06, 0.06, 0.15, 8, getMaterial(0xdcaf32, 'metal'));
+    bullet.rotation.x = Math.PI / 2;
+    bullet.position.set(0.2 + (i - 1) * 0.12, -0.4, 0.3);
+    tagRole(bullet, 'accent'); g.add(bullet);
+  }
+  makeErgGrip(-1.0, -0.6, 0, 1.2, mat, g, 0.05);
+  // Folding stock (visible folded sideways)
+  const stockTube = makeCyl(0.06, 0.06, 1.8, 8, getMaterial(0x14141a, 'metal'));
+  stockTube.rotation.z = Math.PI / 2;
+  stockTube.position.set(-2.9, 0.5, 0.15); tagRole(stockTube, 'accent'); g.add(stockTube);
+  const stockTube2 = stockTube.clone(); stockTube2.position.z = -0.15; g.add(stockTube2);
+  const stockPad = makeBox(0.15, 0.6, 0.5, getMaterial(0x14141a, 'metal'));
+  stockPad.position.set(-3.85, 0.5, 0); tagRole(stockPad, 'accent'); g.add(stockPad);
+  // Top rail + red dot
+  const rail = makeBox(2.5, 0.08, 0.3, getMaterial(0x000000, 'metal'));
+  rail.position.set(0.5, 0.85, 0); tagRole(rail, 'accent'); g.add(rail);
+  const sight = makeBox(0.35, 0.3, 0.32, getMaterial(0x14141a, 'metal'));
+  sight.position.set(0.5, 1.05, 0); tagRole(sight, 'accent'); g.add(sight);
+  const lens = makeCyl(0.12, 0.12, 0.34, 12, new THREE.MeshStandardMaterial({ color: 0xff3232, emissive: 0xff3232, emissiveIntensity: 1.5 }));
+  lens.rotation.z = Math.PI / 2; lens.position.set(0.5, 1.05, 0); g.add(lens);
+  // Trigger guard
+  const guard = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.05, 4, 10, Math.PI * 0.85), getMaterial(0x14141a, 'metal'));
+  guard.rotation.set(0, 0, Math.PI - 0.3);
+  guard.position.set(-0.5, -0.25, 0); tagRole(guard, 'accent'); g.add(guard);
+  return g;
+}
+
+// SPECTRE — MP9/MP5 inspired (sleek silenced SMG with stick mag)
+function buildSpectre(skin) {
+  const g = new THREE.Group();
+  const mat = getMaterial(skin.color, skin.mat);
+  const receiver = makeBox(3.6, 0.85, 0.55, mat);
+  receiver.position.set(0, 0.3, 0); g.add(receiver);
+  const contour = makeBox(2.5, 0.2, 0.5, mat);
+  contour.position.set(-0.3, -0.15, 0); g.add(contour);
+  // Suppressed barrel
+  const supp = makeCyl(0.18, 0.18, 1.5, 16, mat);
+  supp.rotation.z = Math.PI / 2; supp.position.set(2.5, 0.4, 0); g.add(supp);
+  const suppTip = makeCyl(0.15, 0.18, 0.2, 12, getMaterial(0x000000, 'metal'));
+  suppTip.rotation.z = Math.PI / 2; suppTip.position.set(3.35, 0.4, 0); tagRole(suppTip, 'accent'); g.add(suppTip);
+  for (let i = 0; i < 4; i++) {
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.19, 0.025, 6, 12), getMaterial(0x000000, 'metal'));
+    ring.rotation.y = Math.PI / 2;
+    ring.position.set(2.0 + i * 0.3, 0.4, 0); tagRole(ring, 'accent'); g.add(ring);
+  }
+  // Stick mag (30-round straight)
+  const mag = makeBox(0.4, 1.4, 0.5, getMaterial(0x141414, 'metal'));
+  mag.position.set(0.2, -0.65, 0); mag.rotation.z = -0.05; tagRole(mag, 'accent'); g.add(mag);
+  const magBase = makeBox(0.45, 0.15, 0.55, getMaterial(0x000000, 'metal'));
+  magBase.position.set(0.18, -1.35, 0); magBase.rotation.z = -0.05; tagRole(magBase, 'accent'); g.add(magBase);
+  makeErgGrip(-1.0, -0.5, 0, 1.4, mat, g, 0.2);
+  // Telescoping stock arms
+  const armT = makeCyl(0.05, 0.05, 1.6, 8, getMaterial(0x14141a, 'metal'));
+  armT.rotation.z = Math.PI / 2; armT.position.set(-2.5, 0.5, 0.12); tagRole(armT, 'accent'); g.add(armT);
+  const armB = armT.clone(); armB.position.z = -0.12; g.add(armB);
+  const armT2 = armT.clone(); armT2.position.y = 0.15; g.add(armT2);
+  const armB2 = armB.clone(); armB2.position.y = 0.15; g.add(armB2);
+  const stockPad = makeBox(0.2, 0.7, 0.5, getMaterial(0x14141a, 'metal'));
+  stockPad.position.set(-3.4, 0.35, 0); tagRole(stockPad, 'accent'); g.add(stockPad);
+  // Rail + red dot
+  const rail = makeBox(2.5, 0.08, 0.3, getMaterial(0x000000, 'metal'));
+  rail.position.set(0.5, 0.8, 0); tagRole(rail, 'accent'); g.add(rail);
+  const sight = makeBox(0.4, 0.3, 0.3, getMaterial(0x14141a, 'metal'));
+  sight.position.set(0.5, 1.0, 0); tagRole(sight, 'accent'); g.add(sight);
+  const lens = makeCyl(0.12, 0.12, 0.32, 12, new THREE.MeshStandardMaterial({ color: 0xff3232, emissive: 0xff3232, emissiveIntensity: 1.5 }));
+  lens.rotation.z = Math.PI / 2; lens.position.set(0.5, 1.0, 0); g.add(lens);
+  const guard = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.05, 4, 10, Math.PI * 0.85), getMaterial(0x14141a, 'metal'));
+  guard.rotation.set(0, 0, Math.PI - 0.3);
+  guard.position.set(-0.6, -0.2, 0); tagRole(guard, 'accent'); g.add(guard);
+  const charge = makeBox(0.15, 0.1, 0.2, getMaterial(0x14141a, 'metal'));
+  charge.position.set(1.0, 0.78, 0); tagRole(charge, 'accent'); g.add(charge);
   return g;
 }
 
 function buildSMG(skin, type) {
-  // type: 'stinger', 'spectre'
+  return type === 'stinger' ? buildStinger(skin) : buildSpectre(skin);
+}
+
+// BUCKY — SPAS-12 style pump-action (folding hook stock, dual-tube, pump action)
+function buildBucky(skin) {
   const g = new THREE.Group();
   const mat = getMaterial(skin.color, skin.mat);
-  // Receiver (body)
-  const body = makeBox(3.5, 0.9, 0.6, mat);
-  body.position.set(0, 0.2, 0);
-  g.add(body);
-  // Barrel shroud
-  const barrelShroud = makeCyl(0.22, 0.22, 1.5, 16, mat);
-  barrelShroud.rotation.z = Math.PI / 2;
-  barrelShroud.position.set(2.3, 0.3, 0);
-  g.add(barrelShroud);
-  // Barrel tip
-  const barrelTip = makeCyl(0.12, 0.12, 0.5, 12, getMaterial(0x14141a, 'metal'));
-  barrelTip.rotation.z = Math.PI / 2;
-  barrelTip.position.set(3.3, 0.3, 0);
-  tagRole(barrelTip, 'accent');
-  g.add(barrelTip);
-  // Grip
-  const grip = makeBox(0.6, 1.3, 0.55, mat);
-  grip.position.set(-0.4, -0.6, 0);
-  grip.rotation.z = 0.15;
-  tagRole(grip, 'grip');
-  g.add(grip);
-  // Magazine (drum for Stinger, stick for Spectre)
-  if (type === 'stinger') {
-    const mag = makeCyl(0.5, 0.5, 0.6, 16, getMaterial(0x141414, 'metal'));
-    mag.rotation.x = Math.PI / 2;
-    mag.position.set(-0.1, -0.6, 0);
-    tagRole(mag, 'accent');
-    g.add(mag);
-  } else {
-    const mag = makeBox(0.4, 1.4, 0.5, getMaterial(0x141414, 'metal'));
-    mag.position.set(0, -1.0, 0);
-    mag.rotation.z = -0.1;
-    tagRole(mag, 'accent');
-    g.add(mag);
+  // Receiver
+  const receiver = makeBox(2.2, 0.85, 0.6, mat); receiver.position.set(-0.3, 0.35, 0); g.add(receiver);
+  // Barrel
+  const barrel = makeCyl(0.2, 0.2, 3.2, 16, mat);
+  barrel.rotation.z = Math.PI / 2; barrel.position.set(2.0, 0.5, 0); g.add(barrel);
+  // Magazine tube under barrel (SPAS-12 signature dual-tube look)
+  const magTube = makeCyl(0.16, 0.16, 3.0, 12, getMaterial(0x14141a, 'metal'));
+  magTube.rotation.z = Math.PI / 2; magTube.position.set(1.9, 0.15, 0);
+  tagRole(magTube, 'accent'); g.add(magTube);
+  // Heat shield (vented top — SPAS-12 signature)
+  const heatShield = makeBox(2.0, 0.12, 0.5, getMaterial(0x14141a, 'metal'));
+  heatShield.position.set(2.2, 0.72, 0); tagRole(heatShield, 'accent'); g.add(heatShield);
+  // Heat shield vent slots
+  for (let i = 0; i < 6; i++) {
+    const slot = makeBox(0.04, 0.14, 0.45, getMaterial(0x000000, 'metal'));
+    slot.position.set(1.4 + i * 0.3, 0.72, 0); tagRole(slot, 'accent'); g.add(slot);
   }
-  // Stock (folding for Stinger, fixed for Spectre)
-  const stockBody = makeBox(1.0, 0.5, 0.45, mat);
-  stockBody.position.set(-2.2, 0.2, 0);
-  g.add(stockBody);
-  const stockPad = makeBox(0.2, 0.7, 0.4, getMaterial(0x14141a, 'metal'));
-  stockPad.position.set(-2.8, 0.2, 0);
-  tagRole(stockPad, 'accent');
-  g.add(stockPad);
-  // Rail with sight
-  const rail = makeBox(2.5, 0.1, 0.3, getMaterial(0x14141a, 'metal'));
-  rail.position.set(0.5, 0.75, 0);
-  tagRole(rail, 'accent');
-  g.add(rail);
-  // Sight (red dot)
-  const sight = makeBox(0.4, 0.3, 0.3, getMaterial(0x14141a, 'metal'));
-  sight.position.set(0.5, 1.0, 0);
-  tagRole(sight, 'accent');
-  g.add(sight);
-  // Sight lens (red)
-  const lens = makeCyl(0.12, 0.12, 0.15, 12, new THREE.MeshStandardMaterial({ color: 0xff3232, emissive: 0xff3232, emissiveIntensity: 1.2 }));
-  lens.rotation.z = Math.PI / 2;
-  lens.position.set(0.5, 1.0, 0);
-  g.add(lens);
+  // Muzzle
+  const muzzle = makeCyl(0.24, 0.22, 0.4, 12, getMaterial(0x14141a, 'metal'));
+  muzzle.rotation.z = Math.PI / 2; muzzle.position.set(3.7, 0.5, 0);
+  tagRole(muzzle, 'accent'); g.add(muzzle);
+  // PUMP forend (ribbed — slides on tube)
+  const pump = makeBox(1.2, 0.55, 0.65, getMaterial(0x1a1a20, 'metal'));
+  pump.position.set(1.5, 0.1, 0); tagRole(pump, 'grip'); g.add(pump);
+  // Pump grip ridges (visible grooves)
+  for (let i = 0; i < 5; i++) {
+    const ridge = makeBox(0.06, 0.6, 0.68, getMaterial(0x000000, 'metal'));
+    ridge.position.set(1.1 + i * 0.2, 0.1, 0); tagRole(ridge, 'accent'); g.add(ridge);
+  }
+  // Pistol grip
+  makeErgGrip(-1.0, -0.4, 0, 1.3, mat, g, 0.2);
   // Trigger guard
-  const guard = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.06, 4, 8, Math.PI), getMaterial(0x14141a, 'metal'));
-  guard.rotation.set(0, 0, Math.PI);
-  guard.position.set(-0.2, -0.3, 0);
-  tagRole(guard, 'accent');
-  g.add(guard);
+  const guard = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.05, 4, 10, Math.PI * 0.9), getMaterial(0x14141a, 'metal'));
+  guard.rotation.set(0, 0, Math.PI - 0.3);
+  guard.position.set(-0.65, -0.05, 0); tagRole(guard, 'accent'); g.add(guard);
+  // SPAS-12 folding hook stock (skeletonized steel)
+  const stockArm = makeCyl(0.07, 0.07, 1.8, 8, getMaterial(0x14141a, 'metal'));
+  stockArm.rotation.z = Math.PI / 2; stockArm.position.set(-2.0, 0.5, 0.12);
+  tagRole(stockArm, 'accent'); g.add(stockArm);
+  const stockArm2 = stockArm.clone(); stockArm2.position.z = -0.12; g.add(stockArm2);
+  // Stock hook (the iconic SPAS-12 hook that goes over forearm)
+  const hookVert = makeCyl(0.07, 0.07, 0.7, 8, getMaterial(0x14141a, 'metal'));
+  hookVert.position.set(-2.9, 0.5, 0); tagRole(hookVert, 'accent'); g.add(hookVert);
+  const hook = new THREE.Mesh(new THREE.TorusGeometry(0.25, 0.06, 8, 16, Math.PI), getMaterial(0x14141a, 'metal'));
+  hook.rotation.set(Math.PI / 2, 0, 0); hook.position.set(-2.9, 0.85, 0);
+  tagRole(hook, 'accent'); g.add(hook);
+  // Stock buttplate
+  const stockPad = makeBox(0.18, 0.7, 0.5, getMaterial(0x14141a, 'metal'));
+  stockPad.position.set(-2.95, 0.2, 0); tagRole(stockPad, 'accent'); g.add(stockPad);
+  // Front bead sight
+  const bead = makeSphere(0.06, 8, getMaterial(0xff8c32, 'metal'));
+  bead.position.set(3.5, 0.72, 0); tagRole(bead, 'accent'); g.add(bead);
+  return g;
+}
+
+// JUDGE — Striker-12 / Armsel Protecta style (revolving drum auto-shotgun)
+function buildJudge(skin) {
+  const g = new THREE.Group();
+  const mat = getMaterial(skin.color, skin.mat);
+  // Receiver
+  const receiver = makeBox(2.8, 0.9, 0.7, mat); receiver.position.set(-0.2, 0.4, 0); g.add(receiver);
+  // Barrel (shorter, fat)
+  const barrel = makeCyl(0.22, 0.22, 2.5, 16, mat);
+  barrel.rotation.z = Math.PI / 2; barrel.position.set(2.3, 0.5, 0); g.add(barrel);
+  // Barrel shroud (vented)
+  const shroud = makeCyl(0.3, 0.3, 1.8, 14, getMaterial(0x14141a, 'metal'));
+  shroud.rotation.z = Math.PI / 2; shroud.position.set(2.0, 0.5, 0);
+  tagRole(shroud, 'accent'); g.add(shroud);
+  for (let i = 0; i < 4; i++) {
+    const vent = new THREE.Mesh(new THREE.TorusGeometry(0.31, 0.03, 6, 12), getMaterial(0x000000, 'metal'));
+    vent.rotation.y = Math.PI / 2;
+    vent.position.set(1.5 + i * 0.35, 0.5, 0); tagRole(vent, 'accent'); g.add(vent);
+  }
+  // Muzzle choke
+  const choke = makeCyl(0.2, 0.24, 0.3, 12, getMaterial(0x14141a, 'metal'));
+  choke.rotation.z = Math.PI / 2; choke.position.set(3.5, 0.5, 0);
+  tagRole(choke, 'accent'); g.add(choke);
+  // HUGE revolving drum cylinder (Striker-12 signature — the iconic spring drum)
+  const drum = makeCyl(0.8, 0.8, 0.85, 24, getMaterial(0x141414, 'metal'));
+  drum.rotation.x = Math.PI / 2; drum.position.set(0.3, -0.4, 0);
+  tagRole(drum, 'accent'); g.add(drum);
+  // Drum chambers (visible 12 shotshells around the rim — Striker-12 = 12 rounds)
+  for (let i = 0; i < 12; i++) {
+    const ang = (i / 12) * Math.PI * 2;
+    const chamber = makeCyl(0.12, 0.12, 0.9, 10, getMaterial(0xc83232, 'metal'));
+    chamber.rotation.x = Math.PI / 2;
+    chamber.position.set(0.3, -0.4 + Math.cos(ang) * 0.55, Math.sin(ang) * 0.55);
+    tagRole(chamber, 'accent'); g.add(chamber);
+  }
+  // Drum hub
+  const hub = makeCyl(0.25, 0.25, 0.95, 16, mat);
+  hub.rotation.x = Math.PI / 2; hub.position.set(0.3, -0.4, 0); g.add(hub);
+  // Drum face plate (winding key — Striker signature)
+  const windKey = makeBox(0.5, 0.12, 0.12, getMaterial(0x14141a, 'metal'));
+  windKey.position.set(0.3, -0.4, 0.5); tagRole(windKey, 'accent'); g.add(windKey);
+  // Pistol grip
+  makeErgGrip(-1.3, -0.4, 0, 1.4, mat, g, 0.2);
+  // Trigger guard
+  const guard = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.05, 4, 10, Math.PI * 0.9), getMaterial(0x14141a, 'metal'));
+  guard.rotation.set(0, 0, Math.PI - 0.3);
+  guard.position.set(-0.95, -0.05, 0); tagRole(guard, 'accent'); g.add(guard);
+  // Foregrip (front vertical)
+  const foregrip = makeBox(0.45, 0.9, 0.55, mat);
+  foregrip.position.set(1.4, -0.4, 0); foregrip.rotation.z = 0.1;
+  tagRole(foregrip, 'grip'); g.add(foregrip);
+  // Folding wire stock
+  const stockTop = makeBox(1.8, 0.07, 0.07, getMaterial(0x14141a, 'metal'));
+  stockTop.position.set(-2.5, 0.6, 0.14); tagRole(stockTop, 'accent'); g.add(stockTop);
+  const stockBot = makeBox(1.8, 0.07, 0.07, getMaterial(0x14141a, 'metal'));
+  stockBot.position.set(-2.5, 0.2, 0.14); tagRole(stockBot, 'accent'); g.add(stockBot);
+  const stockTop2 = stockTop.clone(); stockTop2.position.z = -0.14; g.add(stockTop2);
+  const stockBot2 = stockBot.clone(); stockBot2.position.z = -0.14; g.add(stockBot2);
+  // Stock pad
+  const stockPad = makeBox(0.18, 0.7, 0.5, getMaterial(0x14141a, 'metal'));
+  stockPad.position.set(-3.4, 0.4, 0); tagRole(stockPad, 'accent'); g.add(stockPad);
+  // Top rail + sight
+  const rail = makeBox(1.8, 0.08, 0.35, getMaterial(0x000000, 'metal'));
+  rail.position.set(-0.2, 0.88, 0); tagRole(rail, 'accent'); g.add(rail);
+  const sight = makeBox(0.4, 0.35, 0.35, getMaterial(0x14141a, 'metal'));
+  sight.position.set(-0.2, 1.1, 0); tagRole(sight, 'accent'); g.add(sight);
+  const lens = makeCyl(0.13, 0.13, 0.38, 12, new THREE.MeshStandardMaterial({ color: 0xff3232, emissive: 0xff3232, emissiveIntensity: 1.5 }));
+  lens.rotation.z = Math.PI / 2; lens.position.set(-0.2, 1.1, 0); g.add(lens);
   return g;
 }
 
 function buildShotgun(skin, type) {
+  return type === 'bucky' ? buildBucky(skin) : buildJudge(skin);
+}
+
+// ===== INDIVIDUAL RIFLE BUILDERS (each based on different real weapon) =====
+
+// BULLDOG — SCAR-L style (modern modular bullpup-ish look with quad rails)
+function buildBulldog(skin) {
   const g = new THREE.Group();
   const mat = getMaterial(skin.color, skin.mat);
-  // Long body
-  const body = makeBox(5, 0.8, 0.6, mat);
-  body.position.set(0, 0.2, 0);
-  g.add(body);
-  // Barrel
-  const barrel = makeCyl(0.25, 0.25, 3.5, 16, mat);
-  barrel.rotation.z = Math.PI / 2;
-  barrel.position.set(1.8, 0.4, 0);
-  g.add(barrel);
-  // Barrel choke
-  const choke = makeCyl(0.18, 0.18, 0.3, 12, getMaterial(0x14141a, 'metal'));
-  choke.rotation.z = Math.PI / 2;
-  choke.position.set(3.7, 0.4, 0);
-  tagRole(choke, 'accent');
-  g.add(choke);
-  if (type === 'bucky') {
-    // Pump grip
-    const pump = makeBox(1, 0.45, 0.6, mat);
-    pump.position.set(1.2, -0.05, 0);
-    g.add(pump);
-    // Pump rails (below barrel)
-    const pumpRail = makeBox(1.4, 0.1, 0.5, getMaterial(0x14141a, 'metal'));
-    pumpRail.position.set(1.4, -0.3, 0);
-    tagRole(pumpRail, 'accent');
-    g.add(pumpRail);
-  } else {
-    // Drum mag (Judge)
-    const drum = makeCyl(0.7, 0.7, 0.55, 20, getMaterial(0x141414, 'metal'));
-    drum.rotation.x = Math.PI / 2;
-    drum.position.set(0, -0.6, 0);
-    tagRole(drum, 'accent');
-    g.add(drum);
-    // Drum face details
-    const drumFace = makeCyl(0.4, 0.4, 0.58, 16, mat);
-    drumFace.rotation.x = Math.PI / 2;
-    drumFace.position.set(0, -0.6, 0);
-    g.add(drumFace);
+  const upper = makeBox(4.0, 0.55, 0.6, mat); upper.position.set(0.3, 0.55, 0); g.add(upper);
+  const lower = makeBox(3.5, 0.4, 0.55, mat); lower.position.set(0.1, 0.1, 0); g.add(lower);
+  const forend = makeBox(2.5, 0.5, 0.55, mat); forend.position.set(1.8, 0.3, 0); g.add(forend);
+  for (let i = 0; i < 8; i++) {
+    const slot = makeBox(0.04, 0.1, 0.58, getMaterial(0x000000, 'metal'));
+    slot.position.set(0.9 + i * 0.2, 0.0, 0); tagRole(slot, 'accent'); g.add(slot);
   }
-  // Wooden stock
-  const stock = makeBox(1.5, 0.7, 0.55, getMaterial(0x6a4628, 'wood'));
-  stock.position.set(-2.5, 0.1, 0);
-  g.add(stock);
-  // Stock pad
-  const stockPad = makeBox(0.15, 0.9, 0.5, getMaterial(0x14141a, 'metal'));
-  stockPad.position.set(-3.3, 0.1, 0);
-  tagRole(stockPad, 'accent');
-  g.add(stockPad);
-  // Grip (separated for pump shotgun)
-  if (type === 'bucky') {
-    const grip = makeBox(0.5, 0.7, 0.55, getMaterial(0x6a4628, 'wood'));
-    grip.position.set(-1, -0.4, 0);
-    g.add(grip);
-  } else {
-    const grip = makeBox(0.6, 1.0, 0.55, mat);
-    grip.position.set(-1, -0.5, 0);
-    grip.rotation.z = 0.1;
-    tagRole(grip, 'grip');
-    g.add(grip);
+  const barrel = makeCyl(0.14, 0.14, 1.8, 16, mat);
+  barrel.rotation.z = Math.PI / 2; barrel.position.set(3.5, 0.45, 0); g.add(barrel);
+  const flashHider = makeCyl(0.18, 0.18, 0.4, 12, getMaterial(0x14141a, 'metal'));
+  flashHider.rotation.z = Math.PI / 2; flashHider.position.set(4.55, 0.45, 0);
+  tagRole(flashHider, 'accent'); g.add(flashHider);
+  makeBananaMag(-0.3, -0.3, 0, 1.5, 0x141414, g);
+  const magWell = makeBox(0.6, 0.4, 0.55, mat); magWell.position.set(-0.3, -0.05, 0); g.add(magWell);
+  makeErgGrip(-1.1, -0.5, 0, 1.3, mat, g, 0.15);
+  const stockHinge = makeBox(0.3, 0.4, 0.5, mat); stockHinge.position.set(-2.0, 0.4, 0); g.add(stockHinge);
+  const stockArm = makeBox(1.6, 0.4, 0.4, mat); stockArm.position.set(-2.9, 0.4, 0); g.add(stockArm);
+  const cheek = makeBox(1.3, 0.2, 0.42, getMaterial(0x14141a, 'metal'));
+  cheek.position.set(-2.85, 0.65, 0); tagRole(cheek, 'accent'); g.add(cheek);
+  const stockPad = makeBox(0.2, 0.7, 0.4, getMaterial(0x14141a, 'metal'));
+  stockPad.position.set(-3.7, 0.4, 0); tagRole(stockPad, 'accent'); g.add(stockPad);
+  const guard = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.05, 4, 10, Math.PI * 0.9), getMaterial(0x14141a, 'metal'));
+  guard.rotation.set(0, 0, Math.PI - 0.3);
+  guard.position.set(-0.7, -0.1, 0); tagRole(guard, 'accent'); g.add(guard);
+  const rail = makeBox(3.5, 0.08, 0.4, getMaterial(0x000000, 'metal'));
+  rail.position.set(0.5, 0.88, 0); tagRole(rail, 'accent'); g.add(rail);
+  const sight = makeBox(0.45, 0.4, 0.35, getMaterial(0x14141a, 'metal'));
+  sight.position.set(0.2, 1.1, 0); tagRole(sight, 'accent'); g.add(sight);
+  const lens = makeCyl(0.13, 0.13, 0.42, 12, new THREE.MeshStandardMaterial({ color: 0xff3232, emissive: 0xff3232, emissiveIntensity: 1.5 }));
+  lens.rotation.z = Math.PI / 2; lens.position.set(0.2, 1.1, 0); g.add(lens);
+  const charge = makeBox(0.4, 0.1, 0.15, getMaterial(0x14141a, 'metal'));
+  charge.position.set(0.5, 0.55, 0.35); tagRole(charge, 'accent'); g.add(charge);
+  return g;
+}
+
+// GUARDIAN — M14 DMR (long barrel, wooden stock, traditional DMR)
+function buildGuardian(skin) {
+  const g = new THREE.Group();
+  const mat = getMaterial(skin.color, skin.mat);
+  const woodMat = getMaterial(0x6a3818, 'wood');
+  const receiver = makeBox(4.2, 0.75, 0.55, mat); receiver.position.set(0.2, 0.4, 0); g.add(receiver);
+  const barrel = makeCyl(0.13, 0.13, 3.2, 16, mat);
+  barrel.rotation.z = Math.PI / 2; barrel.position.set(3.9, 0.5, 0); g.add(barrel);
+  const flash = makeCyl(0.17, 0.17, 0.4, 8, getMaterial(0x14141a, 'metal'));
+  flash.rotation.z = Math.PI / 2; flash.position.set(5.7, 0.5, 0);
+  tagRole(flash, 'accent'); g.add(flash);
+  const gasTube = makeCyl(0.08, 0.08, 2.5, 8, getMaterial(0x14141a, 'metal'));
+  gasTube.rotation.z = Math.PI / 2; gasTube.position.set(4.0, 0.72, 0);
+  tagRole(gasTube, 'accent'); g.add(gasTube);
+  const fSightTower = makeBox(0.15, 0.4, 0.25, getMaterial(0x14141a, 'metal'));
+  fSightTower.position.set(5.4, 0.85, 0); tagRole(fSightTower, 'accent'); g.add(fSightTower);
+  const handguard = makeBox(2.0, 0.4, 0.6, woodMat);
+  handguard.position.set(2.5, 0.15, 0); g.add(handguard);
+  const mag = makeBox(0.45, 1.0, 0.45, getMaterial(0x141414, 'metal'));
+  mag.position.set(-0.4, -0.3, 0); tagRole(mag, 'accent'); g.add(mag);
+  makeErgGrip(-1.1, -0.5, 0, 1.4, mat, g, 0.15);
+  const stock = makeBox(2.5, 0.6, 0.5, woodMat); stock.position.set(-3.0, 0.2, 0); g.add(stock);
+  const cheek = makeBox(2.0, 0.25, 0.5, getMaterial(0x14141a, 'metal'));
+  cheek.position.set(-2.8, 0.65, 0); tagRole(cheek, 'accent'); g.add(cheek);
+  const stockPad = makeBox(0.22, 0.85, 0.45, getMaterial(0x14141a, 'metal'));
+  stockPad.position.set(-4.35, 0.2, 0); tagRole(stockPad, 'accent'); g.add(stockPad);
+  const guard = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.05, 4, 10, Math.PI * 0.9), getMaterial(0x14141a, 'metal'));
+  guard.rotation.set(0, 0, Math.PI - 0.3);
+  guard.position.set(-0.8, -0.1, 0); tagRole(guard, 'accent'); g.add(guard);
+  const rearSight = makeBox(0.2, 0.3, 0.4, getMaterial(0x14141a, 'metal'));
+  rearSight.position.set(-1.0, 1.0, 0); tagRole(rearSight, 'accent'); g.add(rearSight);
+  return g;
+}
+
+// PHANTOM — HK416 (suppressed, modular)
+function buildPhantom(skin) {
+  const g = new THREE.Group();
+  const mat = getMaterial(skin.color, skin.mat);
+  const upper = makeBox(4.0, 0.55, 0.6, mat); upper.position.set(0.2, 0.55, 0); g.add(upper);
+  const lower = makeBox(3.6, 0.4, 0.55, mat); lower.position.set(0.0, 0.1, 0); g.add(lower);
+  const handguard = makeBox(2.8, 0.5, 0.5, getMaterial(0x14141a, 'metal'));
+  handguard.position.set(2.0, 0.35, 0); tagRole(handguard, 'accent'); g.add(handguard);
+  for (let i = 0; i < 5; i++) {
+    const vent = makeBox(0.3, 0.2, 0.52, getMaterial(0x000000, 'metal'));
+    vent.position.set(0.9 + i * 0.4, 0.4, 0); tagRole(vent, 'accent'); g.add(vent);
   }
+  const barrel = makeCyl(0.13, 0.13, 1.0, 12, mat);
+  barrel.rotation.z = Math.PI / 2; barrel.position.set(3.7, 0.55, 0); g.add(barrel);
+  const supp = makeCyl(0.22, 0.22, 1.5, 16, mat);
+  supp.rotation.z = Math.PI / 2; supp.position.set(4.95, 0.55, 0); g.add(supp);
+  const suppCap = makeCyl(0.2, 0.22, 0.15, 12, getMaterial(0x000000, 'metal'));
+  suppCap.rotation.z = Math.PI / 2; suppCap.position.set(5.78, 0.55, 0);
+  tagRole(suppCap, 'accent'); g.add(suppCap);
+  for (let i = 0; i < 5; i++) {
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.23, 0.025, 6, 14), getMaterial(0x000000, 'metal'));
+    ring.rotation.y = Math.PI / 2;
+    ring.position.set(4.4 + i * 0.28, 0.55, 0); tagRole(ring, 'accent'); g.add(ring);
+  }
+  const mag = makeBox(0.5, 1.5, 0.5, getMaterial(0x141414, 'metal'));
+  mag.position.set(-0.5, -0.55, 0); tagRole(mag, 'accent'); g.add(mag);
+  const magWell = makeBox(0.6, 0.4, 0.55, mat); magWell.position.set(-0.5, -0.05, 0); g.add(magWell);
+  makeErgGrip(-1.2, -0.55, 0, 1.4, mat, g, 0.15);
+  const stockTube = makeCyl(0.18, 0.18, 1.0, 12, getMaterial(0x14141a, 'metal'));
+  stockTube.rotation.z = Math.PI / 2; stockTube.position.set(-2.2, 0.5, 0);
+  tagRole(stockTube, 'accent'); g.add(stockTube);
+  const stockBody = makeBox(0.9, 0.7, 0.5, mat); stockBody.position.set(-2.95, 0.5, 0); g.add(stockBody);
+  const stockPad = makeBox(0.2, 0.8, 0.45, getMaterial(0x000000, 'metal'));
+  stockPad.position.set(-3.55, 0.5, 0); tagRole(stockPad, 'accent'); g.add(stockPad);
+  const guard = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.05, 4, 10, Math.PI * 0.9), getMaterial(0x14141a, 'metal'));
+  guard.rotation.set(0, 0, Math.PI - 0.3);
+  guard.position.set(-0.8, -0.1, 0); tagRole(guard, 'accent'); g.add(guard);
+  const rail = makeBox(4.5, 0.08, 0.4, getMaterial(0x000000, 'metal'));
+  rail.position.set(1.0, 0.88, 0); tagRole(rail, 'accent'); g.add(rail);
+  const sight = makeBox(0.7, 0.4, 0.4, getMaterial(0x14141a, 'metal'));
+  sight.position.set(-0.2, 1.1, 0); tagRole(sight, 'accent'); g.add(sight);
+  const lens = makeCyl(0.18, 0.18, 0.72, 12, new THREE.MeshStandardMaterial({ color: 0x32a0ff, emissive: 0x32a0ff, emissiveIntensity: 1.2, transparent: true, opacity: 0.85 }));
+  lens.rotation.z = Math.PI / 2; lens.position.set(-0.2, 1.1, 0); g.add(lens);
+  const magnifier = makeCyl(0.16, 0.16, 0.5, 12, getMaterial(0x14141a, 'metal'));
+  magnifier.rotation.z = Math.PI / 2; magnifier.position.set(-1.0, 1.1, 0);
+  tagRole(magnifier, 'accent'); g.add(magnifier);
+  return g;
+}
+
+// VANDAL — AK-47 (banana mag, wood, gas tube, dust cover)
+function buildVandal(skin) {
+  const g = new THREE.Group();
+  const mat = getMaterial(skin.color, skin.mat);
+  const woodMat = (skin.id === 'default' || skin.id === 'rust') ? getMaterial(0x6a3818, 'wood') : mat;
+  const receiver = makeBox(3.5, 0.65, 0.55, mat); receiver.position.set(0, 0.45, 0); g.add(receiver);
+  const lower = makeBox(2.5, 0.4, 0.5, mat); lower.position.set(-0.2, 0.05, 0); g.add(lower);
+  const forend = makeBox(1.5, 0.4, 0.55, woodMat); forend.position.set(2.0, 0.5, 0); g.add(forend);
+  const lowerHG = makeBox(1.5, 0.5, 0.55, woodMat); lowerHG.position.set(2.0, 0.1, 0); g.add(lowerHG);
+  const gasTube = makeCyl(0.1, 0.1, 1.5, 8, getMaterial(0x14141a, 'metal'));
+  gasTube.rotation.z = Math.PI / 2; gasTube.position.set(2.0, 0.85, 0);
+  tagRole(gasTube, 'accent'); g.add(gasTube);
+  const barrel = makeCyl(0.13, 0.13, 1.8, 16, mat);
+  barrel.rotation.z = Math.PI / 2; barrel.position.set(3.7, 0.5, 0); g.add(barrel);
+  const fSightBase = makeBox(0.2, 0.35, 0.4, getMaterial(0x14141a, 'metal'));
+  fSightBase.position.set(4.4, 0.7, 0); tagRole(fSightBase, 'accent'); g.add(fSightBase);
+  const fSightPost = makeBox(0.05, 0.2, 0.05, getMaterial(0x000000, 'metal'));
+  fSightPost.position.set(4.4, 0.95, 0); tagRole(fSightPost, 'accent'); g.add(fSightPost);
+  const brake = makeCyl(0.18, 0.18, 0.4, 8, getMaterial(0x14141a, 'metal'));
+  brake.rotation.z = Math.PI / 2; brake.position.set(4.85, 0.5, 0);
+  tagRole(brake, 'accent'); g.add(brake);
+  makeBananaMag(-0.5, -0.3, 0, 1.8, 0x32200a, g);
+  const magWell = makeBox(0.6, 0.4, 0.55, mat); magWell.position.set(-0.5, -0.05, 0); g.add(magWell);
+  const grip = makeBox(0.6, 1.3, 0.5, woodMat);
+  grip.position.set(-1.3, -0.4, 0); grip.rotation.z = 0.2; tagRole(grip, 'grip'); g.add(grip);
+  const guard = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.05, 4, 10, Math.PI * 0.9), getMaterial(0x14141a, 'metal'));
+  guard.rotation.set(0, 0, Math.PI - 0.3);
+  guard.position.set(-0.9, -0.1, 0); tagRole(guard, 'accent'); g.add(guard);
+  const stock = makeBox(2.4, 0.55, 0.5, woodMat); stock.position.set(-3.0, 0.4, 0); g.add(stock);
+  const stockLower = makeBox(1.8, 0.35, 0.5, woodMat);
+  stockLower.position.set(-3.3, 0.0, 0); stockLower.rotation.z = -0.1; g.add(stockLower);
+  const stockPad = makeBox(0.2, 0.85, 0.45, getMaterial(0x14141a, 'metal'));
+  stockPad.position.set(-4.25, 0.3, 0); tagRole(stockPad, 'accent'); g.add(stockPad);
+  const selector = makeBox(0.6, 0.1, 0.08, getMaterial(0x14141a, 'metal'));
+  selector.position.set(0.5, 0.5, 0.3); tagRole(selector, 'accent'); g.add(selector);
+  const rearSight = makeBox(0.3, 0.2, 0.45, getMaterial(0x14141a, 'metal'));
+  rearSight.position.set(0.0, 0.85, 0); tagRole(rearSight, 'accent'); g.add(rearSight);
+  const dustCover = makeBox(1.8, 0.15, 0.45, mat); dustCover.position.set(0, 0.85, 0); g.add(dustCover);
   return g;
 }
 
 function buildRifle(skin, type) {
-  // type: 'bulldog', 'guardian', 'phantom', 'vandal'
+  switch (type) {
+    case 'bulldog': return buildBulldog(skin);
+    case 'guardian': return buildGuardian(skin);
+    case 'phantom': return buildPhantom(skin);
+    case 'vandal': return buildVandal(skin);
+    default: return buildVandal(skin);
+  }
+}
+
+// MARSHAL — Lee-Enfield bolt-action with wooden full-length stock
+function buildMarshal(skin) {
   const g = new THREE.Group();
   const mat = getMaterial(skin.color, skin.mat);
-  // Body (receiver)
-  const body = makeBox(4.5, 0.85, 0.6, mat);
-  body.position.set(0, 0.25, 0);
-  g.add(body);
-  // Barrel
-  const barrelLen = type === 'guardian' ? 3.2 : (type === 'vandal' ? 2.8 : 2.5);
-  const barrel = makeCyl(0.16, 0.16, barrelLen, 16, mat);
-  barrel.rotation.z = Math.PI / 2;
-  barrel.position.set(2.2 + barrelLen / 2 - 1.25, 0.35, 0);
-  g.add(barrel);
-  // Phantom: suppressor
-  if (type === 'phantom') {
-    const supp = makeCyl(0.22, 0.22, 1.3, 16, mat);
-    supp.rotation.z = Math.PI / 2;
-    supp.position.set(barrel.position.x + barrelLen / 2 + 0.65, 0.35, 0);
-    g.add(supp);
-    // Suppressor ridges
-    for (let i = 0; i < 4; i++) {
-      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.23, 0.03, 6, 12), getMaterial(0x141414, 'metal'));
-      ring.rotation.y = Math.PI / 2;
-      ring.position.set(barrel.position.x + barrelLen / 2 + 0.15 + i * 0.32, 0.35, 0);
-      tagRole(ring, 'accent');
-      g.add(ring);
-    }
+  const woodMat = (skin.id === 'default') ? getMaterial(0x5a3818, 'wood') : mat;
+  const stockMain = makeBox(6.5, 0.7, 0.6, woodMat); stockMain.position.set(0, 0.3, 0); g.add(stockMain);
+  const stockExt = makeBox(2.0, 0.35, 0.55, woodMat); stockExt.position.set(-2.8, -0.1, 0); g.add(stockExt);
+  const barrel = makeCyl(0.14, 0.14, 3.5, 16, mat);
+  barrel.rotation.z = Math.PI / 2; barrel.position.set(2.5, 0.5, 0); g.add(barrel);
+  const fSight = makeBox(0.06, 0.25, 0.1, getMaterial(0x14141a, 'metal'));
+  fSight.position.set(4.0, 0.78, 0); tagRole(fSight, 'accent'); g.add(fSight);
+  const boltLeg = makeCyl(0.07, 0.07, 0.5, 8, getMaterial(0x14141a, 'metal'));
+  boltLeg.position.set(0.8, 0.5, 0.45); tagRole(boltLeg, 'accent'); g.add(boltLeg);
+  const boltKnob = makeSphere(0.15, 12, getMaterial(0x14141a, 'metal'));
+  boltKnob.position.set(0.8, 0.5, 0.85); tagRole(boltKnob, 'accent'); g.add(boltKnob);
+  const boltBody = makeCyl(0.12, 0.12, 0.6, 10, getMaterial(0x14141a, 'metal'));
+  boltBody.rotation.z = Math.PI / 2; boltBody.position.set(0.8, 0.5, 0.35);
+  tagRole(boltBody, 'accent'); g.add(boltBody);
+  makeScope(0.0, 1.05, 0, 1.8, 0.2, 0.3, mat, g);
+  const mag = makeBox(0.4, 0.7, 0.45, getMaterial(0x141414, 'metal'));
+  mag.position.set(-0.5, -0.1, 0); tagRole(mag, 'accent'); g.add(mag);
+  const guard = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.05, 4, 10, Math.PI * 0.9), getMaterial(0x14141a, 'metal'));
+  guard.rotation.set(0, 0, Math.PI - 0.3);
+  guard.position.set(-0.9, -0.05, 0); tagRole(guard, 'accent'); g.add(guard);
+  const trigger = makeBox(0.08, 0.25, 0.05, getMaterial(0x14141a, 'metal'));
+  trigger.position.set(-0.9, -0.1, 0); tagRole(trigger, 'accent'); g.add(trigger);
+  const swivelF = new THREE.Mesh(new THREE.TorusGeometry(0.08, 0.02, 6, 12), getMaterial(0x14141a, 'metal'));
+  swivelF.position.set(2.5, 0.0, 0); tagRole(swivelF, 'accent'); g.add(swivelF);
+  const swivelR = swivelF.clone(); swivelR.position.set(-3.5, -0.2, 0); g.add(swivelR);
+  const guardBand = makeBox(0.6, 0.15, 0.5, getMaterial(0xc0a060, 'metal'));
+  guardBand.position.set(-1.0, -0.4, 0); tagRole(guardBand, 'accent'); g.add(guardBand);
+  return g;
+}
+
+// OUTLAW — Double-barrel break-action sniper (Drilling-style)
+function buildOutlaw(skin) {
+  const g = new THREE.Group();
+  const mat = getMaterial(skin.color, skin.mat);
+  const woodMat = getMaterial(0x4a2810, 'wood');
+  const receiver = makeBox(2.5, 0.9, 0.7, mat); receiver.position.set(-0.5, 0.4, 0); g.add(receiver);
+  const barrel1 = makeCyl(0.13, 0.13, 4.0, 16, mat);
+  barrel1.rotation.z = Math.PI / 2; barrel1.position.set(2.5, 0.5, -0.18); g.add(barrel1);
+  const barrel2 = makeCyl(0.13, 0.13, 4.0, 16, mat);
+  barrel2.rotation.z = Math.PI / 2; barrel2.position.set(2.5, 0.5, 0.18); g.add(barrel2);
+  const rib = makeBox(4.0, 0.08, 0.45, mat); rib.position.set(2.5, 0.65, 0); g.add(rib);
+  const fSight = makeBox(0.06, 0.2, 0.4, getMaterial(0x14141a, 'metal'));
+  fSight.position.set(4.4, 0.85, 0); tagRole(fSight, 'accent'); g.add(fSight);
+  const hinge = makeCyl(0.18, 0.18, 0.75, 12, getMaterial(0x14141a, 'metal'));
+  hinge.rotation.x = Math.PI / 2; hinge.position.set(0.8, 0.2, 0);
+  tagRole(hinge, 'accent'); g.add(hinge);
+  makeScope(-0.3, 1.0, 0, 1.7, 0.22, 0.32, mat, g);
+  const grip = makeBox(0.6, 1.4, 0.55, woodMat);
+  grip.position.set(-1.5, -0.4, 0); grip.rotation.z = 0.2; tagRole(grip, 'grip'); g.add(grip);
+  const guard = new THREE.Mesh(new THREE.TorusGeometry(0.32, 0.05, 4, 10, Math.PI * 0.9), getMaterial(0x14141a, 'metal'));
+  guard.rotation.set(0, 0, Math.PI - 0.3);
+  guard.position.set(-1.1, -0.15, 0); tagRole(guard, 'accent'); g.add(guard);
+  for (const ty of [-0.1, -0.3]) {
+    const trigger = makeBox(0.08, 0.2, 0.05, getMaterial(0x14141a, 'metal'));
+    trigger.position.set(-1.1, ty, 0); tagRole(trigger, 'accent'); g.add(trigger);
   }
-  // Vandal: muzzle brake
-  if (type === 'vandal') {
-    const brake = makeCyl(0.2, 0.2, 0.5, 12, getMaterial(0x14141a, 'metal'));
-    brake.rotation.z = Math.PI / 2;
-    brake.position.set(barrel.position.x + barrelLen / 2 + 0.25, 0.35, 0);
-    tagRole(brake, 'accent');
-    g.add(brake);
-    // Brake slits
-    for (let i = 0; i < 3; i++) {
-      const slit = makeBox(0.4, 0.06, 0.25, getMaterial(0x000000, 'metal'));
-      slit.position.set(barrel.position.x + barrelLen / 2 + 0.25, 0.5, -0.1 + i * 0.1);
-      g.add(slit);
-    }
+  const lever = makeBox(0.7, 0.08, 0.2, getMaterial(0x14141a, 'metal'));
+  lever.position.set(-0.7, 0.9, 0); tagRole(lever, 'accent'); g.add(lever);
+  const stock = makeBox(2.6, 0.7, 0.55, woodMat); stock.position.set(-2.7, 0.3, 0); g.add(stock);
+  const stockPad = makeBox(0.22, 0.95, 0.5, getMaterial(0x14141a, 'metal'));
+  stockPad.position.set(-4.0, 0.3, 0); tagRole(stockPad, 'accent'); g.add(stockPad);
+  const cheek = makeBox(2.0, 0.2, 0.5, getMaterial(0x14141a, 'metal'));
+  cheek.position.set(-2.6, 0.75, 0); tagRole(cheek, 'accent'); g.add(cheek);
+  return g;
+}
+
+// OPERATOR — AWP-style (thumbhole stock, huge scope, bipod, fluted barrel)
+function buildOperator(skin) {
+  const g = new THREE.Group();
+  const mat = getMaterial(skin.color, skin.mat);
+  const receiver = makeBox(5.0, 0.85, 0.6, mat); receiver.position.set(0, 0.4, 0); g.add(receiver);
+  const barrel = makeCyl(0.17, 0.17, 4.5, 16, mat);
+  barrel.rotation.z = Math.PI / 2; barrel.position.set(3.2, 0.5, 0); g.add(barrel);
+  for (let i = 0; i < 6; i++) {
+    const ang = (i / 6) * Math.PI * 2;
+    const flute = makeBox(4.5, 0.04, 0.04, getMaterial(0x000000, 'metal'));
+    flute.rotation.z = Math.PI / 2;
+    flute.position.set(3.2, 0.5 + Math.cos(ang) * 0.14, Math.sin(ang) * 0.14);
+    tagRole(flute, 'accent'); g.add(flute);
   }
-  // Magazine
-  const magType = type === 'guardian' ? 'short' : 'long';
-  const magH = magType === 'short' ? 1.2 : 1.5;
-  const mag = makeBox(0.5, magH, 0.5, getMaterial(0x141414, 'metal'));
-  mag.position.set(-0.4, -0.5 - magH / 2 + 0.5, 0);
-  mag.rotation.z = -0.05;
-  tagRole(mag, 'accent');
-  g.add(mag);
-  // Magazine well
-  const magWell = makeBox(0.6, 0.4, 0.55, mat);
-  magWell.position.set(-0.4, -0.1, 0);
-  g.add(magWell);
-  // Grip
-  const grip = makeBox(0.6, 1.3, 0.55, mat);
-  grip.position.set(-1.0, -0.6, 0);
-  grip.rotation.z = 0.15;
-  tagRole(grip, 'grip');
-  g.add(grip);
-  // Trigger guard
-  const guard = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.06, 4, 8, Math.PI), getMaterial(0x14141a, 'metal'));
-  guard.rotation.set(0, 0, Math.PI);
-  guard.position.set(-0.75, -0.25, 0);
-  tagRole(guard, 'accent');
-  g.add(guard);
-  // Stock
-  const stock = makeBox(1.8, 0.5, 0.45, mat);
-  stock.position.set(-3.0, 0.1, 0);
-  g.add(stock);
-  // Stock cheek riser
-  const cheek = makeBox(1.4, 0.2, 0.45, getMaterial(0x14141a, 'metal'));
-  cheek.position.set(-2.9, 0.45, 0);
-  tagRole(cheek, 'accent');
-  g.add(cheek);
-  // Stock pad
-  const stockPad = makeBox(0.2, 0.7, 0.4, getMaterial(0x14141a, 'metal'));
-  stockPad.position.set(-3.95, 0.1, 0);
-  tagRole(stockPad, 'accent');
-  g.add(stockPad);
-  // Top rail
-  const rail = makeBox(3.5, 0.1, 0.3, getMaterial(0x14141a, 'metal'));
-  rail.position.set(0.2, 0.75, 0);
-  tagRole(rail, 'accent');
-  g.add(rail);
-  // ADS sight (red dot or iron sights)
-  const sight = makeBox(0.5, 0.4, 0.35, getMaterial(0x14141a, 'metal'));
-  sight.position.set(0.2, 1.0, 0);
-  tagRole(sight, 'accent');
-  g.add(sight);
-  // Sight lens
-  const lens = makeCyl(0.14, 0.14, 0.4, 12, new THREE.MeshStandardMaterial({ color: 0xff3232, emissive: 0xff3232, emissiveIntensity: 1.0 }));
-  lens.rotation.z = Math.PI / 2;
-  lens.position.set(0.2, 1.0, 0);
-  g.add(lens);
-  // Foregrip (Phantom/Vandal)
-  if (type === 'phantom' || type === 'vandal') {
-    const foregrip = makeBox(1.5, 0.5, 0.5, mat);
-    foregrip.position.set(1.5, 0, 0);
-    g.add(foregrip);
+  const brake = makeCyl(0.28, 0.28, 0.7, 12, getMaterial(0x14141a, 'metal'));
+  brake.rotation.z = Math.PI / 2; brake.position.set(5.7, 0.5, 0);
+  tagRole(brake, 'accent'); g.add(brake);
+  for (let i = 0; i < 4; i++) {
+    const ventV = makeBox(0.7, 0.06, 0.4, getMaterial(0x000000, 'metal'));
+    ventV.position.set(5.7, 0.7, -0.15 + i * 0.1); tagRole(ventV, 'accent'); g.add(ventV);
   }
+  makeScope(-0.5, 1.15, 0, 2.8, 0.38, 0.5, mat, g, { large: true });
+  const mag = makeBox(0.55, 1.0, 0.5, getMaterial(0x141414, 'metal'));
+  mag.position.set(-0.5, -0.25, 0); tagRole(mag, 'accent'); g.add(mag);
+  const boltLeg = makeCyl(0.08, 0.08, 0.6, 8, getMaterial(0x14141a, 'metal'));
+  boltLeg.position.set(0.7, 0.5, 0.5); tagRole(boltLeg, 'accent'); g.add(boltLeg);
+  const boltKnob = makeSphere(0.2, 14, getMaterial(0x14141a, 'metal'));
+  boltKnob.position.set(0.7, 0.5, 0.95); tagRole(boltKnob, 'accent'); g.add(boltKnob);
+  const stockMain = makeBox(2.5, 0.7, 0.5, mat); stockMain.position.set(-3.2, 0.3, 0); g.add(stockMain);
+  const thumbholeR = makeBox(0.4, 0.4, 0.5, mat);
+  thumbholeR.position.set(-1.9, -0.05, 0); g.add(thumbholeR);
+  const pistolGrip = makeBox(0.6, 1.2, 0.55, mat);
+  pistolGrip.position.set(-1.7, -0.4, 0); pistolGrip.rotation.z = 0.2;
+  tagRole(pistolGrip, 'grip'); g.add(pistolGrip);
+  const cheek = makeBox(1.6, 0.3, 0.45, getMaterial(0x14141a, 'metal'));
+  cheek.position.set(-3.2, 0.7, 0); tagRole(cheek, 'accent'); g.add(cheek);
+  const stockPad = makeBox(0.25, 1.0, 0.5, getMaterial(0x14141a, 'metal'));
+  stockPad.position.set(-4.55, 0.3, 0); tagRole(stockPad, 'accent'); g.add(stockPad);
+  const guard = new THREE.Mesh(new THREE.TorusGeometry(0.32, 0.05, 4, 10, Math.PI * 0.9), getMaterial(0x14141a, 'metal'));
+  guard.rotation.set(0, 0, Math.PI - 0.3);
+  guard.position.set(-1.3, -0.15, 0); tagRole(guard, 'accent'); g.add(guard);
+  for (const side of [-1, 1]) {
+    const leg = makeBox(0.1, 1.0, 0.1, getMaterial(0x14141a, 'metal'));
+    leg.position.set(2.5 + side * 0.2, -0.3, 0);
+    leg.rotation.z = side * 0.5; tagRole(leg, 'accent'); g.add(leg);
+    const foot = makeBox(0.25, 0.1, 0.25, getMaterial(0x000000, 'metal'));
+    foot.position.set(2.5 + side * 0.6, -0.75, 0); tagRole(foot, 'accent'); g.add(foot);
+  }
+  const bipodMount = makeBox(0.4, 0.15, 0.4, getMaterial(0x14141a, 'metal'));
+  bipodMount.position.set(2.5, 0.2, 0); tagRole(bipodMount, 'accent'); g.add(bipodMount);
   return g;
 }
 
 function buildSniper(skin, type) {
-  // type: 'marshal', 'outlaw', 'operator'
+  switch (type) {
+    case 'marshal': return buildMarshal(skin);
+    case 'outlaw': return buildOutlaw(skin);
+    case 'operator': return buildOperator(skin);
+    default: return buildMarshal(skin);
+  }
+}
+
+// ARES — M249 SAW (carry handle, box mag, heat shield)
+function buildAres(skin) {
   const g = new THREE.Group();
   const mat = getMaterial(skin.color, skin.mat);
-  // Long body
-  const bodyLen = type === 'operator' ? 5.5 : (type === 'outlaw' ? 5.0 : 4.5);
-  const body = makeBox(bodyLen, 0.7, 0.55, mat);
-  body.position.set(0, 0.2, 0);
-  g.add(body);
-  // Long barrel(s)
-  if (type === 'outlaw') {
-    // Double-barrel sniper
-    const barrel1 = makeCyl(0.13, 0.13, 3.5, 16, mat);
-    barrel1.rotation.z = Math.PI / 2;
-    barrel1.position.set(2.5, 0.4, -0.18);
-    g.add(barrel1);
-    const barrel2 = makeCyl(0.13, 0.13, 3.5, 16, mat);
-    barrel2.rotation.z = Math.PI / 2;
-    barrel2.position.set(2.5, 0.4, 0.18);
-    g.add(barrel2);
-  } else {
-    const barrel = makeCyl(0.16, 0.16, 4, 16, mat);
-    barrel.rotation.z = Math.PI / 2;
-    barrel.position.set(2.5, 0.4, 0);
-    g.add(barrel);
-    // Muzzle brake
-    const brake = makeCyl(0.22, 0.22, 0.6, 12, getMaterial(0x14141a, 'metal'));
-    brake.rotation.z = Math.PI / 2;
-    brake.position.set(4.7, 0.4, 0);
-    tagRole(brake, 'accent');
-    g.add(brake);
+  const receiver = makeBox(4.5, 0.95, 0.65, mat); receiver.position.set(0, 0.3, 0); g.add(receiver);
+  const handleBase1 = makeBox(0.15, 0.4, 0.5, getMaterial(0x14141a, 'metal'));
+  handleBase1.position.set(0.5, 1.0, 0); tagRole(handleBase1, 'accent'); g.add(handleBase1);
+  const handleBase2 = makeBox(0.15, 0.4, 0.5, getMaterial(0x14141a, 'metal'));
+  handleBase2.position.set(-0.5, 1.0, 0); tagRole(handleBase2, 'accent'); g.add(handleBase2);
+  const handleTop = makeBox(1.2, 0.12, 0.4, getMaterial(0x14141a, 'metal'));
+  handleTop.position.set(0, 1.25, 0); tagRole(handleTop, 'accent'); g.add(handleTop);
+  const barrel = makeCyl(0.16, 0.16, 3.5, 16, mat);
+  barrel.rotation.z = Math.PI / 2; barrel.position.set(3.0, 0.5, 0); g.add(barrel);
+  const heatShield = makeCyl(0.32, 0.32, 2.5, 14, getMaterial(0x14141a, 'metal'));
+  heatShield.rotation.z = Math.PI / 2; heatShield.position.set(2.5, 0.5, 0);
+  tagRole(heatShield, 'accent'); g.add(heatShield);
+  for (let i = 0; i < 6; i++) {
+    const ventV = new THREE.Mesh(new THREE.TorusGeometry(0.33, 0.04, 6, 12), getMaterial(0x000000, 'metal'));
+    ventV.rotation.y = Math.PI / 2;
+    ventV.position.set(1.4 + i * 0.35, 0.5, 0); tagRole(ventV, 'accent'); g.add(ventV);
   }
-  // SCOPE — large (this is what makes snipers look distinct)
-  const scopeLen = type === 'operator' ? 2.5 : 1.8;
-  const scopeR = type === 'operator' ? 0.32 : 0.25;
-  const scope = makeCyl(scopeR, scopeR, scopeLen, 16, mat);
-  scope.rotation.z = Math.PI / 2;
-  scope.position.set(-0.2, 1.0, 0);
-  g.add(scope);
-  // Scope front lens (large)
-  const frontLens = makeCyl(scopeR + 0.05, scopeR + 0.05, 0.15, 16, new THREE.MeshStandardMaterial({ color: 0x506a8c, transparent: true, opacity: 0.7, emissive: 0x6080a0, emissiveIntensity: 0.3 }));
-  frontLens.rotation.z = Math.PI / 2;
-  frontLens.position.set(-0.2 + scopeLen / 2 + 0.08, 1.0, 0);
-  g.add(frontLens);
-  // Scope rear lens (smaller)
-  const rearLens = makeCyl(scopeR, scopeR, 0.15, 12, new THREE.MeshStandardMaterial({ color: 0x141420, emissive: 0x141420 }));
-  rearLens.rotation.z = Math.PI / 2;
-  rearLens.position.set(-0.2 - scopeLen / 2 - 0.08, 1.0, 0);
-  g.add(rearLens);
-  // Scope rings (mounting)
-  const scopeRing1 = new THREE.Mesh(new THREE.TorusGeometry(scopeR + 0.05, 0.08, 8, 16), getMaterial(0x14141a, 'metal'));
-  scopeRing1.rotation.y = Math.PI / 2;
-  scopeRing1.position.set(-0.7, 1.0, 0);
-  tagRole(scopeRing1, 'accent');
-  g.add(scopeRing1);
-  const scopeRing2 = scopeRing1.clone();
-  scopeRing2.position.set(0.3, 1.0, 0);
-  g.add(scopeRing2);
-  // Scope turrets (top + side)
-  const turret = makeCyl(0.1, 0.1, 0.3, 12, getMaterial(0x14141a, 'metal'));
-  turret.position.set(-0.2, 1.3, 0);
-  tagRole(turret, 'accent');
-  g.add(turret);
-  // Magazine
-  const mag = makeBox(0.5, 1.2, 0.45, getMaterial(0x141414, 'metal'));
-  mag.position.set(-0.6, -0.5, 0);
-  tagRole(mag, 'accent');
-  g.add(mag);
-  // Bolt handle (visible on right side)
-  const bolt = makeCyl(0.06, 0.06, 0.5, 8, getMaterial(0x14141a, 'metal'));
-  bolt.position.set(0.5, 0.4, 0.45);
-  tagRole(bolt, 'accent');
-  g.add(bolt);
-  const boltKnob = makeSphere(0.13, 12, getMaterial(0x14141a, 'metal'));
-  boltKnob.position.set(0.5, 0.4, 0.75);
-  tagRole(boltKnob, 'accent');
-  g.add(boltKnob);
-  // Grip
-  const grip = makeBox(0.55, 1.2, 0.5, mat);
-  grip.position.set(-1.5, -0.5, 0);
-  grip.rotation.z = 0.18;
-  tagRole(grip, 'grip');
-  g.add(grip);
-  // Stock
-  const stock = makeBox(2.2, 0.55, 0.45, mat);
-  stock.position.set(-3.5, 0.05, 0);
-  g.add(stock);
-  // Cheek pad
-  const cheek = makeBox(1.6, 0.25, 0.45, getMaterial(0x14141a, 'metal'));
-  cheek.position.set(-3.4, 0.45, 0);
-  tagRole(cheek, 'accent');
-  g.add(cheek);
-  // Stock pad
-  const stockPad = makeBox(0.2, 0.8, 0.4, getMaterial(0x14141a, 'metal'));
-  stockPad.position.set(-4.6, 0.05, 0);
-  tagRole(stockPad, 'accent');
-  g.add(stockPad);
-  // Bipod (Operator)
-  if (type === 'operator') {
-    for (const side of [-1, 1]) {
-      const leg = makeBox(0.08, 0.8, 0.08, getMaterial(0x14141a, 'metal'));
-      leg.position.set(1.8 + side * 0.15, -0.3, 0);
-      leg.rotation.z = side * 0.4;
-      tagRole(leg, 'accent');
-      g.add(leg);
-    }
+  const flash = makeCyl(0.22, 0.22, 0.5, 8, getMaterial(0x000000, 'metal'));
+  flash.rotation.z = Math.PI / 2; flash.position.set(5.0, 0.5, 0);
+  tagRole(flash, 'accent'); g.add(flash);
+  const boxMag = makeBox(1.1, 0.85, 0.6, getMaterial(0x141414, 'metal'));
+  boxMag.position.set(0.2, -0.55, 0); tagRole(boxMag, 'accent'); g.add(boxMag);
+  const beltLink = makeBox(0.4, 0.2, 0.55, getMaterial(0xdcaf32, 'metal'));
+  beltLink.position.set(0.6, -0.05, 0); tagRole(beltLink, 'accent'); g.add(beltLink);
+  for (const side of [-1, 1]) {
+    const leg = makeBox(0.1, 1.1, 0.1, getMaterial(0x14141a, 'metal'));
+    leg.position.set(2.5 + side * 0.2, -0.5, 0);
+    leg.rotation.z = side * 0.5; tagRole(leg, 'accent'); g.add(leg);
   }
+  const foregrip = makeBox(0.55, 0.9, 0.55, mat);
+  foregrip.position.set(1.6, -0.45, 0); foregrip.rotation.z = 0.1;
+  tagRole(foregrip, 'grip'); g.add(foregrip);
+  makeErgGrip(-1.4, -0.4, 0, 1.3, mat, g, 0.2);
+  const guard = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.05, 4, 10, Math.PI * 0.9), getMaterial(0x14141a, 'metal'));
+  guard.rotation.set(0, 0, Math.PI - 0.3);
+  guard.position.set(-1.0, -0.05, 0); tagRole(guard, 'accent'); g.add(guard);
+  const stockTop = makeBox(2.0, 0.08, 0.08, getMaterial(0x14141a, 'metal'));
+  stockTop.position.set(-3.0, 0.5, 0.15); tagRole(stockTop, 'accent'); g.add(stockTop);
+  const stockBot = makeBox(2.0, 0.08, 0.08, getMaterial(0x14141a, 'metal'));
+  stockBot.position.set(-3.0, 0.15, 0.15); tagRole(stockBot, 'accent'); g.add(stockBot);
+  const stockTop2 = stockTop.clone(); stockTop2.position.z = -0.15; g.add(stockTop2);
+  const stockBot2 = stockBot.clone(); stockBot2.position.z = -0.15; g.add(stockBot2);
+  const stockPad = makeBox(0.2, 0.9, 0.5, getMaterial(0x14141a, 'metal'));
+  stockPad.position.set(-4.0, 0.3, 0); tagRole(stockPad, 'accent'); g.add(stockPad);
+  return g;
+}
+
+// ODIN — PKM (belt-fed, drum, wooden stock)
+function buildOdin(skin) {
+  const g = new THREE.Group();
+  const mat = getMaterial(skin.color, skin.mat);
+  const receiver = makeBox(5.0, 1.0, 0.7, mat); receiver.position.set(0, 0.3, 0); g.add(receiver);
+  const barrel = makeCyl(0.18, 0.18, 3.8, 16, mat);
+  barrel.rotation.z = Math.PI / 2; barrel.position.set(3.5, 0.5, 0); g.add(barrel);
+  const shroud = makeCyl(0.35, 0.35, 3.0, 14, getMaterial(0x14141a, 'metal'));
+  shroud.rotation.z = Math.PI / 2; shroud.position.set(3.0, 0.5, 0);
+  tagRole(shroud, 'accent'); g.add(shroud);
+  for (let i = 0; i < 8; i++) {
+    const rib = new THREE.Mesh(new THREE.TorusGeometry(0.36, 0.03, 6, 14), getMaterial(0x000000, 'metal'));
+    rib.rotation.y = Math.PI / 2;
+    rib.position.set(1.6 + i * 0.35, 0.5, 0); tagRole(rib, 'accent'); g.add(rib);
+  }
+  const brake = makeCyl(0.26, 0.26, 0.7, 8, getMaterial(0x000000, 'metal'));
+  brake.rotation.z = Math.PI / 2; brake.position.set(5.7, 0.5, 0);
+  tagRole(brake, 'accent'); g.add(brake);
+  for (let i = 0; i < 6; i++) {
+    const slit = makeBox(0.7, 0.05, 0.22, getMaterial(0x000000, 'metal'));
+    slit.position.set(5.7, 0.75, -0.15 + i * 0.06); tagRole(slit, 'accent'); g.add(slit);
+  }
+  const drum = makeCyl(0.95, 0.95, 0.75, 24, getMaterial(0x141414, 'metal'));
+  drum.rotation.x = Math.PI / 2; drum.position.set(0.2, -0.7, 0); tagRole(drum, 'accent'); g.add(drum);
+  const drumFace = makeCyl(0.5, 0.5, 0.8, 20, mat);
+  drumFace.rotation.x = Math.PI / 2; drumFace.position.set(0.2, -0.7, 0); g.add(drumFace);
+  for (let i = 0; i < 6; i++) {
+    const bullet = makeCyl(0.07, 0.07, 0.2, 8, getMaterial(0xdcaf32, 'metal'));
+    bullet.rotation.x = Math.PI / 2;
+    bullet.position.set(0.4 + i * 0.1, -0.1 + i * 0.04, 0.4);
+    tagRole(bullet, 'accent'); g.add(bullet);
+  }
+  const rail = makeBox(3.5, 0.1, 0.4, getMaterial(0x000000, 'metal'));
+  rail.position.set(0, 0.9, 0); tagRole(rail, 'accent'); g.add(rail);
+  const sight = makeBox(0.45, 0.5, 0.42, getMaterial(0x14141a, 'metal'));
+  sight.position.set(0, 1.15, 0); tagRole(sight, 'accent'); g.add(sight);
+  const lens = makeCyl(0.17, 0.17, 0.45, 12, new THREE.MeshStandardMaterial({ color: 0xff3232, emissive: 0xff3232, emissiveIntensity: 1.5 }));
+  lens.rotation.z = Math.PI / 2; lens.position.set(0, 1.15, 0); g.add(lens);
+  for (const side of [-1, 1]) {
+    const leg = makeBox(0.12, 1.2, 0.12, getMaterial(0x14141a, 'metal'));
+    leg.position.set(2.0 + side * 0.25, -0.45, 0);
+    leg.rotation.z = side * 0.5; tagRole(leg, 'accent'); g.add(leg);
+    const foot = makeBox(0.3, 0.12, 0.3, getMaterial(0x000000, 'metal'));
+    foot.position.set(2.0 + side * 0.7, -1.0, 0); tagRole(foot, 'accent'); g.add(foot);
+  }
+  const foregrip = makeBox(0.6, 1.1, 0.55, mat);
+  foregrip.position.set(0.8, -0.45, 0); foregrip.rotation.z = 0.1;
+  tagRole(foregrip, 'grip'); g.add(foregrip);
+  makeErgGrip(-1.4, -0.4, 0, 1.4, mat, g, 0.2);
+  const guard = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.05, 4, 10, Math.PI * 0.9), getMaterial(0x14141a, 'metal'));
+  guard.rotation.set(0, 0, Math.PI - 0.3);
+  guard.position.set(-1.0, -0.05, 0); tagRole(guard, 'accent'); g.add(guard);
+  const woodMat = getMaterial(0x5a3818, 'wood');
+  const stock = makeBox(2.5, 0.7, 0.55, woodMat); stock.position.set(-3.2, 0.3, 0); g.add(stock);
+  const stockPad = makeBox(0.25, 0.95, 0.5, getMaterial(0x14141a, 'metal'));
+  stockPad.position.set(-4.55, 0.3, 0); tagRole(stockPad, 'accent'); g.add(stockPad);
   return g;
 }
 
 function buildLMG(skin, type) {
-  const g = new THREE.Group();
-  const mat = getMaterial(skin.color, skin.mat);
-  // Body
-  const bodyLen = type === 'odin' ? 5.5 : 5.0;
-  const body = makeBox(bodyLen, 0.95, 0.65, mat);
-  body.position.set(0, 0.2, 0);
-  g.add(body);
-  // Long heavy barrel
-  const barrel = makeCyl(0.18, 0.18, 3.2, 16, mat);
-  barrel.rotation.z = Math.PI / 2;
-  barrel.position.set(2.5, 0.4, 0);
-  g.add(barrel);
-  // Barrel shroud (vented heat-shield)
-  const shroud = makeCyl(0.32, 0.32, 2.0, 16, getMaterial(0x141414, 'metal'));
-  shroud.rotation.z = Math.PI / 2;
-  shroud.position.set(2.0, 0.4, 0);
-  tagRole(shroud, 'accent');
-  g.add(shroud);
-  // Vent holes (visible rings)
-  for (let i = 0; i < 5; i++) {
-    const vent = new THREE.Mesh(new THREE.TorusGeometry(0.33, 0.04, 6, 12), getMaterial(0x000000, 'metal'));
-    vent.rotation.y = Math.PI / 2;
-    vent.position.set(1.2 + i * 0.4, 0.4, 0);
-    g.add(vent);
-  }
-  // Huge drum magazine
-  const drumR = type === 'odin' ? 0.9 : 0.7;
-  const drum = makeCyl(drumR, drumR, 0.7, 24, getMaterial(0x141414, 'metal'));
-  drum.rotation.x = Math.PI / 2;
-  drum.position.set(0, -0.7, 0);
-  tagRole(drum, 'accent');
-  g.add(drum);
-  // Drum face logo / capacity ring
-  const drumFace = makeCyl(drumR - 0.15, drumR - 0.15, 0.75, 20, mat);
-  drumFace.rotation.x = Math.PI / 2;
-  drumFace.position.set(0, -0.7, 0);
-  g.add(drumFace);
-  // Top rail + iron sight
-  const rail = makeBox(3, 0.1, 0.4, getMaterial(0x14141a, 'metal'));
-  rail.position.set(-0.2, 0.8, 0);
-  tagRole(rail, 'accent');
-  g.add(rail);
-  const sight = makeBox(0.4, 0.5, 0.4, getMaterial(0x14141a, 'metal'));
-  sight.position.set(0, 1.1, 0);
-  tagRole(sight, 'accent');
-  g.add(sight);
-  const lens = makeCyl(0.16, 0.16, 0.4, 12, new THREE.MeshStandardMaterial({ color: 0xff3232, emissive: 0xff3232, emissiveIntensity: 1.0 }));
-  lens.rotation.z = Math.PI / 2;
-  lens.position.set(0, 1.1, 0);
-  g.add(lens);
-  // Bipod (heavy LMG)
-  for (const side of [-1, 1]) {
-    const leg = makeBox(0.1, 1, 0.1, getMaterial(0x14141a, 'metal'));
-    leg.position.set(2.0 + side * 0.2, -0.4, 0);
-    leg.rotation.z = side * 0.4;
-    tagRole(leg, 'accent');
-    g.add(leg);
-  }
-  // Foregrip
-  const foregrip = makeBox(0.55, 1.1, 0.55, mat);
-  foregrip.position.set(0.8, -0.5, 0);
-  foregrip.rotation.z = 0.1;
-  tagRole(foregrip, 'grip');
-  g.add(foregrip);
-  // Trigger grip
-  const trigger = makeBox(0.55, 1.2, 0.55, mat);
-  trigger.position.set(-1.2, -0.5, 0);
-  trigger.rotation.z = 0.18;
-  tagRole(trigger, 'grip');
-  g.add(trigger);
-  // Trigger guard
-  const guard = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.06, 4, 8, Math.PI), getMaterial(0x14141a, 'metal'));
-  guard.rotation.set(0, 0, Math.PI);
-  guard.position.set(-1.0, -0.2, 0);
-  tagRole(guard, 'accent');
-  g.add(guard);
-  // Heavy stock
-  const stock = makeBox(2.0, 0.6, 0.5, mat);
-  stock.position.set(-3.2, 0.1, 0);
-  g.add(stock);
-  const stockPad = makeBox(0.25, 0.9, 0.45, getMaterial(0x14141a, 'metal'));
-  stockPad.position.set(-4.3, 0.1, 0);
-  tagRole(stockPad, 'accent');
-  g.add(stockPad);
-  return g;
+  return type === 'odin' ? buildOdin(skin) : buildAres(skin);
 }
 
+// KNIFE — Karambit (CURVED blade with finger ring)
 function buildKnife(skin) {
   const g = new THREE.Group();
   const bladeMat = getMaterial(skin.color, skin.mat);
-  // Blade (long flat box, tapered with cone tip)
-  const blade = makeBox(2.5, 0.3, 0.08, bladeMat);
-  blade.position.set(0.5, 0.3, 0);
-  g.add(blade);
-  // Edge highlight (bottom edge slightly darker)
-  const edge = makeBox(2.5, 0.05, 0.09, getMaterial(0xefefef, 'metal'));
-  edge.position.set(0.5, 0.16, 0);
-  tagRole(edge, 'accent');
-  g.add(edge);
-  // Tip cone
-  const tip = makeCone(0.15, 0.5, 6, bladeMat);
-  tip.rotation.z = -Math.PI / 2;
-  tip.position.set(1.95, 0.3, 0);
+  // Smooth karambit curve — many overlapping thin segments along an arc
+  const segments = 14;
+  const radius = 2.2;
+  const cx = -0.6, cy = -1.0;  // arc center
+  for (let i = 0; i < segments; i++) {
+    const t = i / (segments - 1);
+    const ang = Math.PI * 0.62 - t * Math.PI * 0.52;  // arc sweep
+    const bladeWidth = 0.55 - t * 0.32;  // taper toward tip
+    const seg = makeBox(0.34, bladeWidth, 0.07, bladeMat);
+    seg.position.set(cx + Math.cos(ang) * radius, cy + Math.sin(ang) * radius + 0.5, 0);
+    seg.rotation.z = ang + Math.PI / 2;
+    g.add(seg);
+    // Sharp edge (outer side, lighter)
+    const edge = makeBox(0.34, 0.07, 0.08, getMaterial(0xefefef, 'metal'));
+    edge.position.set(cx + Math.cos(ang) * (radius + bladeWidth * 0.42), cy + Math.sin(ang) * (radius + bladeWidth * 0.42) + 0.5, 0);
+    edge.rotation.z = ang + Math.PI / 2;
+    tagRole(edge, 'accent');
+    g.add(edge);
+  }
+  // Sharp point at tip end
+  const tipAng = Math.PI * 0.1;
+  const tip = makeCone(0.13, 0.45, 6, bladeMat);
+  tip.position.set(cx + Math.cos(tipAng) * radius, cy + Math.sin(tipAng) * radius + 0.5, 0);
+  tip.rotation.z = tipAng - Math.PI / 2;
   g.add(tip);
-  // Hilt (handle base) — crossguard
-  const guard = makeBox(0.2, 0.6, 0.3, getMaterial(0x14141a, 'metal'));
-  guard.position.set(-0.85, 0.3, 0);
-  tagRole(guard, 'accent');
-  g.add(guard);
-  // Grip
-  const grip = makeBox(1.3, 0.4, 0.3, getMaterial(0x1a1410, 'wood'));
-  grip.position.set(-1.6, 0.3, 0);
-  tagRole(grip, 'grip');
-  g.add(grip);
-  // Grip wraps (3 leather bands)
-  for (let i = 0; i < 3; i++) {
-    const wrap = makeBox(0.15, 0.42, 0.32, getMaterial(0x14141a, 'metal'));
-    wrap.position.set(-2.1 + i * 0.4, 0.3, 0);
+  const handle = makeBox(1.4, 0.5, 0.4, getMaterial(0x1a1410, 'wood'));
+  handle.position.set(-1.5, 0.3, 0);
+  tagRole(handle, 'grip');
+  g.add(handle);
+  for (let i = 0; i < 5; i++) {
+    const wrap = makeBox(0.15, 0.55, 0.42, getMaterial(0x000000, 'metal'));
+    wrap.position.set(-2.05 + i * 0.27, 0.3, 0);
     tagRole(wrap, 'accent');
     g.add(wrap);
   }
-  // Pommel (end cap)
-  const pommel = makeBox(0.25, 0.5, 0.35, getMaterial(0x14141a, 'metal'));
-  pommel.position.set(-2.3, 0.3, 0);
-  tagRole(pommel, 'accent');
-  g.add(pommel);
+  const ring = new THREE.Mesh(
+    new THREE.TorusGeometry(0.35, 0.08, 12, 24),
+    getMaterial(0x14141a, 'metal')
+  );
+  ring.rotation.y = Math.PI / 2;
+  ring.position.set(-2.5, 0.3, 0);
+  tagRole(ring, 'accent');
+  g.add(ring);
+  const spur = makeBox(0.1, 0.25, 0.4, getMaterial(0x14141a, 'metal'));
+  spur.position.set(-0.7, 0.55, 0);
+  spur.rotation.z = 0.3;
+  tagRole(spur, 'accent');
+  g.add(spur);
+  for (let i = 0; i < 4; i++) {
+    const jimp = makeBox(0.04, 0.04, 0.4, getMaterial(0x000000, 'metal'));
+    jimp.position.set(-0.5 + i * 0.12, 0.62, 0);
+    tagRole(jimp, 'accent');
+    g.add(jimp);
+  }
   return g;
 }
+
 
 // ===== WEAPON DISPATCH =====
 function buildWeapon(name, skin) {
